@@ -360,7 +360,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function navItem(section, label) {
     return [
       '<button type="button" class="' + (state.section === section ? "active" : "") + '" data-section="' + text(section) + '">',
-      '<i></i><span>' + text(label) + '</span>',
+      icon(section),
+      '<span>' + text(label) + '</span>',
       '</button>'
     ].join("");
   }
@@ -422,14 +423,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-filter-row wt-flow-filter-row">',
       '<span class="wt-event-count">' + text(rangeEvents.length) + ' Events</span>',
       '<span class="wt-flow-divider"></span>',
-      '<label class="wt-search wt-flow-search"><span></span><input data-calendar-search type="search" value="' + text(state.search) + '" placeholder="Search"></label>',
+      '<label class="wt-search wt-flow-search"><span class="wt-search-icon">' + icon("search") + '</span><input data-calendar-search type="search" value="' + text(state.search) + '" placeholder="Search"></label>',
       renderFlowFilter("Season", SEASONS, "season", state.season),
       renderFlowDivisionFilter(),
-      '<button class="wt-deadline-toggle wt-flow-pill ' + (state.deadlineOnly ? "active" : "") + '" type="button" data-deadline-toggle>Deadline</button>',
+      '<button class="wt-deadline-toggle wt-flow-pill ' + (state.deadlineOnly ? "active" : "") + '" type="button" data-deadline-toggle>' + icon("flag") + '<span>Deadline</span></button>',
       '</div>',
       '<div class="wt-action-buttons wt-flow-actions">',
-      '<button type="button" data-export title="Export current range" aria-label="Export"></button>',
-      '<button type="button" data-view="edit">Create</button>',
+      '<button type="button" data-export title="Export current range" aria-label="Export">' + icon("download") + '</button>',
+      '<button type="button" data-view="edit">' + icon("plus") + '<span>Create</span></button>',
       '</div>',
       '<div class="wt-range-row wt-flow-range-row">',
       '<div class="wt-range-title"><strong>' + text(formatRange(range)) + '</strong></div>',
@@ -437,9 +438,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       renderPicker("View", calendarViewLabel(state.calendarView), CALENDAR_VIEWS, "calendar-view", state.calendarView),
       renderPicker("Range", periodLabel(state.period), PERIODS, "period", state.period),
       '<div class="wt-week-controls">',
-      '<button type="button" data-week-shift="-1" aria-label="Previous"></button>',
+      '<button type="button" data-week-shift="-1" aria-label="Previous">' + icon("chevron-left") + '</button>',
       '<button type="button" data-today>Today</button>',
-      '<button type="button" data-week-shift="1" aria-label="Next"></button>',
+      '<button type="button" data-week-shift="1" aria-label="Next">' + icon("chevron-right") + '</button>',
       '</div>',
       '</div>',
       '</div>',
@@ -490,6 +491,23 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function filterButton(type, value, active) {
     return '<button class="' + (active ? "active" : "") + '" type="button" data-' + text(type) + '="' + text(value) + '">' + text(value) + '</button>';
+  }
+
+  function icon(name) {
+    var paths = {
+      dashboard: '<rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect>',
+      creation: '<path d="M15 5l4 4"></path><path d="M13.5 6.5l4 4L7 21H3v-4L13.5 6.5z"></path><path d="M16 3l5 5"></path>',
+      calendar: '<rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M8 2v4"></path><path d="M16 2v4"></path><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path>',
+      libraries: '<path d="M4 19.5V5.75A2.75 2.75 0 0 1 6.75 3H20v16H6.75A2.75 2.75 0 0 0 4 21.75"></path><path d="M8 7h8"></path><path d="M8 11h6"></path>',
+      search: '<circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path>',
+      flag: '<path d="M5 21V4"></path><path d="M5 4h12l-1.5 4L17 12H5"></path>',
+      download: '<path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M4 21h16"></path>',
+      plus: '<path d="M12 5v14"></path><path d="M5 12h14"></path>',
+      "chevron-left": '<path d="M15 18l-6-6 6-6"></path>',
+      "chevron-right": '<path d="M9 18l6-6-6-6"></path>'
+    };
+    var body = paths[name] || paths.dashboard;
+    return '<svg class="wt-icon wt-icon-' + text(name) + '" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + body + '</svg>';
   }
 
   function renderCalendarBoard(compact) {
