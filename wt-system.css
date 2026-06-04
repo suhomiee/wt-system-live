@@ -1,4 +1,25 @@
 @font-face {
+  font-family: "Helvetica Now Text";
+  src:
+    local("Helvetica Now Text"),
+    local("HelveticaNowText");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Helvetica Now Display";
+  src:
+    local("Helvetica Now Display"),
+    local("HelveticaNowDisplay"),
+    local("HelveticaNowDisplayMedium");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
   font-family: "Geist Variable";
   src:
     local("Geist Variable"),
@@ -38,8 +59,8 @@
   --blue: #416a9b;
   --green: #5f8757;
   --red: #b86b5b;
-  --font-text: "Geist Variable", "Helvetica Neue", "Apple SD Gothic Neo", Helvetica, Arial, sans-serif;
-  --font-display: "Geist Variable", "Helvetica Neue", "Apple SD Gothic Neo", Helvetica, Arial, sans-serif;
+  --font-text: "Helvetica Now Text", "Geist Variable", "Helvetica Neue", "Apple SD Gothic Neo", Helvetica, Arial, sans-serif;
+  --font-display: "Helvetica Now Display", "Helvetica Now Text", "Geist Variable", "Helvetica Neue", "Apple SD Gothic Neo", Helvetica, Arial, sans-serif;
   min-height: 100dvh;
   color: var(--ink);
   font-family: var(--font-text);
