@@ -35,7 +35,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   var OPS_EVENTS = [
     {
       id: "OPS-001",
-      date: "2026-06-01",
+      date: "2026-06-05",
+      endDate: "2026-06-05",
       title: "FA26 Seasonal FOB Confirmation Complete",
       kind: "deadline",
       division: "Footwear",
@@ -46,8 +47,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     },
     {
       id: "OPS-002",
-      date: "2026-06-02",
-      title: "SP27 Buy Review",
+      date: "2026-05-18",
+      endDate: "2026-06-12",
+      title: "Buy Review (BR)",
       kind: "review",
       division: "Code Spine",
       season: "SP27",
@@ -57,7 +59,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     },
     {
       id: "OPS-003",
-      date: "2026-06-03",
+      date: "2026-06-01",
+      endDate: "2026-06-01",
       title: "Midsole/Outsole & Packaging Pricing Available",
       kind: "shipping",
       division: "Footwear",
@@ -69,6 +72,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     {
       id: "OPS-004",
       date: "2026-06-04",
+      endDate: "2026-06-04",
       title: "AI report scan: wear-test PDF batch",
       kind: "report",
       division: "AKE Branded",
@@ -79,7 +83,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     },
     {
       id: "OPS-005",
-      date: "2026-06-05",
+      date: "2026-06-02",
+      endDate: "2026-06-02",
       title: "Upper material pricing available",
       kind: "sample",
       division: "Footwear",
@@ -91,12 +96,73 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     {
       id: "OPS-006",
       date: "2026-06-07",
+      endDate: "2026-06-07",
       title: "Courier dispatch to evaluator group",
       kind: "shipping",
       division: "AKE Branded",
       season: "HO27",
       owner: "Logistics",
       time: "16:00",
+      source: "operations"
+    },
+    {
+      id: "OPS-007",
+      date: "2026-06-05",
+      endDate: "2026-06-05",
+      title: "QS Broadcast",
+      kind: "sample",
+      division: "Footwear",
+      season: "SP27",
+      owner: "FPT",
+      time: "10:30",
+      source: "operations"
+    },
+    {
+      id: "OPS-008",
+      date: "2026-06-05",
+      endDate: "2026-06-05",
+      title: "Week 43 (Round #3) Pre GGP Product Tech Outs",
+      kind: "sample",
+      division: "Footwear",
+      season: "SU27",
+      owner: "GGP",
+      time: "12:00",
+      source: "operations"
+    },
+    {
+      id: "OPS-009",
+      date: "2026-05-04",
+      endDate: "2026-06-05",
+      title: "Global Consumer Alignment (GCA)",
+      kind: "review",
+      division: "Code Spine",
+      season: "FA27",
+      owner: "Creation",
+      time: "",
+      source: "operations"
+    },
+    {
+      id: "OPS-010",
+      date: "2026-06-05",
+      endDate: "2026-06-05",
+      title: "(GGP)- FLYKNIT- KC provides KNIT $ Quotes",
+      kind: "sample",
+      division: "Footwear",
+      season: "FA27",
+      owner: "GGP",
+      time: "",
+      source: "operations"
+    },
+    {
+      id: "OPS-011",
+      date: "2026-06-06",
+      endDate: "2026-06-06",
+      title: "HO27 Product Review",
+      kind: "review",
+      division: "Footwear",
+      season: "HO27",
+      owner: "Creation",
+      time: "",
       source: "operations"
     }
   ];
@@ -281,13 +347,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderSidebar() {
-    var range = currentRange();
-    var rangeEvents = eventsForCurrentRange();
     return [
       '<aside class="wt-sidebar" aria-label="WT System navigation">',
       '<div class="wt-brand">',
-      '<span>WT</span>',
-      '<div><b>WT SYSTEM</b><small>Calendar OS</small></div>',
+      '<span class="wt-brand-mark">WT</span>',
+      '<div><b>WT_Flow</b></div>',
       '</div>',
       '<nav class="wt-primary-nav" aria-label="Primary">',
       navItem("dashboard", "Dashboard"),
@@ -295,18 +359,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       navItem("calendar", "Calendar"),
       navItem("libraries", "Libraries"),
       '</nav>',
-      '<div class="wt-side-card wt-side-date">',
-      '<div><small>Live range</small><b>' + text(formatRange(range)) + '</b></div>',
-      '<span data-clock>--:--</span>',
-      '</div>',
-      renderMiniMonth("2026-06"),
-      '<button class="wt-create" type="button" data-view="edit"><span></span>Create Deadline</button>',
-      '<div class="wt-side-status">',
-      '<p><b>' + text(rangeEvents.length) + '</b><span>visible events</span></p>',
-      '<p><b>' + text(countKind(rangeEvents, "deadline") + countKind(rangeEvents, "handoff")) + '</b><span>deadline</span></p>',
-      '<p><b>' + text(selectedDivisions().length) + '</b><span>divisions</span></p>',
-      '</div>',
-      '<button class="wt-projector" type="button" data-section="dashboard">Projector View</button>',
+      '<button class="wt-side-collapse" type="button" aria-label="Close side navigation menu"></button>',
       '</aside>'
     ].join("");
   }
@@ -331,19 +384,15 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderToolbar() {
-    var rangeEvents = eventsForCurrentRange();
     return [
-      '<header class="wt-toolbar">',
-      '<div class="wt-title-block">',
-      '<small>WT Operations</small>',
-      '<h1>' + text(sectionTitle()) + '</h1>',
+      '<header class="wt-toolbar wt-flow-topbar">',
+      '<div></div>',
+      '<div class="wt-flow-breadcrumb">' + text(sectionTitle()) + '</div>',
+      '<div class="wt-flow-account">',
+      '<button type="button" title="Help Menu" aria-label="Help Menu">?</button>',
+      '<button type="button" title="Notifications" aria-label="Notifications"></button>',
+      '<button type="button" title="User Menu" aria-label="Open user menu">LP</button>',
       '</div>',
-      '<div class="wt-toolbar-metrics">',
-      '<span><b>' + text(rangeEvents.length) + '</b> Events</span>',
-      '<span><b>' + text(countKind(rangeEvents, "deadline") + countKind(rangeEvents, "handoff")) + '</b> Deadline</span>',
-      '<span><b>' + text(selectedDivisions().length) + '</b> Division</span>',
-      '</div>',
-      '<button class="wt-toolbar-create" type="button" data-view="edit">Create</button>',
       '</header>'
     ].join("");
   }
@@ -364,11 +413,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderCalendarWorkspace() {
     return [
-      '<section class="wt-calendar-page">',
+      '<section class="wt-calendar-page wt-flow-calendar-page">',
+      '<header class="wt-flow-page-head">',
+      '<div class="wt-flow-heading"><span class="wt-calendar-icon"></span><h1>Calendar</h1></div>',
+      '<button class="wt-flow-close" type="button" aria-label="Close calendar and return to home"></button>',
+      '</header>',
       renderCalendarControls(),
-      '<div class="wt-calendar-layout">',
+      '<div class="wt-calendar-layout wt-flow-calendar-layout">',
       renderCalendarBoard(false),
-      renderInspector(),
       '</div>',
       '</section>'
     ].join("");
@@ -376,31 +428,25 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderCalendarControls() {
     var range = currentRange();
+    var rangeEvents = eventsForCurrentRange();
     return [
-      '<section class="wt-control-strip" aria-label="Calendar filters">',
-      '<div class="wt-filter-row">',
-      '<label class="wt-search"><span>Search</span><input data-calendar-search type="search" value="' + text(state.search) + '" placeholder="Search schedule"></label>',
-      '<div class="wt-filter-group">',
-      '<small>Season</small>',
-      '<div>' + SEASONS.map(function (season) {
-        return filterButton("season", season, state.season === season);
-      }).join("") + '</div>',
+      '<section class="wt-control-strip wt-flow-control-strip" aria-label="Calendar filters">',
+      '<div class="wt-filter-row wt-flow-filter-row">',
+      '<span class="wt-event-count">' + text(rangeEvents.length) + ' Events</span>',
+      '<span class="wt-flow-divider"></span>',
+      '<label class="wt-search wt-flow-search"><span></span><input data-calendar-search type="search" value="' + text(state.search) + '" placeholder="Search"></label>',
+      renderFlowFilter("Season", SEASONS, "season", state.season),
+      renderFlowDivisionFilter(),
+      '<button class="wt-deadline-toggle wt-flow-pill ' + (state.deadlineOnly ? "active" : "") + '" type="button" data-deadline-toggle>Deadline</button>',
       '</div>',
-      '<div class="wt-filter-group wt-division-group">',
-      '<small>Division (' + text(selectedDivisions().length) + ')</small>',
-      '<div>' + DEFAULT_DIVISIONS.map(function (division) {
-        return filterButton("division", division, !!state.selectedDivisions[division]);
-      }).join("") + '</div>',
-      '</div>',
-      '<button class="wt-deadline-toggle ' + (state.deadlineOnly ? "active" : "") + '" type="button" data-deadline-toggle>Deadline</button>',
-      '<div class="wt-action-buttons">',
-      '<button type="button" data-export title="Export current range">Export</button>',
+      '<div class="wt-action-buttons wt-flow-actions">',
+      '<button type="button" data-export title="Export current range" aria-label="Export"></button>',
       '<button type="button" data-view="edit">Create</button>',
-      '<button type="button" data-assistant title="Ask AI Assistant">AI</button>',
+      '<button type="button" data-assistant title="Ask AI Assistant" aria-label="Ask AI Assistant"></button>',
       '</div>',
-      '</div>',
-      '<div class="wt-range-row">',
-      '<div class="wt-range-title"><small>' + text(periodLabel(state.period)) + '</small><strong>' + text(formatRange(range)) + '</strong></div>',
+      '<div class="wt-range-row wt-flow-range-row">',
+      '<div class="wt-range-title"><strong>' + text(formatRange(range)) + '</strong></div>',
+      '<div class="wt-flow-view-controls">',
       renderPicker("View", calendarViewLabel(state.calendarView), CALENDAR_VIEWS, "calendar-view", state.calendarView),
       renderPicker("Range", periodLabel(state.period), PERIODS, "period", state.period),
       '<div class="wt-week-controls">',
@@ -409,9 +455,36 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<button type="button" data-week-shift="1" aria-label="Next"></button>',
       '</div>',
       '</div>',
+      '</div>',
       state.search ? '<div class="wt-filter-note">Search: <b>' + text(state.search) + '</b><button type="button" data-clear-search>Clear</button></div>' : "",
       state.actionMessage ? '<div class="wt-action-message">' + text(state.actionMessage) + '</div>' : "",
       '</section>'
+    ].join("");
+  }
+
+  function renderFlowFilter(label, options, dataName, activeValue) {
+    return [
+      '<details class="wt-flow-filter">',
+      '<summary class="wt-flow-pill">' + text(label) + '</summary>',
+      '<div class="wt-picker-menu">',
+      options.map(function (option) {
+        return '<button class="' + (option === activeValue ? "active" : "") + '" type="button" data-' + text(dataName) + '="' + text(option) + '">' + text(option) + '</button>';
+      }).join(""),
+      '</div>',
+      '</details>'
+    ].join("");
+  }
+
+  function renderFlowDivisionFilter() {
+    return [
+      '<details class="wt-flow-filter">',
+      '<summary class="wt-flow-pill active">Division (' + text(selectedDivisions().length) + ')</summary>',
+      '<div class="wt-picker-menu">',
+      DEFAULT_DIVISIONS.map(function (division) {
+        return '<button class="' + (state.selectedDivisions[division] ? "active" : "") + '" type="button" data-division="' + text(division) + '">' + text(division) + '</button>';
+      }).join(""),
+      '</div>',
+      '</details>'
     ].join("");
   }
 
@@ -443,39 +516,108 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var range = currentRange();
     var units = timelineUnits(range);
     var events = eventsForCurrentRange();
-    var maxRows = compact ? 12 : 34;
+    var lanes = timelineLanes(events);
     return [
-      '<section class="wt-timeline-board ' + (compact ? "compact" : "") + '" aria-label="Timeline calendar">',
+      '<section class="wt-timeline-board wt-flow-timeline-board ' + (compact ? "compact" : "") + '" aria-label="Timeline calendar">',
       '<div class="wt-timeline-head" style="--wt-cols:' + text(units.length) + '">',
+      '<span class="wt-timeline-corner"></span>',
       units.map(function (unit) {
-        return '<span><b>' + text(unit.label) + '</b><small>' + text(unit.caption) + '</small></span>';
+        return '<span class="' + (unitHasToday(unit) ? "today" : "") + '"><b>' + text(unit.label) + '</b><small>' + text(unit.caption) + '</small></span>';
       }).join(""),
       '</div>',
       '<div class="wt-timeline-body">',
-      events.length ? events.slice(0, maxRows).map(function (event) {
-        return renderTimelineRow(event, units);
+      lanes.length ? lanes.map(function (lane) {
+        return renderTimelineLane(lane, units, compact);
       }).join("") : renderEmptyBoard("No events in this range."),
-      events.length > maxRows ? '<div class="wt-board-more">+' + text(events.length - maxRows) + ' more events in filters</div>' : "",
       '</div>',
       '</section>'
     ].join("");
   }
 
-  function renderTimelineRow(event, units) {
-    var position = eventUnitPosition(event, units);
+  function renderTimelineLane(lane, units, compact) {
+    var rows = assignLaneRows(lane.events, units);
+    var rowCount = Math.max(1, rows.length);
     return [
-      '<article class="wt-timeline-row">',
-      '<button type="button" class="wt-timeline-meta" data-date="' + text(event.date) + '">',
-      '<small>' + text(formatDateShort(event.date)) + '</small><b>' + text(event.season || event.division || "WT") + '</b>',
-      '</button>',
-      '<div class="wt-timeline-track" style="--wt-cols:' + text(units.length) + '">',
-      '<button type="button" class="wt-timeline-bar wt-kind-' + text(event.kind) + '" data-date="' + text(event.date) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '">',
-      '<b>' + text(event.title) + '</b>',
-      '<span>' + text(event.division || "WT") + ' · ' + text(event.gate || event.owner || event.kind) + '</span>',
-      '</button>',
+      '<article class="wt-timeline-lane" style="--wt-lane-rows:' + text(rowCount) + '">',
+      '<div class="wt-timeline-meta"><b>' + text(lane.label) + '</b></div>',
+      '<div class="wt-timeline-track" style="--wt-cols:' + text(units.length) + '; --wt-lane-rows:' + text(rowCount) + '">',
+      lane.events.map(function (event) {
+        var position = eventUnitPosition(event, units);
+        var row = event.__laneRow || 1;
+        return renderTimelineEvent(event, position, row, compact);
+      }).join(""),
       '</div>',
       '</article>'
     ].join("");
+  }
+
+  function renderTimelineEvent(event, position, row, compact) {
+    return [
+      '<button type="button" class="wt-timeline-bar ' + text(eventAccentClass(event)) + ' wt-kind-' + text(event.kind) + '" data-date="' + text(event.date) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '; --wt-event-row:' + text(row) + '">',
+      '<b>' + text(shortTitle(event.title, compact ? 34 : 54)) + '</b>',
+      '<span>' + text(event.division || event.owner || "WT") + '</span>',
+      '</button>'
+    ].join("");
+  }
+
+  function timelineLanes(events) {
+    var grouped = {};
+    events.forEach(function (event) {
+      var label = event.season || "All";
+      if (!grouped[label]) grouped[label] = [];
+      grouped[label].push(event);
+    });
+    return Object.keys(grouped).sort(compareSeasonLabels).map(function (label) {
+      return {
+        label: label,
+        events: grouped[label].sort(function (a, b) {
+          return (a.date + (a.endDate || a.date) + a.title).localeCompare(b.date + (b.endDate || b.date) + b.title);
+        })
+      };
+    });
+  }
+
+  function assignLaneRows(events, units) {
+    var rowEnds = [];
+    events.forEach(function (event) {
+      var position = eventUnitPosition(event, units);
+      var placed = false;
+      for (var i = 0; i < rowEnds.length; i += 1) {
+        if (position.start > rowEnds[i]) {
+          event.__laneRow = i + 1;
+          rowEnds[i] = position.start + position.span - 1;
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) {
+        rowEnds.push(position.start + position.span - 1);
+        event.__laneRow = rowEnds.length;
+      }
+    });
+    return rowEnds;
+  }
+
+  function compareSeasonLabels(a, b) {
+    var order = ["FA26", "SP27", "SU27", "FA27", "HO27", "SP28", "All"];
+    var ai = order.indexOf(a);
+    var bi = order.indexOf(b);
+    if (ai >= 0 || bi >= 0) return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
+    return a.localeCompare(b);
+  }
+
+  function eventAccentClass(event) {
+    if (event.division === "Code Spine") return "wt-accent-code-spine";
+    if (event.division === "Footwear") return "wt-accent-footwear";
+    if (event.division === "AKE Branded") return "wt-accent-ake";
+    if (event.kind === "holiday") return "wt-accent-holiday";
+    return "wt-accent-default";
+  }
+
+  function shortTitle(value, maxLength) {
+    var stringValue = String(value || "");
+    if (stringValue.length <= maxLength) return stringValue;
+    return stringValue.slice(0, maxLength - 3).replace(/\s+\S*$/, "") + "...";
   }
 
   function renderGanttBoard(compact) {
@@ -1351,6 +1493,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       }
     }
     return { start: startIndex + 1, span: Math.max(1, endIndex - startIndex + 1) };
+  }
+
+  function unitHasToday(unit) {
+    var todayIso = toIso(new Date());
+    return unit.start <= todayIso && unit.end >= todayIso;
   }
 
   function daysBetween(startIso, endIso) {
