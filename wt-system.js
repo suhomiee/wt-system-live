@@ -15,6 +15,20 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   var DEFAULT_SELECTED_DATE = "2026-06-03";
   var DEFAULT_DIVISIONS = ["Code Spine", "AKE Branded", "Footwear"];
   var SEASONS = ["All", "SU27", "HO27", "SP28", "FA27"];
+  var CALENDAR_VIEWS = [
+    { id: "timeline", label: "Timeline View" },
+    { id: "gantt", label: "Gantt" },
+    { id: "list", label: "List" },
+    { id: "season-grid", label: "Season Grid" }
+  ];
+  var PERIODS = [
+    { id: "week", label: "1 week" },
+    { id: "multi-week", label: "Multi-week" },
+    { id: "month", label: "Month" },
+    { id: "multi-month", label: "Multi-month" },
+    { id: "quarter", label: "Quarter" },
+    { id: "season", label: "Season" }
+  ];
 
   var EMBEDDED = window.WT_SYSTEM_EMBEDDED || { milestones: [], holidays: [] };
 
@@ -90,8 +104,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   var state = {
     section: "calendar",
     view: "display",
+    calendarView: "timeline",
+    period: "week",
     weekStart: DEFAULT_WEEK_START,
     selectedDate: DEFAULT_SELECTED_DATE,
+    search: "",
+    deadlineOnly: false,
+    actionMessage: "",
     season: "All",
     selectedDivisions: {
       "Code Spine": true,
@@ -120,6 +139,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var todayButton = event.target.closest("[data-today]");
       var seasonButton = event.target.closest("[data-season]");
       var divisionButton = event.target.closest("[data-division]");
+      var calendarViewButton = event.target.closest("[data-calendar-view]");
+      var periodButton = event.target.closest("[data-period]");
+      var deadlineButton = event.target.closest("[data-deadline-toggle]");
+      var exportButton = event.target.closest("[data-export]");
+      var assistantButton = event.target.closest("[data-assistant]");
+      var clearSearchButton = event.target.closest("[data-clear-search]");
 
       if (sectionButton && root.contains(sectionButton)) {
         state.section = sectionButton.getAttribute("data-section");
@@ -139,15 +164,48 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       }
 
       if (weekButton && root.contains(weekButton)) {
-        state.weekStart = toIso(addDays(fromIso(state.weekStart), Number(weekButton.getAttribute("data-week-shift"))));
-        state.selectedDate = state.weekStart;
+        moveRange(Number(weekButton.getAttribute("data-week-shift")));
+        state.selectedDate = currentRange().start;
         render(root);
       }
 
       if (todayButton && root.contains(todayButton)) {
-        var today = startOfWeek(new Date());
-        state.weekStart = toIso(today);
-        state.selectedDate = toIso(new Date());
+        var todayIso = toIso(new Date());
+        state.weekStart = periodAnchor(todayIso, state.period);
+        state.selectedDate = todayIso;
+        render(root);
+      }
+
+      if (calendarViewButton && root.contains(calendarViewButton)) {
+        state.calendarView = calendarViewButton.getAttribute("data-calendar-view");
+        state.actionMessage = "";
+        render(root);
+      }
+
+      if (periodButton && root.contains(periodButton)) {
+        state.period = periodButton.getAttribute("data-period");
+        state.weekStart = periodAnchor(state.selectedDate, state.period);
+        state.actionMessage = "";
+        render(root);
+      }
+
+      if (deadlineButton && root.contains(deadlineButton)) {
+        state.deadlineOnly = !state.deadlineOnly;
+        state.actionMessage = state.deadlineOnly ? "Deadline filter is on." : "";
+        render(root);
+      }
+
+      if (exportButton && root.contains(exportButton)) {
+        exportCurrentRange(root);
+      }
+
+      if (assistantButton && root.contains(assistantButton)) {
+        state.actionMessage = "AI assistant ready: use this range for report file analysis and deadline risk review.";
+        render(root);
+      }
+
+      if (clearSearchButton && root.contains(clearSearchButton)) {
+        state.search = "";
         render(root);
       }
 
@@ -159,6 +217,18 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       if (divisionButton && root.contains(divisionButton)) {
         toggleDivision(divisionButton.getAttribute("data-division"));
         render(root);
+      }
+    });
+
+    root.addEventListener("input", function (event) {
+      var searchInput = event.target.closest("[data-calendar-search]");
+      if (!searchInput || !root.contains(searchInput)) return;
+      state.search = searchInput.value;
+      render(root);
+      var nextInput = root.querySelector("[data-calendar-search]");
+      if (nextInput) {
+        nextInput.focus();
+        nextInput.setSelectionRange(state.search.length, state.search.length);
       }
     });
 
@@ -211,7 +281,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderSidebar() {
-    var weekEvents = filteredEventsForRange(state.weekStart, addDaysIso(state.weekStart, 6));
+    var range = currentRange();
+    var rangeEvents = eventsForCurrentRange();
     return [
       '<aside class="wt-sidebar" aria-label="WT System navigation">',
       '<div class="wt-brand">',
@@ -225,14 +296,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       navItem("libraries", "Libraries"),
       '</nav>',
       '<div class="wt-side-card wt-side-date">',
-      '<div><small>Live week</small><b>' + text(formatWeekRange(state.weekStart)) + '</b></div>',
+      '<div><small>Live range</small><b>' + text(formatRange(range)) + '</b></div>',
       '<span data-clock>--:--</span>',
       '</div>',
       renderMiniMonth("2026-06"),
       '<button class="wt-create" type="button" data-view="edit"><span></span>Create Deadline</button>',
       '<div class="wt-side-status">',
-      '<p><b>' + text(weekEvents.length) + '</b><span>visible events</span></p>',
-      '<p><b>' + text(countKind(weekEvents, "deadline")) + '</b><span>deadline</span></p>',
+      '<p><b>' + text(rangeEvents.length) + '</b><span>visible events</span></p>',
+      '<p><b>' + text(countKind(rangeEvents, "deadline") + countKind(rangeEvents, "handoff")) + '</b><span>deadline</span></p>',
       '<p><b>' + text(selectedDivisions().length) + '</b><span>divisions</span></p>',
       '</div>',
       '<button class="wt-projector" type="button" data-section="dashboard">Projector View</button>',
@@ -260,7 +331,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderToolbar() {
-    var weekEvents = filteredEventsForRange(state.weekStart, addDaysIso(state.weekStart, 6));
+    var rangeEvents = eventsForCurrentRange();
     return [
       '<header class="wt-toolbar">',
       '<div class="wt-title-block">',
@@ -268,8 +339,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<h1>' + text(sectionTitle()) + '</h1>',
       '</div>',
       '<div class="wt-toolbar-metrics">',
-      '<span><b>' + text(weekEvents.length) + '</b> Events</span>',
-      '<span><b>' + text(countKind(weekEvents, "deadline")) + '</b> Deadline</span>',
+      '<span><b>' + text(rangeEvents.length) + '</b> Events</span>',
+      '<span><b>' + text(countKind(rangeEvents, "deadline") + countKind(rangeEvents, "handoff")) + '</b> Deadline</span>',
       '<span><b>' + text(selectedDivisions().length) + '</b> Division</span>',
       '</div>',
       '<button class="wt-toolbar-create" type="button" data-view="edit">Create</button>',
@@ -296,7 +367,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<section class="wt-calendar-page">',
       renderCalendarControls(),
       '<div class="wt-calendar-layout">',
-      renderWeekBoard(false),
+      renderCalendarBoard(false),
       renderInspector(),
       '</div>',
       '</section>'
@@ -304,8 +375,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderCalendarControls() {
+    var range = currentRange();
     return [
       '<section class="wt-control-strip" aria-label="Calendar filters">',
+      '<div class="wt-filter-row">',
+      '<label class="wt-search"><span>Search</span><input data-calendar-search type="search" value="' + text(state.search) + '" placeholder="Search schedule"></label>',
       '<div class="wt-filter-group">',
       '<small>Season</small>',
       '<div>' + SEASONS.map(function (season) {
@@ -318,20 +392,191 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         return filterButton("division", division, !!state.selectedDivisions[division]);
       }).join("") + '</div>',
       '</div>',
-      '<div class="wt-week-controls">',
-      '<button type="button" data-week-shift="-7" aria-label="Previous week"></button>',
-      '<strong>' + text(formatWeekRange(state.weekStart)) + '</strong>',
-      '<button type="button" data-week-shift="7" aria-label="Next week"></button>',
-      '<button type="button" data-today>Today</button>',
-      '<span>Timeline View</span>',
-      '<span>1 week</span>',
+      '<button class="wt-deadline-toggle ' + (state.deadlineOnly ? "active" : "") + '" type="button" data-deadline-toggle>Deadline</button>',
+      '<div class="wt-action-buttons">',
+      '<button type="button" data-export title="Export current range">Export</button>',
+      '<button type="button" data-view="edit">Create</button>',
+      '<button type="button" data-assistant title="Ask AI Assistant">AI</button>',
       '</div>',
+      '</div>',
+      '<div class="wt-range-row">',
+      '<div class="wt-range-title"><small>' + text(periodLabel(state.period)) + '</small><strong>' + text(formatRange(range)) + '</strong></div>',
+      renderPicker("View", calendarViewLabel(state.calendarView), CALENDAR_VIEWS, "calendar-view", state.calendarView),
+      renderPicker("Range", periodLabel(state.period), PERIODS, "period", state.period),
+      '<div class="wt-week-controls">',
+      '<button type="button" data-week-shift="-1" aria-label="Previous"></button>',
+      '<button type="button" data-today>Today</button>',
+      '<button type="button" data-week-shift="1" aria-label="Next"></button>',
+      '</div>',
+      '</div>',
+      state.search ? '<div class="wt-filter-note">Search: <b>' + text(state.search) + '</b><button type="button" data-clear-search>Clear</button></div>' : "",
+      state.actionMessage ? '<div class="wt-action-message">' + text(state.actionMessage) + '</div>' : "",
       '</section>'
+    ].join("");
+  }
+
+  function renderPicker(label, value, options, dataName, activeValue) {
+    return [
+      '<details class="wt-picker">',
+      '<summary><small>' + text(label) + '</small><b>' + text(value) + '</b></summary>',
+      '<div class="wt-picker-menu">',
+      options.map(function (option) {
+        return '<button class="' + (option.id === activeValue ? "active" : "") + '" type="button" data-' + text(dataName) + '="' + text(option.id) + '">' + text(option.label) + '</button>';
+      }).join(""),
+      '</div>',
+      '</details>'
     ].join("");
   }
 
   function filterButton(type, value, active) {
     return '<button class="' + (active ? "active" : "") + '" type="button" data-' + text(type) + '="' + text(value) + '">' + text(value) + '</button>';
+  }
+
+  function renderCalendarBoard(compact) {
+    if (state.calendarView === "gantt") return renderGanttBoard(compact);
+    if (state.calendarView === "list") return renderListBoard(compact);
+    if (state.calendarView === "season-grid") return renderSeasonGridBoard(compact);
+    return renderTimelineBoard(compact);
+  }
+
+  function renderTimelineBoard(compact) {
+    var range = currentRange();
+    var units = timelineUnits(range);
+    var events = eventsForCurrentRange();
+    var maxRows = compact ? 12 : 34;
+    return [
+      '<section class="wt-timeline-board ' + (compact ? "compact" : "") + '" aria-label="Timeline calendar">',
+      '<div class="wt-timeline-head" style="--wt-cols:' + text(units.length) + '">',
+      units.map(function (unit) {
+        return '<span><b>' + text(unit.label) + '</b><small>' + text(unit.caption) + '</small></span>';
+      }).join(""),
+      '</div>',
+      '<div class="wt-timeline-body">',
+      events.length ? events.slice(0, maxRows).map(function (event) {
+        return renderTimelineRow(event, units);
+      }).join("") : renderEmptyBoard("No events in this range."),
+      events.length > maxRows ? '<div class="wt-board-more">+' + text(events.length - maxRows) + ' more events in filters</div>' : "",
+      '</div>',
+      '</section>'
+    ].join("");
+  }
+
+  function renderTimelineRow(event, units) {
+    var position = eventUnitPosition(event, units);
+    return [
+      '<article class="wt-timeline-row">',
+      '<button type="button" class="wt-timeline-meta" data-date="' + text(event.date) + '">',
+      '<small>' + text(formatDateShort(event.date)) + '</small><b>' + text(event.season || event.division || "WT") + '</b>',
+      '</button>',
+      '<div class="wt-timeline-track" style="--wt-cols:' + text(units.length) + '">',
+      '<button type="button" class="wt-timeline-bar wt-kind-' + text(event.kind) + '" data-date="' + text(event.date) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '">',
+      '<b>' + text(event.title) + '</b>',
+      '<span>' + text(event.division || "WT") + ' · ' + text(event.gate || event.owner || event.kind) + '</span>',
+      '</button>',
+      '</div>',
+      '</article>'
+    ].join("");
+  }
+
+  function renderGanttBoard(compact) {
+    var range = currentRange();
+    var units = timelineUnits(range);
+    var events = eventsForCurrentRange();
+    var groups = unique(events.map(function (event) { return event.season || "All"; })).slice(0, compact ? 5 : 8);
+    return [
+      '<section class="wt-gantt-board ' + (compact ? "compact" : "") + '" aria-label="Gantt calendar">',
+      '<div class="wt-timeline-head" style="--wt-cols:' + text(units.length) + '">',
+      units.map(function (unit) {
+        return '<span><b>' + text(unit.label) + '</b><small>' + text(unit.caption) + '</small></span>';
+      }).join(""),
+      '</div>',
+      '<div class="wt-gantt-body">',
+      groups.length ? groups.map(function (season) {
+        var seasonEvents = events.filter(function (event) { return (event.season || "All") === season; }).slice(0, compact ? 8 : 18);
+        return renderGanttLane(season, seasonEvents, units);
+      }).join("") : renderEmptyBoard("No events in this range."),
+      '</div>',
+      '</section>'
+    ].join("");
+  }
+
+  function renderGanttLane(label, events, units) {
+    return [
+      '<article class="wt-gantt-lane">',
+      '<div class="wt-gantt-label"><b>' + text(label) + '</b><small>' + text(events.length) + ' events</small></div>',
+      '<div class="wt-gantt-track" style="--wt-cols:' + text(units.length) + '">',
+      events.map(function (event, index) {
+        var position = eventUnitPosition(event, units);
+        return '<button type="button" class="wt-gantt-chip wt-kind-' + text(event.kind) + '" data-date="' + text(event.date) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '; --wt-row:' + text((index % 4) + 1) + '"><span>' + text(event.gate || event.kind) + '</span><b>' + text(event.title) + '</b></button>';
+      }).join(""),
+      '</div>',
+      '</article>'
+    ].join("");
+  }
+
+  function renderListBoard(compact) {
+    var events = eventsForCurrentRange();
+    var maxRows = compact ? 10 : 36;
+    return [
+      '<section class="wt-list-board ' + (compact ? "compact" : "") + '" aria-label="List calendar">',
+      '<header><span>Date</span><span>Event</span><span>Season</span><span>Owner</span></header>',
+      '<div>',
+      events.length ? events.slice(0, maxRows).map(renderListRow).join("") : renderEmptyBoard("No events in this range."),
+      events.length > maxRows ? '<div class="wt-board-more">+' + text(events.length - maxRows) + ' more events in filters</div>' : "",
+      '</div>',
+      '</section>'
+    ].join("");
+  }
+
+  function renderListRow(event) {
+    return [
+      '<button type="button" class="wt-list-row wt-kind-' + text(event.kind) + '" data-date="' + text(event.date) + '">',
+      '<time>' + text(formatDateShort(event.date)) + '</time>',
+      '<b>' + text(event.title) + '</b>',
+      '<span>' + text(event.season || "All") + '</span>',
+      '<small>' + text(event.owner || event.division || "WT") + '</small>',
+      '</button>'
+    ].join("");
+  }
+
+  function renderSeasonGridBoard(compact) {
+    var range = currentRange();
+    var events = eventsForCurrentRange();
+    var seasons = unique(events.map(function (event) { return event.season || "All"; })).slice(0, compact ? 5 : 10);
+    var months = monthUnits(range);
+    return [
+      '<section class="wt-season-grid-board ' + (compact ? "compact" : "") + '" aria-label="Season grid calendar">',
+      '<div class="wt-season-grid-head" style="--wt-cols:' + text(months.length) + '">',
+      '<span>Season</span>',
+      months.map(function (month) { return '<b>' + text(month.label) + '</b>'; }).join(""),
+      '</div>',
+      '<div class="wt-season-grid-body">',
+      seasons.length ? seasons.map(function (season) {
+        return renderSeasonGridRow(season, months, events.filter(function (event) { return (event.season || "All") === season; }), compact);
+      }).join("") : renderEmptyBoard("No season data in this range."),
+      '</div>',
+      '</section>'
+    ].join("");
+  }
+
+  function renderSeasonGridRow(season, months, events, compact) {
+    return [
+      '<article class="wt-season-grid-row" style="--wt-cols:' + text(months.length) + '">',
+      '<div class="wt-season-grid-label"><b>' + text(season) + '</b><small>' + text(events.length) + ' milestones</small></div>',
+      months.map(function (month) {
+        var monthEvents = events.filter(function (event) {
+          return event.date >= month.start && event.date <= month.end;
+        }).slice(0, compact ? 2 : 5);
+        return '<div class="wt-season-cell">' + (monthEvents.length ? monthEvents.map(function (event) {
+          return '<button type="button" class="wt-season-dot wt-kind-' + text(event.kind) + '" data-date="' + text(event.date) + '"><span>' + text(dayOfMonth(event.date)) + '</span><b>' + text(event.gate || event.kind) + '</b></button>';
+        }).join("") : '<span class="wt-season-empty"></span>') + '</div>';
+      }).join(""),
+      '</article>'
+    ].join("");
+  }
+
+  function renderEmptyBoard(message) {
+    return '<div class="wt-empty-board">' + text(message) + '</div>';
   }
 
   function renderWeekBoard(compact) {
@@ -377,7 +622,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderInspector() {
     var selectedEvents = filteredEventsForDate(state.selectedDate);
-    var nextDeadlines = normalizedEvents().filter(function (event) {
+    var nextDeadlines = normalizedEvents().filter(matchesFilters).filter(function (event) {
       return event.date >= state.selectedDate && (event.kind === "deadline" || event.kind === "handoff");
     }).slice(0, 5);
     return [
@@ -412,22 +657,23 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderDashboard() {
-    var events = filteredEventsForRange(state.weekStart, addDaysIso(state.weekStart, 6));
+    var range = currentRange();
+    var events = eventsForCurrentRange();
     var selectedEvents = filteredEventsForDate(state.selectedDate);
     return [
       '<section class="wt-dashboard">',
       '<div class="wt-dashboard-hero">',
-      '<div><small>24H Projector</small><h2>' + text(formatWeekRange(state.weekStart)) + '</h2></div>',
+      '<div><small>24H Projector</small><h2>' + text(formatRange(range)) + '</h2></div>',
       '<div class="wt-now"><span data-clock>--:--</span><small>KST live board</small></div>',
       '</div>',
       '<div class="wt-dashboard-grid">',
-      metricCard("Week events", events.length, "Calendar, shipment, report, deadline"),
+      metricCard("Range events", events.length, "Calendar, shipment, report, deadline"),
       metricCard("Sample handoffs", countKind(events, "sample") + countKind(events, "handoff"), "FPT and product gates"),
       metricCard("Report queue", countKind(events, "report"), "AI file analysis"),
       metricCard("Shipping", countKind(events, "shipping"), "Dispatch windows"),
       '</div>',
       '<div class="wt-projector-board">',
-      renderWeekBoard(true),
+      renderCalendarBoard(true),
       '<aside class="wt-today-stack"><h2>' + text(dayNameLong(state.selectedDate)) + '</h2>' + (selectedEvents.length ? selectedEvents.map(renderInspectorEvent).join("") : '<p class="wt-muted">No events selected.</p>') + '</aside>',
       '</div>',
       '</section>'
@@ -462,7 +708,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderSeasonLane(season, events) {
-    var upcoming = events.filter(function (event) { return event.date >= state.weekStart; }).slice(0, 5);
+    var upcoming = events.filter(function (event) { return event.date >= currentRange().start; }).slice(0, 5);
     return [
       '<article class="wt-season-lane">',
       '<div><b>' + text(season) + '</b><span>' + text(events.length) + ' milestones</span></div>',
@@ -531,7 +777,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-editor-layout">',
       '<section class="wt-editor-calendar">',
       renderCalendarControls(),
-      renderWeekBoard(false),
+      renderCalendarBoard(false),
       '</section>',
       renderEditForm(root),
       '</div>',
@@ -625,6 +871,43 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     }
   }
 
+  function exportCurrentRange(root) {
+    var range = currentRange();
+    var rows = eventsForCurrentRange().map(function (event) {
+      return [
+        event.date,
+        event.endDate || event.date,
+        event.title,
+        event.kind,
+        event.season || "",
+        event.division || "",
+        event.gate || "",
+        event.owner || "",
+        event.source || ""
+      ];
+    });
+    var csv = [
+      ["startDate", "endDate", "title", "type", "season", "division", "gate", "owner", "source"],
+    ].concat(rows).map(function (row) {
+      return row.map(csvCell).join(",");
+    }).join("\n");
+    var blob = new window.Blob([csv], { type: "text/csv;charset=utf-8" });
+    var link = document.createElement("a");
+    link.href = window.URL.createObjectURL(blob);
+    link.download = "wt-calendar-" + range.start + "-" + range.end + ".csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(link.href);
+    state.actionMessage = "Exported " + rows.length + " events for " + formatRange(range) + ".";
+    render(root);
+  }
+
+  function csvCell(value) {
+    var stringValue = String(value == null ? "" : value);
+    return '"' + stringValue.replace(/"/g, '""') + '"';
+  }
+
   function saveLocalSubmission(payload) {
     var existing = JSON.parse(window.localStorage.getItem("wt-system-submissions") || "[]");
     existing.push(payload);
@@ -686,6 +969,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       events.push({
         id: item.id,
         date: item.date,
+        endDate: item.endDate || item.date,
         title: item.task || item.gate || "Milestone",
         kind: mapMilestoneKind(item.kind),
         division: "Footwear",
@@ -702,6 +986,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       events.push({
         id: "HOL-" + item.date,
         date: item.date,
+        endDate: item.date,
         title: item.nameKo || item.name || "Holiday",
         kind: "holiday",
         division: "Footwear",
@@ -716,6 +1001,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       events.push({
         id: item.rowKey || "LOCAL-" + Math.random(),
         date: item.targetDate,
+        endDate: item.endDate || item.targetDate,
         title: item.projectName || "WT schedule",
         kind: item.milestoneType || "deadline",
         division: item.division || "Footwear",
@@ -755,7 +1041,22 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var selected = selectedDivisions();
     var divisionMatch = selected.indexOf(event.division || "Footwear") >= 0;
     var seasonMatch = state.season === "All" || event.season === state.season || event.season === "All";
-    return divisionMatch && seasonMatch;
+    var deadlineMatch = !state.deadlineOnly || event.kind === "deadline" || event.kind === "handoff";
+    var searchMatch = matchesSearch(event);
+    return divisionMatch && seasonMatch && deadlineMatch && searchMatch;
+  }
+
+  function matchesSearch(event) {
+    var query = state.search.trim().toLowerCase();
+    if (!query) return true;
+    return [
+      event.title,
+      event.season,
+      event.division,
+      event.gate,
+      event.owner,
+      event.kind
+    ].join(" ").toLowerCase().indexOf(query) >= 0;
   }
 
   function filteredEventsForDate(date) {
@@ -766,8 +1067,19 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function filteredEventsForRange(startIso, endIso) {
     return normalizedEvents().filter(matchesFilters).filter(function (event) {
-      return event.date >= startIso && event.date <= endIso;
+      return eventOverlapsRange(event, startIso, endIso);
     });
+  }
+
+  function eventsForCurrentRange() {
+    var range = currentRange();
+    return filteredEventsForRange(range.start, range.end);
+  }
+
+  function eventOverlapsRange(event, startIso, endIso) {
+    var start = event.date;
+    var end = event.endDate || event.date;
+    return start <= endIso && end >= startIso;
   }
 
   function selectedDivisions() {
@@ -787,6 +1099,86 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       seen[item] = true;
       return true;
     });
+  }
+
+  function currentRange() {
+    return periodRange(state.weekStart, state.period);
+  }
+
+  function periodRange(anchorIso, period) {
+    var anchor = fromIso(anchorIso);
+    if (period === "multi-week") {
+      var multiWeekStart = startOfWeek(anchor);
+      return { start: toIso(multiWeekStart), end: toIso(addDays(multiWeekStart, 27)) };
+    }
+    if (period === "month") {
+      return monthRange(anchor);
+    }
+    if (period === "multi-month") {
+      var multiMonthStart = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
+      var multiMonthEnd = addDays(addMonths(multiMonthStart, 3), -1);
+      return { start: toIso(multiMonthStart), end: toIso(multiMonthEnd) };
+    }
+    if (period === "quarter") {
+      var quarterStartMonth = Math.floor(anchor.getMonth() / 3) * 3;
+      var quarterStart = new Date(anchor.getFullYear(), quarterStartMonth, 1);
+      var quarterEnd = addDays(addMonths(quarterStart, 3), -1);
+      return { start: toIso(quarterStart), end: toIso(quarterEnd) };
+    }
+    if (period === "season") {
+      return seasonRange(anchorIso);
+    }
+    var weekStart = startOfWeek(anchor);
+    return { start: toIso(weekStart), end: toIso(addDays(weekStart, 6)) };
+  }
+
+  function seasonRange(anchorIso) {
+    var seasonEvents = normalizedEvents().filter(function (event) {
+      return state.season !== "All" && event.season === state.season;
+    });
+    if (seasonEvents.length) {
+      return {
+        start: seasonEvents[0].date,
+        end: seasonEvents[seasonEvents.length - 1].endDate || seasonEvents[seasonEvents.length - 1].date
+      };
+    }
+    var year = fromIso(anchorIso).getFullYear();
+    return { start: year + "-01-01", end: year + "-12-31" };
+  }
+
+  function periodAnchor(iso, period) {
+    return periodRange(iso, period).start;
+  }
+
+  function moveRange(direction) {
+    var current = currentRange();
+    var start = fromIso(current.start);
+    if (state.period === "month") {
+      state.weekStart = periodAnchor(toIso(addMonths(start, direction)), state.period);
+      return;
+    }
+    if (state.period === "multi-month" || state.period === "quarter") {
+      state.weekStart = periodAnchor(toIso(addMonths(start, direction * 3)), state.period);
+      return;
+    }
+    if (state.period === "season") {
+      state.weekStart = periodAnchor(toIso(addMonths(start, direction * 6)), state.period);
+      return;
+    }
+    var amount = state.period === "multi-week" ? direction * 28 : direction * 7;
+    state.weekStart = periodAnchor(toIso(addDays(start, amount)), state.period);
+  }
+
+  function monthRange(date) {
+    var start = new Date(date.getFullYear(), date.getMonth(), 1);
+    var end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    return { start: toIso(start), end: toIso(end) };
+  }
+
+  function addMonths(date, amount) {
+    var copy = new Date(date.getFullYear(), date.getMonth(), 1);
+    copy.setMonth(copy.getMonth() + amount);
+    return copy;
   }
 
   function buildMonth(isoMonth) {
@@ -855,9 +1247,114 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return MONTHS[start.getMonth()] + " " + start.getDate() + " - " + MONTHS[end.getMonth()] + " " + end.getDate();
   }
 
+  function formatRange(range) {
+    var start = fromIso(range.start);
+    var end = fromIso(range.end);
+    var startText = titleCaseMonth(start) + " " + start.getDate();
+    var endText = titleCaseMonth(end) + " " + end.getDate();
+    if (start.getFullYear() !== end.getFullYear()) {
+      return startText + ", " + start.getFullYear() + " - " + endText + ", " + end.getFullYear();
+    }
+    return startText + " - " + endText;
+  }
+
   function formatDateShort(date) {
     var d = fromIso(date);
-    return MONTHS[d.getMonth()] + " " + d.getDate();
+    return titleCaseMonth(d) + " " + d.getDate();
+  }
+
+  function titleCaseMonth(date) {
+    var month = MONTHS[date.getMonth()].toLowerCase();
+    return month.charAt(0).toUpperCase() + month.slice(1);
+  }
+
+  function calendarViewLabel(id) {
+    var option = CALENDAR_VIEWS.filter(function (view) { return view.id === id; })[0];
+    return option ? option.label : "Timeline View";
+  }
+
+  function periodLabel(id) {
+    var option = PERIODS.filter(function (period) { return period.id === id; })[0];
+    return option ? option.label : "1 week";
+  }
+
+  function timelineUnits(range) {
+    var days = daysBetween(range.start, range.end) + 1;
+    if (days <= 35) return dayUnits(range);
+    if (days <= 110) return weekUnits(range);
+    return monthUnits(range);
+  }
+
+  function dayUnits(range) {
+    var units = [];
+    var count = daysBetween(range.start, range.end);
+    for (var i = 0; i <= count; i += 1) {
+      var date = addDaysIso(range.start, i);
+      units.push({
+        start: date,
+        end: date,
+        label: dayNameShort(date),
+        caption: String(dayOfMonth(date))
+      });
+    }
+    return units;
+  }
+
+  function weekUnits(range) {
+    var units = [];
+    var cursor = startOfWeek(fromIso(range.start));
+    while (toIso(cursor) <= range.end) {
+      var start = toIso(cursor);
+      var end = toIso(addDays(cursor, 6));
+      units.push({
+        start: start < range.start ? range.start : start,
+        end: end > range.end ? range.end : end,
+        label: formatDateShort(start),
+        caption: "Week"
+      });
+      cursor = addDays(cursor, 7);
+    }
+    return units;
+  }
+
+  function monthUnits(range) {
+    var units = [];
+    var cursor = new Date(fromIso(range.start).getFullYear(), fromIso(range.start).getMonth(), 1);
+    while (toIso(cursor) <= range.end) {
+      var month = monthRange(cursor);
+      units.push({
+        start: month.start < range.start ? range.start : month.start,
+        end: month.end > range.end ? range.end : month.end,
+        label: MONTHS[cursor.getMonth()],
+        caption: String(cursor.getFullYear())
+      });
+      cursor = addMonths(cursor, 1);
+    }
+    return units;
+  }
+
+  function eventUnitPosition(event, units) {
+    var start = event.date;
+    var end = event.endDate || event.date;
+    var startIndex = 0;
+    var endIndex = units.length - 1;
+    for (var i = 0; i < units.length; i += 1) {
+      if (units[i].end >= start) {
+        startIndex = i;
+        break;
+      }
+    }
+    for (var j = startIndex; j < units.length; j += 1) {
+      if (units[j].start <= end && units[j].end >= end) {
+        endIndex = j;
+        break;
+      }
+    }
+    return { start: startIndex + 1, span: Math.max(1, endIndex - startIndex + 1) };
+  }
+
+  function daysBetween(startIso, endIso) {
+    return Math.round((fromIso(endIso).getTime() - fromIso(startIso).getTime()) / 86400000);
   }
 
   function pad(value) {
