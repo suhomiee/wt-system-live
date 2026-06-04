@@ -1134,3 +1134,82 @@ textarea:focus-visible {
     font-size: 14px;
   }
 }
+
+#wt-system-root[data-wt-fit="viewport"] {
+  width: 100vw;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--canvas);
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app {
+  width: var(--wt-fit-width, 1920px);
+  min-width: var(--wt-fit-width, 1920px);
+  height: var(--wt-fit-height, 1080px);
+  min-height: var(--wt-fit-height, 1080px);
+  display: grid;
+  grid-template-columns: 288px minmax(0, 1fr);
+  overflow: hidden;
+  transform: scale(var(--wt-fit-scale, 1));
+  transform-origin: top left;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-sidebar {
+  grid-template-rows: auto auto auto auto auto 1fr auto;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-main {
+  height: var(--wt-fit-height, 1080px);
+  min-height: 0;
+  grid-template-rows: 74px minmax(0, 1fr);
+  overflow: hidden;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-workspace,
+#wt-system-root[data-wt-fit="viewport"] .wt-calendar-page,
+#wt-system-root[data-wt-fit="viewport"] .wt-dashboard,
+#wt-system-root[data-wt-fit="viewport"] .wt-creation,
+#wt-system-root[data-wt-fit="viewport"] .wt-libraries,
+#wt-system-root[data-wt-fit="viewport"] .wt-editor-layout {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-toolbar {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  padding: 14px 24px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-control-strip {
+  grid-template-columns: auto minmax(250px, 1fr) auto;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-calendar-layout {
+  grid-template-columns: minmax(0, 1fr) 330px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-projector-board {
+  grid-template-columns: minmax(0, 1fr) 360px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-creation,
+#wt-system-root[data-wt-fit="viewport"] .wt-libraries,
+#wt-system-root[data-wt-fit="viewport"] .wt-editor-layout {
+  grid-template-columns: minmax(0, 1fr) 340px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-week-board {
+  min-height: 0;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-week-grid,
+#wt-system-root[data-wt-fit="viewport"] .wt-week-head {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  overflow: visible;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-dashboard-grid {
+  grid-template-columns: 1.2fr 1fr 1fr 1fr;
+}

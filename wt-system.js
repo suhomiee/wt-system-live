@@ -104,6 +104,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var roots = document.querySelectorAll("[data-wt-system]");
     for (var i = 0; i < roots.length; i += 1) {
       roots[i].classList.add("wt-root");
+      applyViewportFit(roots[i]);
       roots[i].innerHTML = renderApp(roots[i]);
       bind(roots[i]);
       updateClock(roots[i]);
@@ -171,6 +172,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     window.setInterval(function () {
       updateClock(root);
     }, 60000);
+
+    window.addEventListener("resize", function () {
+      applyViewportFit(root);
+    });
   }
 
   function toggleDivision(division) {
@@ -180,8 +185,20 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function render(root) {
+    applyViewportFit(root);
     root.innerHTML = renderApp(root);
     updateClock(root);
+  }
+
+  function applyViewportFit(root) {
+    if (root.getAttribute("data-wt-standalone") !== "true") return;
+    var designWidth = 1920;
+    var designHeight = 1080;
+    var scale = Math.min(window.innerWidth / designWidth, window.innerHeight / designHeight);
+    root.setAttribute("data-wt-fit", "viewport");
+    root.style.setProperty("--wt-fit-scale", String(scale));
+    root.style.setProperty("--wt-fit-width", designWidth + "px");
+    root.style.setProperty("--wt-fit-height", designHeight + "px");
   }
 
   function renderApp(root) {
