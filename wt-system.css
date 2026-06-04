@@ -1761,7 +1761,8 @@ textarea:focus-visible {
   width: 100vw;
   height: 100dvh;
   min-height: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: var(--canvas);
 }
 
@@ -1975,12 +1976,13 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-flow-calendar-page {
   position: relative;
+  width: 100%;
   height: auto;
   min-height: 1031px;
   display: grid;
   grid-template-rows: 68px 170px minmax(0, 1fr);
   gap: 0;
-  padding: 42px 64px 0 48px;
+  padding: 42px 36px 0 48px;
   background: #ffffff;
 }
 
@@ -2008,6 +2010,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-flow-control-strip {
   position: relative;
+  width: 100%;
   min-height: 170px;
   padding: 0;
   border: 0;
@@ -2252,6 +2255,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-flow-calendar-layout {
+  width: 100%;
   min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -2259,6 +2263,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-flow-timeline-board {
+  width: 100%;
   min-height: 0;
   display: grid;
   grid-template-rows: 30px minmax(0, 1fr);
@@ -2441,6 +2446,10 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   height: auto;
   min-height: 1031px;
   overflow: visible;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-flow-calendar-page {
+  padding-right: 36px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-workspace {
