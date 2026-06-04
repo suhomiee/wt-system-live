@@ -563,12 +563,6 @@ textarea:focus-visible {
   justify-content: end;
 }
 
-.wt-action-buttons button[data-assistant] {
-  width: 36px;
-  padding: 0;
-  font-weight: 700;
-}
-
 .wt-range-title {
   min-width: 0;
   display: grid;
@@ -1934,30 +1928,6 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   border-color: currentColor;
 }
 
-.wt-side-collapse {
-  position: absolute;
-  top: 96px;
-  right: -12px;
-  width: 24px;
-  height: 24px;
-  border: 0;
-  border-radius: 9999px;
-  background: var(--flow-blue);
-  box-shadow: 0 2px 6px rgba(15,23,42,.35);
-}
-
-.wt-side-collapse::before {
-  content: "";
-  position: absolute;
-  left: 9px;
-  top: 7px;
-  width: 7px;
-  height: 7px;
-  border-left: 2px solid #fff;
-  border-bottom: 2px solid #fff;
-  transform: rotate(45deg);
-}
-
 .wt-main {
   grid-template-rows: 49px minmax(0, 1fr);
   background: #ffffff;
@@ -1976,59 +1946,6 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   color: var(--flow-ink);
   font-size: 16px;
   line-height: 24px;
-}
-
-.wt-flow-account {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 18px;
-}
-
-.wt-flow-account button {
-  width: 22px;
-  height: 22px;
-  border: 0;
-  border-radius: 9999px;
-  background: transparent;
-  color: var(--flow-ink);
-  padding: 0;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.wt-flow-account button[title="Notifications"] {
-  position: relative;
-}
-
-.wt-flow-account button[title="Notifications"]::before {
-  content: "";
-  position: absolute;
-  left: 6px;
-  top: 3px;
-  width: 10px;
-  height: 13px;
-  border: 1.8px solid currentColor;
-  border-radius: 8px 8px 5px 5px;
-}
-
-.wt-flow-account button[title="Notifications"]::after {
-  content: "";
-  position: absolute;
-  left: 9px;
-  bottom: 2px;
-  width: 4px;
-  height: 2px;
-  border-radius: 9999px;
-  background: currentColor;
-}
-
-.wt-flow-account button[title="User Menu"] {
-  width: 24px;
-  height: 24px;
-  background: var(--flow-navy);
-  color: #ffffff;
-  font-size: 10px;
 }
 
 .wt-workspace {
@@ -2057,7 +1974,6 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-flow-heading {
   display: flex;
   align-items: center;
-  gap: 20px;
 }
 
 .wt-flow-heading h1 {
@@ -2068,64 +1984,6 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   font-weight: 700;
   line-height: 1;
   letter-spacing: 0;
-}
-
-.wt-calendar-icon {
-  position: relative;
-  width: 42px;
-  height: 40px;
-  border: 4px solid var(--flow-ink);
-  border-radius: 5px;
-}
-
-.wt-calendar-icon::before {
-  content: "";
-  position: absolute;
-  left: -4px;
-  right: -4px;
-  top: 9px;
-  height: 4px;
-  background: var(--flow-ink);
-}
-
-.wt-calendar-icon::after {
-  content: "";
-  position: absolute;
-  left: 7px;
-  top: -8px;
-  width: 20px;
-  height: 12px;
-  border-left: 4px solid var(--flow-ink);
-  border-right: 4px solid var(--flow-ink);
-}
-
-.wt-flow-close {
-  width: 40px;
-  height: 40px;
-  margin-top: 1px;
-  border: 1px solid rgba(0,0,0,.15);
-  border-radius: 50%;
-  background: rgba(0,0,0,.05);
-  position: relative;
-}
-
-.wt-flow-close::before,
-.wt-flow-close::after {
-  content: "";
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  top: 19px;
-  height: 1.5px;
-  background: var(--flow-ink);
-}
-
-.wt-flow-close::before {
-  transform: rotate(45deg);
-}
-
-.wt-flow-close::after {
-  transform: rotate(-45deg);
 }
 
 .wt-flow-control-strip {
@@ -2279,8 +2137,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   font-weight: 400;
 }
 
-.wt-flow-actions button[data-export],
-.wt-flow-actions button[data-assistant] {
+.wt-flow-actions button[data-export] {
   width: 36px;
   padding: 0;
   position: relative;
@@ -2318,28 +2175,6 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   content: "+";
   margin-right: 8px;
   font-weight: 400;
-}
-
-.wt-flow-actions button[data-assistant]::before,
-.wt-flow-actions button[data-assistant]::after {
-  content: "";
-  position: absolute;
-  border: 1.5px solid currentColor;
-  transform: rotate(45deg);
-}
-
-.wt-flow-actions button[data-assistant]::before {
-  width: 14px;
-  height: 14px;
-  left: 10px;
-  top: 10px;
-}
-
-.wt-flow-actions button[data-assistant]::after {
-  width: 6px;
-  height: 6px;
-  right: 8px;
-  top: 7px;
 }
 
 .wt-flow-range-row {

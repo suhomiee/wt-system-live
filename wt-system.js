@@ -209,7 +209,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var periodButton = event.target.closest("[data-period]");
       var deadlineButton = event.target.closest("[data-deadline-toggle]");
       var exportButton = event.target.closest("[data-export]");
-      var assistantButton = event.target.closest("[data-assistant]");
       var clearSearchButton = event.target.closest("[data-clear-search]");
 
       if (sectionButton && root.contains(sectionButton)) {
@@ -263,11 +262,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
       if (exportButton && root.contains(exportButton)) {
         exportCurrentRange(root);
-      }
-
-      if (assistantButton && root.contains(assistantButton)) {
-        state.actionMessage = "AI assistant ready: use this range for report file analysis and deadline risk review.";
-        render(root);
       }
 
       if (clearSearchButton && root.contains(clearSearchButton)) {
@@ -359,7 +353,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       navItem("calendar", "Calendar"),
       navItem("libraries", "Libraries"),
       '</nav>',
-      '<button class="wt-side-collapse" type="button" aria-label="Close side navigation menu"></button>',
       '</aside>'
     ].join("");
   }
@@ -388,11 +381,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<header class="wt-toolbar wt-flow-topbar">',
       '<div></div>',
       '<div class="wt-flow-breadcrumb">' + text(sectionTitle()) + '</div>',
-      '<div class="wt-flow-account">',
-      '<button type="button" title="Help Menu" aria-label="Help Menu">?</button>',
-      '<button type="button" title="Notifications" aria-label="Notifications"></button>',
-      '<button type="button" title="User Menu" aria-label="Open user menu">LP</button>',
-      '</div>',
+      '<div></div>',
       '</header>'
     ].join("");
   }
@@ -415,8 +404,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       '<section class="wt-calendar-page wt-flow-calendar-page">',
       '<header class="wt-flow-page-head">',
-      '<div class="wt-flow-heading"><span class="wt-calendar-icon"></span><h1>Calendar</h1></div>',
-      '<button class="wt-flow-close" type="button" aria-label="Close calendar and return to home"></button>',
+      '<div class="wt-flow-heading"><h1>Calendar</h1></div>',
       '</header>',
       renderCalendarControls(),
       '<div class="wt-calendar-layout wt-flow-calendar-layout">',
@@ -442,7 +430,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-action-buttons wt-flow-actions">',
       '<button type="button" data-export title="Export current range" aria-label="Export"></button>',
       '<button type="button" data-view="edit">Create</button>',
-      '<button type="button" data-assistant title="Ask AI Assistant" aria-label="Ask AI Assistant"></button>',
       '</div>',
       '<div class="wt-range-row wt-flow-range-row">',
       '<div class="wt-range-title"><strong>' + text(formatRange(range)) + '</strong></div>',
