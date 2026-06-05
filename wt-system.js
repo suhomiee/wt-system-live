@@ -637,6 +637,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       '<section class="wt-gantt-board ' + (compact ? "compact" : "") + '" aria-label="Gantt calendar">',
       '<div class="wt-timeline-head" style="--wt-cols:' + text(units.length) + '">',
+      '<span class="wt-timeline-corner"></span>',
       units.map(function (unit) {
         return '<span><b>' + text(unit.label) + '</b><small>' + text(unit.caption) + '</small></span>';
       }).join(""),

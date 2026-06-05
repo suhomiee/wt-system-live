@@ -2256,7 +2256,8 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-flow-calendar-layout {
   width: 100%;
-  min-height: 0;
+  height: 785px;
+  min-height: 785px;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0;
@@ -2264,6 +2265,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-flow-timeline-board {
   width: 100%;
+  height: 100%;
   min-height: 0;
   display: grid;
   grid-template-rows: 30px minmax(0, 1fr);
@@ -2421,8 +2423,266 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-flow-calendar-page .wt-list-board,
 .wt-flow-calendar-page .wt-gantt-board,
 .wt-flow-calendar-page .wt-season-grid-board {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 30px minmax(0, 1fr);
   border: 1px solid var(--flow-border);
   border-radius: 8px 8px 0 0;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.wt-flow-calendar-page .wt-gantt-board .wt-timeline-head,
+.wt-flow-calendar-page .wt-list-board header,
+.wt-flow-calendar-page .wt-season-grid-head {
+  height: 30px;
+  min-height: 30px;
+  border-bottom: 1px solid var(--flow-border);
+  background: #ffffff;
+}
+
+.wt-flow-calendar-page .wt-gantt-board .wt-timeline-head {
+  grid-template-columns: 112px repeat(var(--wt-cols), minmax(0, 1fr));
+}
+
+.wt-flow-calendar-page .wt-gantt-board .wt-timeline-head span {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0;
+  border-left: 1px solid transparent;
+  background: #ffffff;
+  color: var(--flow-ink);
+}
+
+.wt-flow-calendar-page .wt-gantt-board .wt-timeline-head .wt-timeline-corner {
+  border-left: 0;
+}
+
+.wt-flow-calendar-page .wt-gantt-board .wt-timeline-head b,
+.wt-flow-calendar-page .wt-gantt-board .wt-timeline-head small,
+.wt-flow-calendar-page .wt-list-board header span,
+.wt-flow-calendar-page .wt-season-grid-head span,
+.wt-flow-calendar-page .wt-season-grid-head b {
+  color: var(--flow-ink);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 21px;
+  text-transform: none;
+}
+
+.wt-flow-calendar-page .wt-gantt-body,
+.wt-flow-calendar-page .wt-list-board > div,
+.wt-flow-calendar-page .wt-season-grid-body {
+  min-height: 0;
+  overflow: auto;
+}
+
+.wt-flow-calendar-page .wt-gantt-lane {
+  min-height: 116px;
+  grid-template-columns: 112px minmax(0, 1fr);
+  border-bottom: 1px solid var(--flow-border);
+}
+
+.wt-flow-calendar-page .wt-gantt-label,
+.wt-flow-calendar-page .wt-season-grid-label {
+  border-right: 1px solid var(--flow-border);
+  background: #fafafa;
+  padding: 28px 12px 0;
+  align-content: start;
+}
+
+.wt-flow-calendar-page .wt-gantt-label b,
+.wt-flow-calendar-page .wt-season-grid-label b {
+  color: var(--flow-ink);
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 30px;
+}
+
+.wt-flow-calendar-page .wt-gantt-label small,
+.wt-flow-calendar-page .wt-season-grid-label small {
+  color: var(--flow-muted);
+  font-size: 12px;
+  line-height: 16.8px;
+}
+
+.wt-flow-calendar-page .wt-gantt-track {
+  min-width: 0;
+  grid-template-columns: repeat(var(--wt-cols), minmax(0, 1fr));
+  grid-template-rows: repeat(4, 36px);
+  align-items: start;
+  row-gap: 8px;
+  padding: 22px 0 0;
+  background:
+    repeating-linear-gradient(90deg, transparent, transparent calc((100% / var(--wt-cols)) - 1px), var(--flow-border) calc((100% / var(--wt-cols)) - 1px), var(--flow-border) calc(100% / var(--wt-cols)));
+}
+
+.wt-flow-calendar-page .wt-gantt-chip {
+  grid-row: var(--wt-row);
+  height: 36px;
+  min-height: 36px;
+  margin: 0 10px 0 0;
+  display: grid;
+  align-content: center;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-left-width: 4px;
+  border-left-style: solid;
+  border-radius: 8px;
+  background: var(--flow-card);
+  color: var(--flow-ink);
+  padding: 0 12px;
+  box-shadow: none;
+}
+
+.wt-flow-calendar-page .wt-gantt-chip b {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--flow-ink);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18.2px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-flow-calendar-page .wt-gantt-chip span {
+  display: none;
+}
+
+.wt-flow-calendar-page .wt-list-board header,
+.wt-flow-calendar-page .wt-list-row {
+  grid-template-columns: 112px minmax(0, 1fr) 112px 140px;
+  gap: 0;
+}
+
+.wt-flow-calendar-page .wt-list-board header {
+  padding: 0;
+}
+
+.wt-flow-calendar-page .wt-list-board header span {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border-left: 1px solid transparent;
+}
+
+.wt-flow-calendar-page .wt-list-board header span:first-child {
+  border-left: 0;
+}
+
+.wt-flow-calendar-page .wt-list-row {
+  min-height: 52px;
+  border-bottom: 1px solid var(--flow-border);
+  background: #ffffff;
+  color: var(--flow-ink);
+  padding: 0;
+}
+
+.wt-flow-calendar-page .wt-list-row time,
+.wt-flow-calendar-page .wt-list-row b,
+.wt-flow-calendar-page .wt-list-row span,
+.wt-flow-calendar-page .wt-list-row small {
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-flow-calendar-page .wt-list-row b {
+  color: var(--flow-ink);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.wt-flow-calendar-page .wt-list-row time,
+.wt-flow-calendar-page .wt-list-row span,
+.wt-flow-calendar-page .wt-list-row small {
+  color: var(--flow-muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.wt-flow-calendar-page .wt-season-grid-head,
+.wt-flow-calendar-page .wt-season-grid-row {
+  grid-template-columns: 112px repeat(var(--wt-cols), minmax(0, 1fr));
+}
+
+.wt-flow-calendar-page .wt-season-grid-head span,
+.wt-flow-calendar-page .wt-season-grid-head b {
+  justify-content: center;
+  padding: 0;
+  border-left: 1px solid transparent;
+}
+
+.wt-flow-calendar-page .wt-season-grid-head span {
+  justify-content: flex-start;
+  padding-left: 12px;
+  border-left: 0;
+}
+
+.wt-flow-calendar-page .wt-season-grid-row {
+  min-height: 116px;
+  border-bottom: 1px solid var(--flow-border);
+}
+
+.wt-flow-calendar-page .wt-season-cell {
+  gap: 6px;
+  padding: 22px 10px 0;
+  border-left: 1px solid var(--flow-border);
+}
+
+.wt-flow-calendar-page .wt-season-dot {
+  height: 32px;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 6px;
+  border-left-width: 4px;
+  border-left-style: solid;
+  border-radius: 8px;
+  background: var(--flow-card);
+  padding: 0 8px 0 6px;
+}
+
+.wt-flow-calendar-page .wt-season-dot span {
+  color: var(--flow-muted);
+  font-size: 12px;
+  line-height: 16.8px;
+}
+
+.wt-flow-calendar-page .wt-season-dot b {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--flow-ink);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16.8px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-flow-calendar-page .wt-season-empty {
+  min-height: 28px;
+  border: 0;
+  background: transparent;
+}
+
+.wt-flow-calendar-page .wt-board-more,
+.wt-flow-calendar-page .wt-empty-board {
+  min-height: 72px;
+  color: var(--flow-muted);
+  font-size: 14px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app {
