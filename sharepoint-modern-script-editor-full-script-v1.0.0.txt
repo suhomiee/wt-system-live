@@ -1,3 +1,2753 @@
+<!--
+  T2 FPT Wear Test Calendar System v1.0.0
+  Full inline Modern Script Editor payload.
+
+  CSP warning:
+  This full inline file is for compatibility testing or tenants/pages where inline user script
+  still executes. The durable SharePoint Online path is dist/modern-script-editor-snippet.html
+  plus external wt-system.css and wt-system.js hosted in SiteAssets or packaged through SPFx.
+-->
+<style>
+@font-face {
+  font-family: "Helvetica Now Text";
+  src:
+    local("Helvetica Now Text"),
+    local("HelveticaNowText");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Helvetica Now Display";
+  src:
+    local("Helvetica Now Display"),
+    local("HelveticaNowDisplay"),
+    local("HelveticaNowDisplayMedium");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Arimo WT";
+  src: url("./fonts/arimo-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+@font-face {
+  font-family: "Arimo WT";
+  src: url("./fonts/arimo-latin-500-normal.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+@font-face {
+  font-family: "Arimo WT";
+  src: url("./fonts/arimo-latin-600-normal.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+@font-face {
+  font-family: "Arimo WT";
+  src: url("./fonts/arimo-latin-700-normal.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+#wt-system-root,
+.wt-root {
+  --canvas: #f4f5f3;
+  --surface: #ffffff;
+  --panel: #eceeed;
+  --panel-strong: #dde1df;
+  --ink: #151716;
+  --muted: #66706c;
+  --line: #cfd5d2;
+  --line-strong: #222826;
+  --teal: #21aeb0;
+  --teal-dark: #087b80;
+  --orange: #d98b16;
+  --blue: #416a9b;
+  --green: #5f8757;
+  --red: #b86b5b;
+  --font-text: "Helvetica Now Text", "Helvetica Neue", Helvetica, "Arimo WT", Arial, "Apple SD Gothic Neo", sans-serif;
+  --font-display: "Helvetica Now Display", "Helvetica Now Text", "Helvetica Neue", Helvetica, "Arimo WT", Arial, "Apple SD Gothic Neo", sans-serif;
+  min-height: 100dvh;
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-variant-numeric: tabular-nums;
+}
+
+#wt-system-root *,
+.wt-root * {
+  box-sizing: border-box;
+}
+
+body:has(#wt-system-root[data-wt-standalone="true"]) {
+  margin: 0;
+  background: var(--canvas);
+  overflow: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(33, 174, 176, .34);
+  outline-offset: 2px;
+}
+
+.wt-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  flex: 0 0 auto;
+  stroke-width: 1.8;
+}
+
+.wt-app {
+  width: 100vw;
+  min-width: 1240px;
+  height: 100dvh;
+  min-height: 760px;
+  display: grid;
+  grid-template-columns: 288px minmax(0, 1fr);
+  background: var(--canvas);
+  overflow: hidden;
+}
+
+.wt-sidebar {
+  display: grid;
+  grid-template-rows: auto auto auto auto auto 1fr auto;
+  gap: 14px;
+  min-height: 0;
+  padding: 24px 18px 18px;
+  background: #1c211f;
+  color: #f8faf8;
+  border-right: 1px solid #303735;
+}
+
+.wt-brand {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 12px;
+  align-items: center;
+  min-height: 54px;
+}
+
+.wt-brand > span {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: #f8faf8;
+  color: #1c211f;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.wt-brand b,
+.wt-brand small {
+  display: block;
+}
+
+.wt-brand b {
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: .02em;
+}
+
+.wt-brand small {
+  margin-top: 4px;
+  color: #a9b2ae;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.wt-primary-nav {
+  display: grid;
+  gap: 4px;
+  padding: 8px 0 10px;
+  border-top: 1px solid rgba(255,255,255,.10);
+  border-bottom: 1px solid rgba(255,255,255,.10);
+}
+
+.wt-primary-nav button {
+  height: 42px;
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 10px;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  color: #cfd7d4;
+  text-align: left;
+  font-size: 16px;
+}
+
+.wt-primary-nav button i {
+  width: 10px;
+  height: 10px;
+  margin-left: 4px;
+  border: 1px solid currentColor;
+}
+
+.wt-primary-nav button .wt-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.wt-primary-nav button.active {
+  background: rgba(255,255,255,.08);
+  color: #fff;
+}
+
+.wt-primary-nav button.active i {
+  background: var(--teal);
+  border-color: var(--teal);
+}
+
+.wt-side-card,
+.wt-mini-month,
+.wt-side-status {
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.06);
+}
+
+.wt-side-date {
+  min-height: 86px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+}
+
+.wt-side-date small,
+.wt-side-status span,
+.wt-toolbar small,
+.wt-filter-group small,
+.wt-dashboard-hero small,
+.wt-plan-map header small,
+.wt-library-main header small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.wt-side-date small,
+.wt-side-date b {
+  display: block;
+}
+
+.wt-side-date b {
+  margin-top: 6px;
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.wt-side-date span {
+  color: #fff;
+  font-size: 22px;
+}
+
+.wt-mini-month {
+  padding: 14px;
+}
+
+.wt-mini-month header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+}
+
+.wt-mini-month header span {
+  color: #9da7a3;
+  font-size: 12px;
+}
+
+.wt-mini-month header b {
+  font-size: 18px;
+  letter-spacing: .08em;
+}
+
+.wt-mini-week,
+.wt-mini-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.wt-mini-week {
+  margin-top: 14px;
+  color: #8c9692;
+  font-size: 11px;
+  text-align: center;
+}
+
+.wt-mini-days {
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.wt-mini-days button,
+.wt-mini-days span {
+  width: 100%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: #d9dfdc;
+  font-size: 12px;
+}
+
+.wt-mini-days button.has-event {
+  background: rgba(255,255,255,.09);
+}
+
+.wt-mini-days button.active {
+  background: var(--teal);
+  color: #fff;
+}
+
+.wt-create,
+.wt-projector,
+.wt-toolbar-create,
+.wt-edit-form .primary {
+  border: 0;
+  background: var(--teal);
+  color: #fff;
+  font-weight: 700;
+}
+
+.wt-create {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 16px;
+}
+
+.wt-create span {
+  position: relative;
+  width: 17px;
+  height: 17px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+}
+
+.wt-create span::before,
+.wt-create span::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 7px;
+  height: 1px;
+  background: currentColor;
+}
+
+.wt-create span::after {
+  transform: rotate(90deg);
+}
+
+.wt-side-status {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.wt-side-status p {
+  min-width: 0;
+  margin: 0;
+  padding: 12px 8px;
+  border-left: 1px solid rgba(255,255,255,.08);
+}
+
+.wt-side-status p:first-child {
+  border-left: 0;
+}
+
+.wt-side-status b,
+.wt-side-status span {
+  display: block;
+}
+
+.wt-side-status b {
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.wt-side-status span {
+  margin-top: 5px;
+  color: #a5afab;
+  font-size: 11px;
+}
+
+.wt-projector {
+  height: 44px;
+  background: #303735;
+  color: #e7ecea;
+  font-size: 15px;
+}
+
+.wt-main {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 74px minmax(0, 1fr);
+}
+
+.wt-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 18px;
+  align-items: center;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.wt-title-block h1 {
+  font-family: var(--font-display);
+  margin: 4px 0 0;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.wt-toolbar-metrics {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wt-toolbar-metrics span {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.wt-toolbar-metrics b {
+  color: var(--ink);
+  font-size: 18px;
+}
+
+.wt-toolbar-create {
+  height: 38px;
+  padding: 0 18px;
+  font-size: 15px;
+}
+
+.wt-workspace {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.wt-calendar-page,
+.wt-dashboard,
+.wt-creation,
+.wt-libraries,
+.wt-editor-layout {
+  min-height: 0;
+  height: 100%;
+  padding: 18px;
+}
+
+.wt-calendar-page,
+.wt-dashboard {
+  display: grid;
+  gap: 14px;
+}
+
+.wt-calendar-page {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.wt-control-strip {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.wt-filter-row,
+.wt-range-row {
+  min-width: 0;
+  display: grid;
+  align-items: end;
+  gap: 12px;
+}
+
+.wt-filter-row {
+  grid-template-columns: 200px auto minmax(250px, 1fr) auto auto;
+}
+
+.wt-range-row {
+  grid-template-columns: minmax(210px, 1fr) auto auto auto;
+}
+
+.wt-search {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.wt-search span {
+  text-transform: uppercase;
+}
+
+.wt-search input {
+  width: 100%;
+  height: 36px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  padding: 0 12px;
+  font: inherit;
+}
+
+.wt-filter-group {
+  display: grid;
+  gap: 8px;
+}
+
+.wt-filter-group > div,
+.wt-week-controls,
+.wt-action-buttons {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.wt-filter-group button,
+.wt-week-controls button,
+.wt-action-buttons button,
+.wt-deadline-toggle,
+.wt-filter-note button {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+.wt-filter-group button.active,
+.wt-deadline-toggle.active {
+  border-color: var(--teal);
+  background: rgba(33,174,176,.12);
+  color: var(--teal-dark);
+}
+
+.wt-action-buttons {
+  justify-content: end;
+}
+
+.wt-range-title {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.wt-range-title small,
+.wt-picker summary small {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.wt-range-title strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 28px;
+  line-height: 1;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-picker {
+  position: relative;
+}
+
+.wt-picker summary {
+  min-width: 142px;
+  min-height: 36px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 12px;
+  align-items: center;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
+  list-style: none;
+}
+
+.wt-picker summary::-webkit-details-marker {
+  display: none;
+}
+
+.wt-picker summary::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.wt-picker summary small,
+.wt-picker summary b {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-picker summary small {
+  grid-column: 1 / 2;
+}
+
+.wt-picker summary b {
+  grid-column: 1 / 2;
+  font-size: 14px;
+}
+
+.wt-picker-menu {
+  position: absolute;
+  z-index: 4;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 180px;
+  display: grid;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--line-strong);
+  background: #fff;
+  box-shadow: 0 16px 34px rgba(42,45,44,.14);
+}
+
+.wt-picker-menu button {
+  min-height: 32px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  padding: 0 8px;
+  font-size: 13px;
+  text-align: left;
+}
+
+.wt-picker-menu button:hover,
+.wt-picker-menu button.active {
+  background: var(--panel);
+  color: var(--teal-dark);
+}
+
+.wt-week-controls {
+  justify-content: end;
+}
+
+.wt-week-controls button[aria-label] {
+  position: relative;
+  width: 34px;
+  padding: 0;
+}
+
+.wt-week-controls button[aria-label]::before {
+  content: "";
+  position: absolute;
+  inset: 11px 10px;
+  border-top: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+}
+
+.wt-week-controls button[aria-label="Previous"]::before {
+  transform: rotate(-45deg);
+}
+
+.wt-week-controls button[aria-label="Next"]::before {
+  transform: rotate(135deg);
+}
+
+.wt-filter-note,
+.wt-action-message {
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  background: #fbfcfb;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.wt-filter-note b,
+.wt-action-message {
+  color: var(--ink);
+}
+
+.wt-calendar-layout {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 14px;
+}
+
+.wt-week-board,
+.wt-timeline-board,
+.wt-gantt-board,
+.wt-list-board,
+.wt-season-grid-board,
+.wt-inspector,
+.wt-dashboard-hero,
+.wt-metric,
+.wt-today-stack,
+.wt-plan-map,
+.wt-plan-side,
+.wt-library-main,
+.wt-report-panel,
+.wt-edit-card,
+.wt-editor-calendar {
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.wt-week-board {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 58px minmax(0, 1fr);
+}
+
+.wt-week-head {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.wt-week-head button {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border: 0;
+  border-left: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.wt-week-head button:first-child {
+  border-left: 0;
+}
+
+.wt-week-head button.active {
+  background: var(--panel);
+}
+
+.wt-week-head span {
+  color: var(--muted);
+  text-align: left;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.wt-week-head b {
+  font-family: var(--font-display);
+  font-size: 30px;
+  line-height: 1;
+}
+
+.wt-week-grid {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.wt-day-column {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 12px;
+  border-left: 1px solid var(--line);
+  background: #fbfcfb;
+  overflow: hidden;
+}
+
+.wt-day-column:first-child {
+  border-left: 0;
+}
+
+.wt-day-column.active {
+  background: #eef8f8;
+  box-shadow: inset 0 3px 0 var(--teal);
+}
+
+.wt-event {
+  min-width: 0;
+  min-height: 76px;
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  padding: 10px;
+  border: 1px solid transparent;
+  background: var(--panel);
+  color: var(--ink);
+  text-align: left;
+  transition: border-color .18s ease, transform .18s ease, background .18s ease;
+}
+
+.wt-event:hover {
+  border-color: var(--line-strong);
+}
+
+.wt-event span,
+.wt-event small,
+.wt-inspector-event small,
+.wt-inspector-event span,
+.wt-deadline-row small,
+.wt-library-row span,
+.wt-report-item span,
+.wt-report-item small,
+.wt-metric span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.15;
+}
+
+.wt-event b {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.12;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.wt-kind-deadline,
+.wt-kind-handoff {
+  border-left: 4px solid var(--teal);
+}
+
+.wt-kind-sample {
+  border-left: 4px solid var(--green);
+}
+
+.wt-kind-shipping {
+  border-left: 4px solid var(--orange);
+}
+
+.wt-kind-report {
+  border-left: 4px solid var(--blue);
+}
+
+.wt-kind-review,
+.wt-kind-creation {
+  border-left: 4px solid #737c79;
+}
+
+.wt-kind-holiday {
+  border-left: 4px solid var(--red);
+}
+
+.wt-empty-slot {
+  min-height: 62px;
+  border: 1px dashed var(--line);
+  background: repeating-linear-gradient(-45deg, #fff, #fff 10px, #f4f6f5 10px, #f4f6f5 20px);
+}
+
+.wt-more {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.wt-timeline-board,
+.wt-gantt-board,
+.wt-list-board,
+.wt-season-grid-board {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.wt-timeline-board,
+.wt-gantt-board {
+  display: grid;
+  grid-template-rows: 58px minmax(0, 1fr);
+}
+
+.wt-timeline-head {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--wt-cols), minmax(58px, 1fr));
+  border-bottom: 1px solid var(--line-strong);
+  overflow: hidden;
+}
+
+.wt-timeline-head span {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  padding: 0 8px;
+  border-left: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.wt-timeline-head span:first-child {
+  border-left: 0;
+}
+
+.wt-timeline-head b {
+  overflow: hidden;
+  font-size: 13px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-timeline-head small {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.wt-timeline-body,
+.wt-gantt-body {
+  min-height: 0;
+  overflow: auto;
+}
+
+.wt-timeline-row {
+  min-height: 66px;
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr);
+  border-bottom: 1px solid var(--line);
+}
+
+.wt-timeline-meta {
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: #fbfcfb;
+  padding: 0 12px;
+  color: var(--ink);
+  text-align: left;
+}
+
+.wt-timeline-meta small {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.wt-timeline-meta b {
+  overflow: hidden;
+  font-size: 15px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-timeline-track,
+.wt-gantt-track {
+  position: relative;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--wt-cols), minmax(58px, 1fr));
+  align-items: center;
+  padding: 8px;
+  background:
+    repeating-linear-gradient(90deg, transparent, transparent calc((100% / var(--wt-cols)) - 1px), var(--line) calc((100% / var(--wt-cols)) - 1px), var(--line) calc(100% / var(--wt-cols)));
+}
+
+.wt-timeline-bar,
+.wt-gantt-chip {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  min-height: 44px;
+  border-top: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  padding: 7px 10px;
+  text-align: left;
+}
+
+.wt-timeline-bar b,
+.wt-gantt-chip b {
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-timeline-bar span,
+.wt-gantt-chip span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-gantt-lane {
+  min-height: 116px;
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  border-bottom: 1px solid var(--line);
+}
+
+.wt-gantt-label {
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  border-right: 1px solid var(--line);
+  background: #fbfcfb;
+}
+
+.wt-gantt-label b {
+  font-family: var(--font-display);
+  font-size: 22px;
+}
+
+.wt-gantt-label small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.wt-gantt-track {
+  grid-template-rows: repeat(4, 22px);
+  align-items: stretch;
+  row-gap: 4px;
+}
+
+.wt-gantt-chip {
+  grid-row: var(--wt-row);
+  min-height: 0;
+  height: 22px;
+  padding: 0 8px;
+}
+
+.wt-gantt-chip span {
+  display: none;
+}
+
+.wt-gantt-chip b {
+  font-size: 12px;
+}
+
+.wt-list-board {
+  display: grid;
+  grid-template-rows: 46px minmax(0, 1fr);
+}
+
+.wt-list-board header,
+.wt-list-row {
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr) 110px 120px;
+  align-items: center;
+  gap: 10px;
+}
+
+.wt-list-board header {
+  padding: 0 14px;
+  border-bottom: 1px solid var(--line-strong);
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.wt-list-board > div {
+  min-height: 0;
+  overflow: auto;
+}
+
+.wt-list-row {
+  width: 100%;
+  min-height: 54px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: #fbfcfb;
+  color: var(--ink);
+  padding: 0 14px 0 10px;
+  text-align: left;
+}
+
+.wt-list-row time,
+.wt-list-row span,
+.wt-list-row small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-list-row b {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 15px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-season-grid-board {
+  display: grid;
+  grid-template-rows: 46px minmax(0, 1fr);
+}
+
+.wt-season-grid-head,
+.wt-season-grid-row {
+  display: grid;
+  grid-template-columns: 128px repeat(var(--wt-cols), minmax(96px, 1fr));
+}
+
+.wt-season-grid-head {
+  border-bottom: 1px solid var(--line-strong);
+  background: var(--surface);
+}
+
+.wt-season-grid-head span,
+.wt-season-grid-head b {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  border-left: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.wt-season-grid-head span {
+  border-left: 0;
+}
+
+.wt-season-grid-body {
+  min-height: 0;
+  overflow: auto;
+}
+
+.wt-season-grid-row {
+  min-height: 96px;
+  border-bottom: 1px solid var(--line);
+}
+
+.wt-season-grid-label {
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  border-right: 1px solid var(--line);
+  background: #fbfcfb;
+}
+
+.wt-season-grid-label b {
+  font-family: var(--font-display);
+  font-size: 20px;
+}
+
+.wt-season-grid-label small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.wt-season-cell {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  padding: 8px;
+  border-left: 1px solid var(--line);
+}
+
+.wt-season-dot {
+  min-width: 0;
+  height: 24px;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 5px;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  background: var(--panel);
+  color: var(--ink);
+  padding: 0 6px;
+  text-align: left;
+}
+
+.wt-season-dot span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.wt-season-dot b {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-season-empty {
+  min-height: 20px;
+  border: 1px dashed var(--line);
+}
+
+.wt-board-more,
+.wt-empty-board {
+  display: grid;
+  place-items: center;
+  min-height: 62px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.wt-timeline-board.compact,
+.wt-gantt-board.compact,
+.wt-list-board.compact,
+.wt-season-grid-board.compact {
+  font-size: 13px;
+}
+
+.wt-timeline-board.compact .wt-timeline-row {
+  min-height: 54px;
+}
+
+.wt-timeline-board.compact .wt-timeline-bar {
+  min-height: 36px;
+}
+
+.wt-gantt-board.compact .wt-gantt-lane {
+  min-height: 84px;
+}
+
+.wt-inspector {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, auto) minmax(0, 1fr);
+  gap: 16px;
+  padding: 18px;
+  overflow: hidden;
+}
+
+.wt-inspector-date {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  align-items: end;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.wt-inspector-date small {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.wt-inspector-date b {
+  font-family: var(--font-display);
+  color: var(--teal);
+  font-size: 58px;
+  line-height: .88;
+}
+
+.wt-inspector-date span {
+  padding-bottom: 4px;
+  color: var(--ink);
+  font-size: 22px;
+}
+
+.wt-inspector h2,
+.wt-today-stack h2,
+.wt-plan-side h2,
+.wt-report-panel h2,
+.wt-edit-card h2,
+.wt-library-main h2,
+.wt-plan-map h2 {
+  margin: 0 0 12px;
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.wt-inspector-event,
+.wt-deadline-row,
+.wt-library-row,
+.wt-report-item {
+  display: grid;
+  gap: 5px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  background: #f9faf9;
+}
+
+.wt-inspector-event + .wt-inspector-event,
+.wt-deadline-row + .wt-deadline-row,
+.wt-library-row + .wt-library-row,
+.wt-report-item + .wt-report-item {
+  margin-top: 8px;
+}
+
+.wt-inspector-event b,
+.wt-deadline-row b,
+.wt-library-row b,
+.wt-report-item b {
+  font-size: 15px;
+  line-height: 1.14;
+}
+
+.wt-deadline-row {
+  grid-template-columns: 58px minmax(0, 1fr);
+}
+
+.wt-deadline-row time {
+  grid-row: span 2;
+  color: var(--teal-dark);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.wt-muted {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.wt-dashboard {
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.wt-dashboard-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px 22px;
+}
+
+.wt-dashboard-hero h2 {
+  font-family: var(--font-display);
+  margin: 5px 0 0;
+  font-size: 42px;
+  line-height: 1;
+}
+
+.wt-now {
+  display: grid;
+  justify-items: end;
+}
+
+.wt-now span {
+  font-family: var(--font-display);
+  font-size: 46px;
+  line-height: 1;
+}
+
+.wt-dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.wt-metric {
+  min-height: 104px;
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  padding: 16px;
+}
+
+.wt-metric small {
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.wt-metric b {
+  font-family: var(--font-display);
+  font-size: 38px;
+  line-height: 1;
+}
+
+.wt-projector-board {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 12px;
+}
+
+.wt-week-board.compact .wt-event {
+  min-height: 58px;
+}
+
+.wt-week-board.compact .wt-week-head {
+  height: 52px;
+}
+
+.wt-week-board.compact .wt-event b {
+  -webkit-line-clamp: 1;
+}
+
+.wt-today-stack {
+  min-height: 0;
+  padding: 18px;
+  overflow: hidden;
+}
+
+.wt-creation,
+.wt-libraries,
+.wt-editor-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 14px;
+}
+
+.wt-plan-map,
+.wt-library-main,
+.wt-report-panel,
+.wt-plan-side,
+.wt-editor-calendar,
+.wt-edit-card {
+  min-height: 0;
+  padding: 18px;
+  overflow: hidden;
+}
+
+.wt-plan-map header,
+.wt-library-main header {
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.wt-season-lanes {
+  display: grid;
+  gap: 10px;
+}
+
+.wt-season-lane {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  min-height: 70px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  background: #fbfcfb;
+}
+
+.wt-season-lane b,
+.wt-season-lane span {
+  display: block;
+}
+
+.wt-season-lane > div:first-child b {
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.wt-season-lane > div:first-child span {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.wt-lane-track {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.wt-lane-chip {
+  min-width: 0;
+  min-height: 48px;
+  display: grid;
+  gap: 3px;
+  align-content: center;
+  padding: 7px 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  text-align: left;
+}
+
+.wt-lane-chip span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.wt-lane-chip b {
+  overflow: hidden;
+  font-size: 13px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-month-load {
+  display: grid;
+  gap: 9px;
+}
+
+.wt-month-load article {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 30px;
+  gap: 8px;
+  align-items: center;
+}
+
+.wt-month-load b,
+.wt-month-load small {
+  font-size: 12px;
+}
+
+.wt-month-load span {
+  height: 14px;
+  background: linear-gradient(90deg, var(--teal) var(--load), var(--panel) var(--load));
+}
+
+.wt-library-row {
+  grid-template-columns: minmax(0, 1fr) 82px;
+  align-items: center;
+  min-height: 70px;
+}
+
+.wt-library-row small {
+  color: var(--teal-dark);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.wt-report-item {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.wt-report-item small {
+  grid-column: 1 / -1;
+}
+
+.wt-editor {
+  overflow: hidden;
+}
+
+.wt-editor-layout {
+  min-height: 0;
+}
+
+.wt-editor-calendar {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 14px;
+}
+
+.wt-edit-card {
+  align-self: start;
+}
+
+.wt-edit-form {
+  display: grid;
+  gap: 12px;
+}
+
+.wt-edit-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.wt-edit-form input,
+.wt-edit-form select,
+.wt-edit-form textarea {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  padding: 0 10px;
+  font-size: 15px;
+}
+
+.wt-edit-form textarea {
+  min-height: 116px;
+  padding-top: 10px;
+  resize: vertical;
+}
+
+.wt-form-message {
+  min-height: 20px;
+  margin: 0;
+  color: var(--teal-dark);
+  font-size: 13px;
+}
+
+.wt-edit-form .primary {
+  height: 48px;
+  font-size: 16px;
+}
+
+@media (max-width: 1240px) {
+  body {
+    overflow: auto;
+  }
+
+  .wt-app {
+    min-width: 0;
+    height: auto;
+    min-height: 100dvh;
+    grid-template-columns: 1fr;
+    overflow: visible;
+  }
+
+  .wt-sidebar {
+    grid-template-rows: auto auto auto auto;
+  }
+
+  .wt-main,
+  .wt-workspace,
+  .wt-calendar-page,
+  .wt-dashboard,
+  .wt-creation,
+  .wt-libraries,
+  .wt-editor-layout {
+    height: auto;
+    overflow: visible;
+  }
+
+  .wt-toolbar,
+  .wt-calendar-layout,
+  .wt-projector-board,
+  .wt-creation,
+  .wt-libraries,
+  .wt-editor-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .wt-filter-row,
+  .wt-range-row {
+    grid-template-columns: 1fr;
+  }
+
+  .wt-week-board {
+    min-height: 720px;
+  }
+
+  .wt-week-grid,
+  .wt-week-head {
+    grid-template-columns: repeat(7, 180px);
+    overflow-x: auto;
+  }
+
+  .wt-timeline-head,
+  .wt-timeline-track,
+  .wt-gantt-track {
+    grid-template-columns: repeat(var(--wt-cols), 92px);
+  }
+
+  .wt-timeline-row,
+  .wt-gantt-lane {
+    grid-template-columns: 120px minmax(720px, 1fr);
+  }
+
+  .wt-list-board header,
+  .wt-list-row {
+    grid-template-columns: 92px minmax(220px, 1fr) 80px 90px;
+  }
+
+  .wt-season-grid-head,
+  .wt-season-grid-row {
+    grid-template-columns: 116px repeat(var(--wt-cols), 122px);
+  }
+
+  .wt-dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1241px) and (max-height: 880px) {
+  .wt-sidebar {
+    gap: 10px;
+    padding: 16px;
+  }
+
+  .wt-main {
+    grid-template-rows: 64px minmax(0, 1fr);
+  }
+
+  .wt-toolbar {
+    padding: 10px 18px;
+  }
+
+  .wt-title-block h1 {
+    font-size: 26px;
+  }
+
+  .wt-calendar-page,
+  .wt-dashboard,
+  .wt-creation,
+  .wt-libraries,
+  .wt-editor-layout {
+    padding: 14px;
+  }
+
+  .wt-week-head {
+    height: 50px;
+  }
+
+  .wt-week-board {
+    grid-template-rows: 50px minmax(0, 1fr);
+  }
+
+  .wt-event {
+    min-height: 62px;
+    padding: 8px;
+  }
+
+  .wt-event b {
+    font-size: 14px;
+  }
+}
+
+#wt-system-root[data-wt-fit="viewport"] {
+  width: 100vw;
+  height: 100dvh;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: var(--canvas);
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app {
+  width: var(--wt-fit-width, 1920px);
+  min-width: var(--wt-fit-width, 1920px);
+  height: var(--wt-fit-height, 1080px);
+  min-height: var(--wt-fit-height, 1080px);
+  display: grid;
+  grid-template-columns: 288px minmax(0, 1fr);
+  overflow: hidden;
+  transform: scale(var(--wt-fit-scale, 1));
+  transform-origin: top left;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-sidebar {
+  grid-template-rows: auto auto auto auto auto 1fr auto;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-main {
+  height: var(--wt-fit-height, 1080px);
+  min-height: 0;
+  grid-template-rows: 74px minmax(0, 1fr);
+  overflow: hidden;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-workspace,
+#wt-system-root[data-wt-fit="viewport"] .wt-calendar-page,
+#wt-system-root[data-wt-fit="viewport"] .wt-dashboard,
+#wt-system-root[data-wt-fit="viewport"] .wt-creation,
+#wt-system-root[data-wt-fit="viewport"] .wt-libraries,
+#wt-system-root[data-wt-fit="viewport"] .wt-editor-layout {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-toolbar {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  padding: 14px 24px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-control-strip {
+  gap: 10px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-filter-row {
+  grid-template-columns: 200px auto minmax(250px, 1fr) auto auto;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-range-row {
+  grid-template-columns: minmax(210px, 1fr) auto auto auto;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-calendar-layout {
+  grid-template-columns: minmax(0, 1fr) 330px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-projector-board {
+  grid-template-columns: minmax(0, 1fr) 360px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-creation,
+#wt-system-root[data-wt-fit="viewport"] .wt-libraries,
+#wt-system-root[data-wt-fit="viewport"] .wt-editor-layout {
+  grid-template-columns: minmax(0, 1fr) 340px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-week-board {
+  min-height: 0;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-week-grid,
+#wt-system-root[data-wt-fit="viewport"] .wt-week-head {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  overflow: visible;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-dashboard-grid {
+  grid-template-columns: 1.2fr 1fr 1fr 1fr;
+}
+
+/* Flow parity pass: calendar screen */
+#wt-system-root,
+.wt-root {
+  --flow-navy: #0f172a;
+  --flow-active: #263b70;
+  --flow-blue: #1e2dff;
+  --flow-border: #e8e8e8;
+  --flow-border-dark: #9e9ea0;
+  --flow-card: #f5f5f5;
+  --flow-muted: #666666;
+  --flow-ink: #111111;
+  --flow-green: #22c55e;
+  --flow-event-blue: #3b82f6;
+  --flow-purple: #8b5cf6;
+  --flow-red: #ef4444;
+  background: #ffffff;
+}
+
+body:has(#wt-system-root[data-wt-standalone="true"]) {
+  background: #ffffff;
+}
+
+.wt-app {
+  grid-template-columns: 256px minmax(0, 1fr);
+  background: #ffffff;
+}
+
+.wt-sidebar {
+  position: relative;
+  grid-template-rows: 49px auto 1fr;
+  gap: 0;
+  padding: 0 10px;
+  background: var(--flow-navy);
+  color: #e2e8f0;
+  border-right: 1px solid rgba(255,255,255,.08);
+}
+
+.wt-brand {
+  min-height: 49px;
+  grid-template-columns: 46px 1fr;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.wt-brand > .wt-brand-mark {
+  width: 38px;
+  height: 24px;
+  border: 1px solid rgba(255,255,255,.78);
+  background: transparent;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.wt-brand b {
+  font-family: var(--font-text);
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.wt-primary-nav {
+  gap: 6px;
+  padding: 16px 0 0;
+  border: 0;
+}
+
+.wt-primary-nav button {
+  height: 36px;
+  grid-template-columns: 22px 1fr;
+  gap: 10px;
+  padding: 0 12px;
+  border-radius: 6px;
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.wt-primary-nav button i {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  margin-left: 0;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+}
+
+.wt-primary-nav button .wt-icon {
+  width: 17px;
+  height: 17px;
+  color: currentColor;
+  opacity: .95;
+}
+
+.wt-primary-nav button.active {
+  background: var(--flow-active);
+  color: #e2e8f0;
+}
+
+.wt-primary-nav button.active i {
+  background: transparent;
+  border-color: currentColor;
+}
+
+.wt-main {
+  grid-template-rows: 49px minmax(0, 1fr);
+  background: #ffffff;
+}
+
+.wt-flow-topbar {
+  height: 49px;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--flow-border);
+  background: #ffffff;
+}
+
+.wt-flow-breadcrumb {
+  color: var(--flow-ink);
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.wt-workspace {
+  background: #ffffff;
+  overflow: auto;
+}
+
+.wt-flow-calendar-page {
+  position: relative;
+  width: 100%;
+  height: auto;
+  min-height: 1031px;
+  display: grid;
+  grid-template-rows: 68px 170px minmax(0, 1fr);
+  gap: 0;
+  padding: 42px 36px 0 48px;
+  background: #ffffff;
+}
+
+.wt-flow-page-head {
+  min-width: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+}
+
+.wt-flow-heading {
+  display: flex;
+  align-items: center;
+}
+
+.wt-flow-heading h1 {
+  margin: 0;
+  color: var(--flow-ink);
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.wt-flow-control-strip {
+  position: relative;
+  width: 100%;
+  min-height: 170px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.wt-flow-filter-row {
+  position: absolute;
+  top: 3px;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wt-event-count {
+  color: var(--flow-ink);
+  font-size: 14px;
+  line-height: 21px;
+  white-space: nowrap;
+}
+
+.wt-flow-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--flow-border-dark);
+}
+
+.wt-flow-search {
+  display: block;
+  width: 200px;
+}
+
+.wt-flow-search .wt-search-icon {
+  position: absolute;
+  z-index: 1;
+  left: 17px;
+  top: 9px;
+  display: block;
+  color: var(--flow-ink);
+}
+
+.wt-flow-search input {
+  height: 36px;
+  border: 0;
+  border-radius: 24px;
+  background: #eeeeee;
+  padding: 0 18px 0 44px;
+  color: var(--flow-ink);
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.wt-flow-search {
+  position: relative;
+}
+
+.wt-flow-filter {
+  position: relative;
+}
+
+.wt-flow-pill,
+.wt-picker summary,
+.wt-week-controls button {
+  min-height: 36px;
+  border: 1px solid var(--flow-border-dark);
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--flow-ink);
+  padding: 0 18px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 21px;
+}
+
+.wt-flow-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  list-style: none;
+}
+
+.wt-flow-pill .wt-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.wt-flow-pill::-webkit-details-marker,
+.wt-picker summary::-webkit-details-marker {
+  display: none;
+}
+
+.wt-flow-pill::after,
+.wt-picker summary::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+}
+
+.wt-flow-pill.active,
+.wt-flow-filter summary.active {
+  border-color: var(--flow-ink);
+  background: var(--flow-ink);
+  color: #ffffff;
+}
+
+.wt-deadline-toggle.wt-flow-pill.active {
+  background: var(--flow-ink);
+  color: #ffffff;
+}
+
+.wt-flow-actions {
+  position: absolute;
+  top: 51px;
+  right: 0;
+  display: flex;
+  gap: 8px;
+}
+
+.wt-flow-actions button {
+  height: 36px;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--flow-border-dark);
+  border-radius: 100px;
+  background: transparent;
+  color: var(--flow-ink);
+  padding: 0 14px;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.wt-flow-actions button[data-export] {
+  width: 36px;
+  padding: 0;
+}
+
+.wt-flow-actions button[data-view] {
+  min-width: 91px;
+  border-color: transparent;
+  background: rgba(0,0,0,.35);
+  color: #ffffff;
+}
+
+.wt-flow-actions button[data-view] .wt-icon,
+.wt-flow-actions button[data-export] .wt-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.wt-flow-actions button[data-view] span {
+  line-height: 1;
+}
+
+.wt-flow-range-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+}
+
+.wt-range-title strong {
+  color: var(--flow-ink);
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.wt-flow-view-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wt-picker {
+  position: relative;
+}
+
+.wt-picker summary {
+  min-width: 107px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 18px;
+}
+
+.wt-picker:first-child summary {
+  min-width: 154px;
+}
+
+.wt-picker summary small {
+  display: none;
+}
+
+.wt-picker summary b {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.wt-picker-menu {
+  right: 0;
+  border-color: var(--flow-border-dark);
+  border-radius: 8px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.12);
+}
+
+.wt-week-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.wt-week-controls button[aria-label] {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  padding: 0;
+}
+
+.wt-week-controls button[aria-label]::before {
+  content: none;
+}
+
+.wt-week-controls button[aria-label] .wt-icon {
+  width: 17px;
+  height: 17px;
+}
+
+.wt-week-controls button[data-today] {
+  width: 73px;
+  border-color: var(--flow-ink);
+}
+
+.wt-flow-calendar-layout {
+  width: 100%;
+  height: 785px;
+  min-height: 785px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+.wt-flow-timeline-board {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 30px minmax(0, 1fr);
+  border: 1px solid var(--flow-border);
+  border-radius: 8px 8px 0 0;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.wt-flow-timeline-board .wt-timeline-head {
+  height: 30px;
+  display: grid;
+  grid-template-columns: 112px repeat(var(--wt-cols), minmax(0, 1fr));
+  border-bottom: 1px solid var(--flow-border);
+}
+
+.wt-flow-timeline-board .wt-timeline-head span {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0;
+  border-left: 1px solid transparent;
+  background: #ffffff;
+  color: var(--flow-ink);
+}
+
+.wt-flow-timeline-board .wt-timeline-head .wt-timeline-corner {
+  border-left: 0;
+}
+
+.wt-flow-timeline-board .wt-timeline-head b,
+.wt-flow-timeline-board .wt-timeline-head small {
+  color: var(--flow-ink);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 21px;
+  text-transform: none;
+}
+
+.wt-flow-timeline-board .wt-timeline-head span.today::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-right: 4px;
+  border-radius: 50%;
+  background: var(--flow-ink);
+}
+
+.wt-flow-timeline-board .wt-timeline-body {
+  min-height: 0;
+  overflow: auto;
+}
+
+.wt-timeline-lane {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  min-height: calc(24px + (var(--wt-lane-rows) * 67px));
+  border-bottom: 1px solid var(--flow-border);
+}
+
+.wt-flow-timeline-board .wt-timeline-meta {
+  display: block;
+  border: 0;
+  border-right: 1px solid var(--flow-border);
+  background: #fafafa;
+  padding: 28px 12px 0;
+  color: var(--flow-ink);
+}
+
+.wt-flow-timeline-board .wt-timeline-meta b {
+  color: var(--flow-ink);
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 30px;
+}
+
+.wt-flow-timeline-board .wt-timeline-track {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--wt-cols), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--wt-lane-rows), 67px);
+  align-items: start;
+  padding: 24px 0 0;
+  background:
+    repeating-linear-gradient(90deg, transparent, transparent calc((100% / var(--wt-cols)) - 1px), var(--flow-border) calc((100% / var(--wt-cols)) - 1px), var(--flow-border) calc(100% / var(--wt-cols)));
+}
+
+.wt-flow-timeline-board .wt-timeline-bar {
+  grid-row: var(--wt-event-row);
+  height: 52px;
+  min-height: 52px;
+  align-self: start;
+  margin: 0 10px 0 0;
+  display: grid;
+  align-content: center;
+  gap: 0;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-left-width: 4px;
+  border-left-style: solid;
+  border-radius: 8px;
+  background: var(--flow-card);
+  color: var(--flow-ink);
+  padding: 8px 16px;
+  text-align: left;
+  box-shadow: none;
+}
+
+.wt-flow-timeline-board .wt-timeline-bar b {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--flow-ink);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 19.6px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-flow-timeline-board .wt-timeline-bar span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--flow-muted);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16.8px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-accent-footwear {
+  border-left-color: var(--flow-green);
+}
+
+.wt-accent-code-spine {
+  border-left-color: var(--flow-event-blue);
+}
+
+.wt-accent-ake {
+  border-left-color: var(--flow-purple);
+}
+
+.wt-accent-holiday {
+  border-left-color: var(--flow-red);
+}
+
+.wt-accent-default {
+  border-left-color: var(--flow-green);
+}
+
+.wt-flow-calendar-page .wt-list-board,
+.wt-flow-calendar-page .wt-gantt-board,
+.wt-flow-calendar-page .wt-season-grid-board {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 30px minmax(0, 1fr);
+  border: 1px solid var(--flow-border);
+  border-radius: 8px 8px 0 0;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.wt-flow-calendar-page .wt-gantt-board .wt-timeline-head,
+.wt-flow-calendar-page .wt-list-board header,
+.wt-flow-calendar-page .wt-season-grid-head {
+  height: 30px;
+  min-height: 30px;
+  border-bottom: 1px solid var(--flow-border);
+  background: #ffffff;
+}
+
+.wt-flow-calendar-page .wt-gantt-board .wt-timeline-head {
+  grid-template-columns: 112px repeat(var(--wt-cols), minmax(0, 1fr));
+}
+
+.wt-flow-calendar-page .wt-gantt-board .wt-timeline-head span {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0;
+  border-left: 1px solid transparent;
+  background: #ffffff;
+  color: var(--flow-ink);
+}
+
+.wt-flow-calendar-page .wt-gantt-board .wt-timeline-head .wt-timeline-corner {
+  border-left: 0;
+}
+
+.wt-flow-calendar-page .wt-gantt-board .wt-timeline-head b,
+.wt-flow-calendar-page .wt-gantt-board .wt-timeline-head small,
+.wt-flow-calendar-page .wt-list-board header span,
+.wt-flow-calendar-page .wt-season-grid-head span,
+.wt-flow-calendar-page .wt-season-grid-head b {
+  color: var(--flow-ink);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 21px;
+  text-transform: none;
+}
+
+.wt-flow-calendar-page .wt-gantt-body,
+.wt-flow-calendar-page .wt-list-board > div,
+.wt-flow-calendar-page .wt-season-grid-body {
+  min-height: 0;
+  overflow: auto;
+}
+
+.wt-flow-calendar-page .wt-gantt-lane {
+  min-height: 116px;
+  grid-template-columns: 112px minmax(0, 1fr);
+  border-bottom: 1px solid var(--flow-border);
+}
+
+.wt-flow-calendar-page .wt-gantt-label,
+.wt-flow-calendar-page .wt-season-grid-label {
+  border-right: 1px solid var(--flow-border);
+  background: #fafafa;
+  padding: 28px 12px 0;
+  align-content: start;
+}
+
+.wt-flow-calendar-page .wt-gantt-label b,
+.wt-flow-calendar-page .wt-season-grid-label b {
+  color: var(--flow-ink);
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 30px;
+}
+
+.wt-flow-calendar-page .wt-gantt-label small,
+.wt-flow-calendar-page .wt-season-grid-label small {
+  color: var(--flow-muted);
+  font-size: 12px;
+  line-height: 16.8px;
+}
+
+.wt-flow-calendar-page .wt-gantt-track {
+  min-width: 0;
+  grid-template-columns: repeat(var(--wt-cols), minmax(0, 1fr));
+  grid-template-rows: repeat(4, 36px);
+  align-items: start;
+  row-gap: 8px;
+  padding: 22px 0 0;
+  background:
+    repeating-linear-gradient(90deg, transparent, transparent calc((100% / var(--wt-cols)) - 1px), var(--flow-border) calc((100% / var(--wt-cols)) - 1px), var(--flow-border) calc(100% / var(--wt-cols)));
+}
+
+.wt-flow-calendar-page .wt-gantt-chip {
+  grid-row: var(--wt-row);
+  height: 36px;
+  min-height: 36px;
+  margin: 0 10px 0 0;
+  display: grid;
+  align-content: center;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-left-width: 4px;
+  border-left-style: solid;
+  border-radius: 8px;
+  background: var(--flow-card);
+  color: var(--flow-ink);
+  padding: 0 12px;
+  box-shadow: none;
+}
+
+.wt-flow-calendar-page .wt-gantt-chip b {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--flow-ink);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18.2px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-flow-calendar-page .wt-gantt-chip span {
+  display: none;
+}
+
+.wt-flow-calendar-page .wt-list-board header,
+.wt-flow-calendar-page .wt-list-row {
+  grid-template-columns: 112px minmax(0, 1fr) 112px 140px;
+  gap: 0;
+}
+
+.wt-flow-calendar-page .wt-list-board header {
+  padding: 0;
+}
+
+.wt-flow-calendar-page .wt-list-board header span {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border-left: 1px solid transparent;
+}
+
+.wt-flow-calendar-page .wt-list-board header span:first-child {
+  border-left: 0;
+}
+
+.wt-flow-calendar-page .wt-list-row {
+  min-height: 52px;
+  border-bottom: 1px solid var(--flow-border);
+  background: #ffffff;
+  color: var(--flow-ink);
+  padding: 0;
+}
+
+.wt-flow-calendar-page .wt-list-row time,
+.wt-flow-calendar-page .wt-list-row b,
+.wt-flow-calendar-page .wt-list-row span,
+.wt-flow-calendar-page .wt-list-row small {
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-flow-calendar-page .wt-list-row b {
+  color: var(--flow-ink);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.wt-flow-calendar-page .wt-list-row time,
+.wt-flow-calendar-page .wt-list-row span,
+.wt-flow-calendar-page .wt-list-row small {
+  color: var(--flow-muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.wt-flow-calendar-page .wt-season-grid-head,
+.wt-flow-calendar-page .wt-season-grid-row {
+  grid-template-columns: 112px repeat(var(--wt-cols), minmax(0, 1fr));
+}
+
+.wt-flow-calendar-page .wt-season-grid-head span,
+.wt-flow-calendar-page .wt-season-grid-head b {
+  justify-content: center;
+  padding: 0;
+  border-left: 1px solid transparent;
+}
+
+.wt-flow-calendar-page .wt-season-grid-head span {
+  justify-content: flex-start;
+  padding-left: 12px;
+  border-left: 0;
+}
+
+.wt-flow-calendar-page .wt-season-grid-row {
+  min-height: 116px;
+  border-bottom: 1px solid var(--flow-border);
+}
+
+.wt-flow-calendar-page .wt-season-cell {
+  gap: 6px;
+  padding: 22px 10px 0;
+  border-left: 1px solid var(--flow-border);
+}
+
+.wt-flow-calendar-page .wt-season-dot {
+  height: 32px;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 6px;
+  border-left-width: 4px;
+  border-left-style: solid;
+  border-radius: 8px;
+  background: var(--flow-card);
+  padding: 0 8px 0 6px;
+}
+
+.wt-flow-calendar-page .wt-season-dot span {
+  color: var(--flow-muted);
+  font-size: 12px;
+  line-height: 16.8px;
+}
+
+.wt-flow-calendar-page .wt-season-dot b {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--flow-ink);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16.8px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-flow-calendar-page .wt-season-empty {
+  min-height: 28px;
+  border: 0;
+  background: transparent;
+}
+
+.wt-flow-calendar-page .wt-board-more,
+.wt-flow-calendar-page .wt-empty-board {
+  min-height: 72px;
+  color: var(--flow-muted);
+  font-size: 14px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app {
+  grid-template-columns: 256px minmax(0, 1fr);
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-sidebar {
+  grid-template-rows: 49px auto 1fr;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-main {
+  grid-template-rows: 49px minmax(0, 1fr);
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-toolbar {
+  grid-template-columns: 1fr auto 1fr;
+  padding: 0 24px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-calendar-page {
+  height: auto;
+  min-height: 1031px;
+  overflow: visible;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-flow-calendar-page {
+  padding-right: 36px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-workspace {
+  overflow: auto;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-flow-range-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-flow-filter-row {
+  display: flex;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-calendar-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+</style>
+<div
+  id="wt-system-root"
+  data-wt-system
+  data-wt-year="2026"
+  data-wt-default-month="2026-05"
+  data-wt-backend-mode="sharepoint-list"
+  data-wt-sharepoint-list-title="WT_Submissions"
+></div>
+<script>
 window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","season":"SP27","gate":"XLT","task":"XLT (WT) Product Freeze","kind":"product_freeze","week":"110","source":"schedule.pdf","source_line":"T                         XLT (WT) Product Freeze                                11.1.24    110       4.4.25       104      6.18.25       106       9.17.25      106   12.17.25    106"},{"id":"MS-0005","date":"2024-11-08","season":"SP27","gate":"XLT","task":"XLT ITP & BOM DDD","kind":"bom_ddd","week":"111","source":"schedule.pdf","source_line":"                            XLT ITP & BOM DDD                                    11.8.24    111      3.12.25       107      6.11.25       107      9.10.25       107   12.10.25    107"},{"id":"MS-0006","date":"2025-03-12","season":"SU27","gate":"XLT","task":"XLT ITP & BOM DDD","kind":"bom_ddd","week":"107","source":"schedule.pdf","source_line":"                            XLT ITP & BOM DDD                                    11.8.24    111      3.12.25       107      6.11.25       107      9.10.25       107   12.10.25    107"},{"id":"MS-0019","date":"2025-03-21","season":"SP27","gate":"XLT","task":"XLT Wear Test Results Ready","kind":"results_ready","week":"92","source":"schedule.pdf","source_line":"                        XLT Wear Test Results Ready                              3.21.25    92       6.18.25        93      9.19.25        93      12.19.25      93     3.20.26     93"},{"id":"MS-0001","date":"2025-03-25","season":"SU27","gate":"XLT","task":"LTWT P/T Sample to FPT","kind":"sample_to_fpt","week":"","source":"schedule.pdf","source_line":"X                         LTWT P/T Sample to FPT                                  N/A                3.25.25                 6.8.25                 9.7.25              12.7.25"},{"id":"MS-0010","date":"2025-03-28","season":"SU27","gate":"XLT","task":"LTWT P/T Sample DDD","kind":"sample_ddd","week":"","source":"schedule.pdf","source_line":"L                          LTWT P/T Sample DDD                                    N/A                3.28.25                6.11.25                 9.10.25             12.10.25"},{"id":"MS-0015","date":"2025-04-04","season":"SU27","gate":"XLT","task":"XLT (WT) Product Freeze","kind":"product_freeze","week":"104","source":"schedule.pdf","source_line":"T                         XLT (WT) Product Freeze                                11.1.24    110       4.4.25       104      6.18.25       106       9.17.25      106   12.17.25    106"},{"id":"MS-0024","date":"2025-04-11","season":"SP27","gate":"PR","task":"PR (LTWT) Handoff","kind":"handoff","week":"89","source":"schedule.pdf","source_line":"                             PR (LTWT) Handoff                                   4.11.25    89        7.9.25       90       10.8.25       90        1.7.26       90     4.8.26     90"},{"id":"MS-0029","date":"2025-04-15","season":"SP27","gate":"PR","task":"LTWT P/T Sample to FPT","kind":"sample_to_fpt","week":"","source":"schedule.pdf","source_line":"                          LTWT P/T Sample to FPT                                 4.15.25             7.13.25                10.12.25                1.11.26             4.12.26"},{"id":"MS-0039","date":"2025-04-18","season":"SP27","gate":"PR","task":"LTWT P/T Sample DDD","kind":"sample_ddd","week":"","source":"schedule.pdf","source_line":"P                          LTWT P/T Sample DDD                                   4.18.25             7.16.25                10.15.25                1.14.26             4.15.26"},{"id":"MS-0034","date":"2025-04-18","season":"SP27","gate":"PR","task":"PR (LTWT) BOM DDD","kind":"bom_ddd","week":"88","source":"schedule.pdf","source_line":"                            PR (LTWT) BOM DDD                                    4.18.25    88       7.16.25       89       10.15.25      89       1.14.26       89     4.15.26    89"},{"id":"MS-0044","date":"2025-04-25","season":"SP27","gate":"PR","task":"PR/PA (LTWT) Product Freeze","kind":"product_freeze","week":"87","source":"schedule.pdf","source_line":"R                       PR/PA (LTWT) Product Freeze                              4.25.25    87       7.23.25       88       10.22.25      88       1.21.26       88     4.22.26    88"},{"id":"MS-0002","date":"2025-06-08","season":"FA27","gate":"XLT","task":"LTWT P/T Sample to FPT","kind":"sample_to_fpt","week":"","source":"schedule.pdf","source_line":"X                         LTWT P/T Sample to FPT                                  N/A                3.25.25                 6.8.25                 9.7.25              12.7.25"},{"id":"MS-0011","date":"2025-06-11","season":"FA27","gate":"XLT","task":"LTWT P/T Sample DDD","kind":"sample_ddd","week":"","source":"schedule.pdf","source_line":"L                          LTWT P/T Sample DDD                                    N/A                3.28.25                6.11.25                 9.10.25             12.10.25"},{"id":"MS-0007","date":"2025-06-11","season":"FA27","gate":"XLT","task":"XLT ITP & BOM DDD","kind":"bom_ddd","week":"107","source":"schedule.pdf","source_line":"                            XLT ITP & BOM DDD                                    11.8.24    111      3.12.25       107      6.11.25       107      9.10.25       107   12.10.25    107"},{"id":"MS-0049","date":"2025-06-13","season":"SP27","gate":"PR","task":"PR/PA (LTWT) X-FTY","kind":"x_fty","week":"80","source":"schedule.pdf","source_line":"                            PR/PA (LTWT) X-FTY                                   6.13.25    80       9.12.25       81       12.12.25      81       3.13.26       81     6.12.26    81"},{"id":"MS-0016","date":"2025-06-18","season":"FA27","gate":"XLT","task":"XLT (WT) Product Freeze","kind":"product_freeze","week":"106","source":"schedule.pdf","source_line":"T                         XLT (WT) Product Freeze                                11.1.24    110       4.4.25       104      6.18.25       106       9.17.25      106   12.17.25    106"},{"id":"MS-0020","date":"2025-06-18","season":"SU27","gate":"XLT","task":"XLT Wear Test Results Ready","kind":"results_ready","week":"93","source":"schedule.pdf","source_line":"                        XLT Wear Test Results Ready                              3.21.25    92       6.18.25        93      9.19.25        93      12.19.25      93     3.20.26     93"},{"id":"MS-0025","date":"2025-07-09","season":"SU27","gate":"PR","task":"PR (LTWT) Handoff","kind":"handoff","week":"90","source":"schedule.pdf","source_line":"                             PR (LTWT) Handoff                                   4.11.25    89        7.9.25       90       10.8.25       90        1.7.26       90     4.8.26     90"},{"id":"MS-0030","date":"2025-07-13","season":"SU27","gate":"PR","task":"LTWT P/T Sample to FPT","kind":"sample_to_fpt","week":"","source":"schedule.pdf","source_line":"                          LTWT P/T Sample to FPT                                 4.15.25             7.13.25                10.12.25                1.11.26             4.12.26"},{"id":"MS-0040","date":"2025-07-16","season":"SU27","gate":"PR","task":"LTWT P/T Sample DDD","kind":"sample_ddd","week":"","source":"schedule.pdf","source_line":"P                          LTWT P/T Sample DDD                                   4.18.25             7.16.25                10.15.25                1.14.26             4.15.26"},{"id":"MS-0035","date":"2025-07-16","season":"SU27","gate":"PR","task":"PR (LTWT) BOM DDD","kind":"bom_ddd","week":"89","source":"schedule.pdf","source_line":"                            PR (LTWT) BOM DDD                                    4.18.25    88       7.16.25       89       10.15.25      89       1.14.26       89     4.15.26    89"},{"id":"MS-0045","date":"2025-07-23","season":"SU27","gate":"PR","task":"PR/PA (LTWT) Product Freeze","kind":"product_freeze","week":"88","source":"schedule.pdf","source_line":"R                       PR/PA (LTWT) Product Freeze                              4.25.25    87       7.23.25       88       10.22.25      88       1.21.26       88     4.22.26    88"},{"id":"MS-0054","date":"2025-08-18","season":"SP27","gate":"PR","task":"PR LTWT Results Ready","kind":"results_ready","week":"71","source":"schedule.pdf","source_line":"                           PR LTWT Results Ready                                 8.18.25    71       11.17.25      71       2.16.26       71       5.18.26       71     8.17.26    71"},{"id":"MS-0059","date":"2025-08-28","season":"SP27","gate":"PR","task":"PR Scrutiny","kind":"scrutiny","week":"70","source":"schedule.pdf","source_line":"                                PR Scrutiny                                      8.28.25    70       11.19.25      71       2.18.26       71        5.20.26      71     8.19.26    71"},{"id":"MS-0064","date":"2025-08-29","season":"SP27","gate":"GGP","task":"GGP LTWT Design Revisions Due","kind":"design_revisions_due","week":"70","source":"schedule.pdf","source_line":"                       GGP LTWT Design Revisions Due                             8.29.25    70       11.26.25      70       2.27.26       70        5.29.26      70     8.28.26    70"},{"id":"MS-0069","date":"2025-09-03","season":"SP27","gate":"GGP","task":"GGP (LTWT) Handoff","kind":"handoff","week":"69","source":"schedule.pdf","source_line":"                            GGP (LTWT) Handoff                                   9.3.25     69       12.3.25       69        3.4.26       69        6.3.26       69      9.2.26    69"},{"id":"MS-0003","date":"2025-09-07","season":"HO27","gate":"XLT","task":"LTWT P/T Sample to FPT","kind":"sample_to_fpt","week":"","source":"schedule.pdf","source_line":"X                         LTWT P/T Sample to FPT                                  N/A                3.25.25                 6.8.25                 9.7.25              12.7.25"},{"id":"MS-0074","date":"2025-09-07","season":"SP27","gate":"GGP","task":"LTWT P/T Sample to FPT","kind":"sample_to_fpt","week":"","source":"schedule.pdf","source_line":"                          LTWT P/T Sample to FPT                                 9.7.25              12.7.25                 3.8.26                 6.7.26               9.6.26"},{"id":"MS-0012","date":"2025-09-10","season":"HO27","gate":"XLT","task":"LTWT P/T Sample DDD","kind":"sample_ddd","week":"","source":"schedule.pdf","source_line":"L                          LTWT P/T Sample DDD                                    N/A                3.28.25                6.11.25                 9.10.25             12.10.25"},{"id":"MS-0008","date":"2025-09-10","season":"HO27","gate":"XLT","task":"XLT ITP & BOM DDD","kind":"bom_ddd","week":"107","source":"schedule.pdf","source_line":"                            XLT ITP & BOM DDD                                    11.8.24    111      3.12.25       107      6.11.25       107      9.10.25       107   12.10.25    107"},{"id":"MS-0079","date":"2025-09-10","season":"SP27","gate":"GGP","task":"GGP LTWT BOM DDD","kind":"bom_ddd","week":"68","source":"schedule.pdf","source_line":"G                           GGP LTWT BOM DDD                                     9.10.25    68       12.10.25      68       3.11.26       68        6.10.26      68      9.9.26    68"},{"id":"MS-0084","date":"2025-09-10","season":"SP27","gate":"GGP","task":"LTWT P/T Sample DDD","kind":"sample_ddd","week":"","source":"schedule.pdf","source_line":"G                          LTWT P/T Sample DDD                                   9.10.25             12.10.25               3.11.26                 6.10.26              9.9.26"},{"id":"MS-0050","date":"2025-09-12","season":"SU27","gate":"PR","task":"PR/PA (LTWT) X-FTY","kind":"x_fty","week":"81","source":"schedule.pdf","source_line":"                            PR/PA (LTWT) X-FTY                                   6.13.25    80       9.12.25       81       12.12.25      81       3.13.26       81     6.12.26    81"},{"id":"MS-0017","date":"2025-09-17","season":"HO27","gate":"XLT","task":"XLT (WT) Product Freeze","kind":"product_freeze","week":"106","source":"schedule.pdf","source_line":"T                         XLT (WT) Product Freeze                                11.1.24    110       4.4.25       104      6.18.25       106       9.17.25      106   12.17.25    106"},{"id":"MS-0089","date":"2025-09-17","season":"SP27","gate":"GGP","task":"GGP (LTWT) Product Freeze","kind":"product_freeze","week":"67","source":"schedule.pdf","source_line":"P                       GGP (LTWT) Product Freeze                                9.17.25    67       12.17.25      67       3.18.26       67        6.17.26      67     9.16.26    67"},{"id":"MS-0021","date":"2025-09-19","season":"FA27","gate":"XLT","task":"XLT Wear Test Results Ready","kind":"results_ready","week":"93","source":"schedule.pdf","source_line":"                        XLT Wear Test Results Ready                              3.21.25    92       6.18.25        93      9.19.25        93      12.19.25      93     3.20.26     93"},{"id":"MS-0026","date":"2025-10-08","season":"FA27","gate":"PR","task":"PR (LTWT) Handoff","kind":"handoff","week":"90","source":"schedule.pdf","source_line":"                             PR (LTWT) Handoff                                   4.11.25    89        7.9.25       90       10.8.25       90        1.7.26       90     4.8.26     90"},{"id":"MS-0031","date":"2025-10-12","season":"FA27","gate":"PR","task":"LTWT P/T Sample to FPT","kind":"sample_to_fpt","week":"","source":"schedule.pdf","source_line":"                          LTWT P/T Sample to FPT                                 4.15.25             7.13.25                10.12.25                1.11.26             4.12.26"},{"id":"MS-0041","date":"2025-10-15","season":"FA27","gate":"PR","task":"LTWT P/T Sample DDD","kind":"sample_ddd","week":"","source":"schedule.pdf","source_line":"P                          LTWT P/T Sample DDD                                   4.18.25             7.16.25                10.15.25                1.14.26             4.15.26"},{"id":"MS-0036","date":"2025-10-15","season":"FA27","gate":"PR","task":"PR (LTWT) BOM DDD","kind":"bom_ddd","week":"89","source":"schedule.pdf","source_line":"                            PR (LTWT) BOM DDD                                    4.18.25    88       7.16.25       89       10.15.25      89       1.14.26       89     4.15.26    89"},{"id":"MS-0046","date":"2025-10-22","season":"FA27","gate":"PR","task":"PR/PA (LTWT) Product Freeze","kind":"product_freeze","week":"88","source":"schedule.pdf","source_line":"R                       PR/PA (LTWT) Product Freeze                              4.25.25    87       7.23.25       88       10.22.25      88       1.21.26       88     4.22.26    88"},{"id":"MS-0094","date":"2025-11-07","season":"SP27","gate":"GGP","task":"GGP (LTWT) X-FTY","kind":"x_fty","week":"59","source":"schedule.pdf","source_line":"                             GGP (LTWT) X-FTY                                    11.7.25    59       2.13.26       60       5.15.26       60        8.14.26      60     11.6.26    60"},{"id":"MS-0055","date":"2025-11-17","season":"SU27","gate":"PR","task":"PR LTWT Results Ready","kind":"results_ready","week":"71","source":"schedule.pdf","source_line":"                           PR LTWT Results Ready                                 8.18.25    71       11.17.25      71       2.16.26       71       5.18.26       71     8.17.26    71"},{"id":"MS-0060","date":"2025-11-19","season":"SU27","gate":"PR","task":"PR Scrutiny","kind":"scrutiny","week":"71","source":"schedule.pdf","source_line":"                                PR Scrutiny                                      8.28.25    70       11.19.25      71       2.18.26       71        5.20.26      71     8.19.26    71"},{"id":"MS-0065","date":"2025-11-26","season":"SU27","gate":"GGP","task":"GGP LTWT Design Revisions Due","kind":"design_revisions_due","week":"70","source":"schedule.pdf","source_line":"                       GGP LTWT Design Revisions Due                             8.29.25    70       11.26.25      70       2.27.26       70        5.29.26      70     8.28.26    70"},{"id":"MS-0070","date":"2025-12-03","season":"SU27","gate":"GGP","task":"GGP (LTWT) Handoff","kind":"handoff","week":"69","source":"schedule.pdf","source_line":"                            GGP (LTWT) Handoff                                   9.3.25     69       12.3.25       69        3.4.26       69        6.3.26       69      9.2.26    69"},{"id":"MS-0004","date":"2025-12-07","season":"SP28","gate":"XLT","task":"LTWT P/T Sample to FPT","kind":"sample_to_fpt","week":"","source":"schedule.pdf","source_line":"X                         LTWT P/T Sample to FPT                                  N/A                3.25.25                 6.8.25                 9.7.25              12.7.25"},{"id":"MS-0075","date":"2025-12-07","season":"SU27","gate":"GGP","task":"LTWT P/T Sample to FPT","kind":"sample_to_fpt","week":"","source":"schedule.pdf","source_line":"                          LTWT P/T Sample to FPT                                 9.7.25              12.7.25                 3.8.26                 6.7.26               9.6.26"},{"id":"MS-0013","date":"2025-12-10","season":"SP28","gate":"XLT","task":"LTWT P/T Sample DDD","kind":"sample_ddd","week":"","source":"schedule.pdf","source_line":"L                          LTWT P/T Sample DDD                                    N/A                3.28.25                6.11.25                 9.10.25             12.10.25"},{"id":"MS-0009","date":"2025-12-10","season":"SP28","gate":"XLT","task":"XLT ITP & BOM DDD","kind":"bom_ddd","week":"107","source":"schedule.pdf","source_line":"                            XLT ITP & BOM DDD                                    11.8.24    111      3.12.25       107      6.11.25       107      9.10.25       107   12.10.25    107"},{"id":"MS-0080","date":"2025-12-10","season":"SU27","gate":"GGP","task":"GGP LTWT BOM DDD","kind":"bom_ddd","week":"68","source":"schedule.pdf","source_line":"G                           GGP LTWT BOM DDD                                     9.10.25    68       12.10.25      68       3.11.26       68        6.10.26      68      9.9.26    68"},{"id":"MS-0085","date":"2025-12-10","season":"SU27","gate":"GGP","task":"LTWT P/T Sample DDD","kind":"sample_ddd","week":"","source":"schedule.pdf","source_line":"G                          LTWT P/T Sample DDD                                   9.10.25             12.10.25               3.11.26                 6.10.26              9.9.26"},{"id":"MS-0051","date":"2025-12-12","season":"FA27","gate":"PR","task":"PR/PA (LTWT) X-FTY","kind":"x_fty","week":"81","source":"schedule.pdf","source_line":"                            PR/PA (LTWT) X-FTY                                   6.13.25    80       9.12.25       81       12.12.25      81       3.13.26       81     6.12.26    81"},{"id":"MS-0018","date":"2025-12-17","season":"SP28","gate":"XLT","task":"XLT (WT) Product Freeze","kind":"product_freeze","week":"106","source":"schedule.pdf","source_line":"T                         XLT (WT) Product Freeze                                11.1.24    110       4.4.25       104      6.18.25       106       9.17.25      106   12.17.25    106"},{"id":"MS-0090","date":"2025-12-17","season":"SU27","gate":"GGP","task":"GGP (LTWT) Product Freeze","kind":"product_freeze","week":"67","source":"schedule.pdf","source_line":"P                       GGP (LTWT) Product Freeze                                9.17.25    67       12.17.25      67       3.18.26       67        6.17.26      67     9.16.26    67"},{"id":"MS-0022","date":"2025-12-19","season":"HO27","gate":"XLT","task":"XLT Wear Test Results Ready","kind":"results_ready","week":"93","source":"schedule.pdf","source_line":"                        XLT Wear Test Results Ready                              3.21.25    92       6.18.25        93      9.19.25        93      12.19.25      93     3.20.26     93"},{"id":"MS-0099","date":"2026-01-05","season":"SP27","gate":"GGP","task":"GGP Scrutiny","kind":"scrutiny","week":"51","source":"schedule.pdf","source_line":"                               GGP Scrutiny                                       1.5.26    51       4.6.26        51       7.6.26        51       10.5.26       51     1.6.27     51"},{"id":"MS-0027","date":"2026-01-07","season":"HO27","gate":"PR","task":"PR (LTWT) Handoff","kind":"handoff","week":"90","source":"schedule.pdf","source_line":"                             PR (LTWT) Handoff                                   4.11.25    89        7.9.25       90       10.8.25       90        1.7.26       90     4.8.26     90"},{"id":"MS-0032","date":"2026-01-11","season":"HO27","gate":"PR","task":"LTWT P/T Sample to FPT","kind":"sample_to_fpt","week":"","source":"schedule.pdf","source_line":"                          LTWT P/T Sample to FPT                                 4.15.25             7.13.25                10.12.25                1.11.26             4.12.26"},{"id":"MS-0104","date":"2026-01-12","season":"SP27","gate":"GGP","task":"GGP LTWT Results Ready","kind":"results_ready","week":"50","source":"schedule.pdf","source_line":"                          GGP LTWT Results Ready                                 1.12.26    50       4.13.26       50       7.15.26       50       10.16.26      50     1.15.27    50"},{"id":"MS-0042","date":"2026-01-14","season":"HO27","gate":"PR","task":"LTWT P/T Sample DDD","kind":"sample_ddd","week":"","source":"schedule.pdf","source_line":"P                          LTWT P/T Sample DDD                                   4.18.25             7.16.25                10.15.25                1.14.26             4.15.26"},{"id":"MS-0037","date":"2026-01-14","season":"HO27","gate":"PR","task":"PR (LTWT) BOM DDD","kind":"bom_ddd","week":"89","source":"schedule.pdf","source_line":"                            PR (LTWT) BOM DDD                                    4.18.25    88       7.16.25       89       10.15.25      89       1.14.26       89     4.15.26    89"},{"id":"MS-0047","date":"2026-01-21","season":"HO27","gate":"PR","task":"PR/PA (LTWT) Product Freeze","kind":"product_freeze","week":"88","source":"schedule.pdf","source_line":"R                       PR/PA (LTWT) Product Freeze                              4.25.25    87       7.23.25       88       10.22.25      88       1.21.26       88     4.22.26    88"},{"id":"MS-0109","date":"2026-01-23","season":"SP27","gate":"SPA","task":"SPA WT Design Revisions Due","kind":"design_revisions_due","week":"49","source":"schedule.pdf","source_line":"                        SPA WT Design Revisions Due                              1.23.26    49       4.25.26       49       7.24.26       49       10.23.26      49     1.22.27    49"},{"id":"MS-0114","date":"2026-01-28","season":"SP27","gate":"SPA","task":"SPA Handoff","kind":"handoff","week":"48","source":"schedule.pdf","source_line":"                               SPA Handoff                                       1.28.26    48       4.30.26       48       7.29.26       48       10.28.26      48     1.29.27    48"},{"id":"MS-0119","date":"2026-02-01","season":"SP27","gate":"SPA","task":"LTWT P/T Sample to FPT","kind":"sample_to_fpt","week":"","source":"schedule.pdf","source_line":"                          LTWT P/T Sample to FPT                                 2.1.26               5.3.26                 8.2.26                 11.1.26              2.2.27"},{"id":"MS-0129","date":"2026-02-04","season":"SP27","gate":"SPA","task":"LTWT P/T Sample DDD","kind":"sample_ddd","week":"","source":"schedule.pdf","source_line":"P                          LTWT P/T Sample DDD                                   2.4.26               5.6.26                 8.5.26                 11.4.26              2.5.27"},{"id":"MS-0124","date":"2026-02-04","season":"SP27","gate":"SPA","task":"SPA BOM DDD","kind":"bom_ddd","week":"47","source":"schedule.pdf","source_line":"S                              SPA BOM DDD                                       2.4.26     47        5.6.26       47        8.5.26       47        11.4.26      47      2.5.27    47"},{"id":"MS-0134","date":"2026-02-11","season":"SP27","gate":"SPA","task":"SPA Product Freeze","kind":"product_freeze","week":"46","source":"schedule.pdf","source_line":"A                           SPA Product Freeze                                   2.11.26    46       5.13.26       46       8.12.26       46       11.11.26      46     2.12.27    46"},{"id":"MS-0095","date":"2026-02-13","season":"SU27","gate":"GGP","task":"GGP (LTWT) X-FTY","kind":"x_fty","week":"60","source":"schedule.pdf","source_line":"                             GGP (LTWT) X-FTY                                    11.7.25    59       2.13.26       60       5.15.26       60        8.14.26      60     11.6.26    60"},{"id":"MS-0056","date":"2026-02-16","season":"FA27","gate":"PR","task":"PR LTWT Results Ready","kind":"results_ready","week":"71","source":"schedule.pdf","source_line":"                           PR LTWT Results Ready                                 8.18.25    71       11.17.25      71       2.16.26       71       5.18.26       71     8.17.26    71"},{"id":"MS-0061","date":"2026-02-18","season":"FA27","gate":"PR","task":"PR Scrutiny","kind":"scrutiny","week":"71","source":"schedule.pdf","source_line":"                                PR Scrutiny                                      8.28.25    70       11.19.25      71       2.18.26       71        5.20.26      71     8.19.26    71"},{"id":"MS-0066","date":"2026-02-27","season":"FA27","gate":"GGP","task":"GGP LTWT Design Revisions Due","kind":"design_revisions_due","week":"70","source":"schedule.pdf","source_line":"                       GGP LTWT Design Revisions Due                             8.29.25    70       11.26.25      70       2.27.26       70        5.29.26      70     8.28.26    70"},{"id":"MS-0071","date":"2026-03-04","season":"FA27","gate":"GGP","task":"GGP (LTWT) Handoff","kind":"handoff","week":"69","source":"schedule.pdf","source_line":"                            GGP (LTWT) Handoff                                   9.3.25     69       12.3.25       69        3.4.26       69        6.3.26       69      9.2.26    69"},{"id":"MS-0076","date":"2026-03-08","season":"FA27","gate":"GGP","task":"LTWT P/T Sample to FPT","kind":"sample_to_fpt","week":"","source":"schedule.pdf","source_line":"                          LTWT P/T Sample to FPT                                 9.7.25              12.7.25                 3.8.26                 6.7.26               9.6.26"},{"id":"MS-0081","date":"2026-03-11","season":"FA27","gate":"GGP","task":"GGP LTWT BOM DDD","kind":"bom_ddd","week":"68","source":"schedule.pdf","source_line":"G                           GGP LTWT BOM DDD                                     9.10.25    68       12.10.25      68       3.11.26       68        6.10.26      68      9.9.26    68"},{"id":"MS-0086","date":"2026-03-11","season":"FA27","gate":"GGP","task":"LTWT P/T Sample DDD","kind":"sample_ddd","week":"","source":"schedule.pdf","source_line":"G                          LTWT P/T Sample DDD                                   9.10.25             12.10.25               3.11.26                 6.10.26              9.9.26"},{"id":"MS-0052","date":"2026-03-13","season":"HO27","gate":"PR","task":"PR/PA (LTWT) X-FTY","kind":"x_fty","week":"81","source":"schedule.pdf","source_line":"                            PR/PA (LTWT) X-FTY                                   6.13.25    80       9.12.25       81       12.12.25      81       3.13.26       81     6.12.26    81"},{"id":"MS-0091","date":"2026-03-18","season":"FA27","gate":"GGP","task":"GGP (LTWT) Product Freeze","kind":"product_freeze","week":"67","source":"schedule.pdf","source_line":"P                       GGP (LTWT) Product Freeze                                9.17.25    67       12.17.25      67       3.18.26       67        6.17.26      67     9.16.26    67"},{"id":"MS-0023","date":"2026-03-20","season":"SP28","gate":"XLT","task":"XLT Wear Test Results Ready","kind":"results_ready","week":"93","source":"schedule.pdf","source_line":"                        XLT Wear Test Results Ready                              3.21.25    92       6.18.25        93      9.19.25        93      12.19.25      93     3.20.26     93"},{"id":"MS-0139","date":"2026-03-25","season":"SP27","gate":"SPA","task":"SPA CFM/WT Sample X-FTY","kind":"x_fty","week":"40","source":"schedule.pdf","source_line":"                        SPA CFM/WT Sample X-FTY                                  3.25.26    40       6.25.26       40       10.1.26       40       12.24.26      40     3.26.27    40"},{"id":"MS-0100","date":"2026-04-06","season":"SU27","gate":"GGP","task":"GGP Scrutiny","kind":"scrutiny","week":"51","source":"schedule.pdf","source_line":"                               GGP Scrutiny                                       1.5.26    51       4.6.26        51       7.6.26        51       10.5.26       51     1.6.27     51"},{"id":"MS-0028","date":"2026-04-08","season":"SP28","gate":"PR","task":"PR (LTWT) Handoff","kind":"handoff","week":"90","source":"schedule.pdf","source_line":"                             PR (LTWT) Handoff                                   4.11.25    89        7.9.25       90       10.8.25       90        1.7.26       90     4.8.26     90"},{"id":"MS-0033","date":"2026-04-12","season":"SP28","gate":"PR","task":"LTWT P/T Sample to FPT","kind":"sample_to_fpt","week":"","source":"schedule.pdf","source_line":"                          LTWT P/T Sample to FPT                                 4.15.25             7.13.25                10.12.25                1.11.26             4.12.26"},{"id":"MS-0105","date":"2026-04-13","season":"SU27","gate":"GGP","task":"GGP LTWT Results Ready","kind":"results_ready","week":"50","source":"schedule.pdf","source_line":"                          GGP LTWT Results Ready                                 1.12.26    50       4.13.26       50       7.15.26       50       10.16.26      50     1.15.27    50"},{"id":"MS-0043","date":"2026-04-15","season":"SP28","gate":"PR","task":"LTWT P/T Sample DDD","kind":"sample_ddd","week":"","source":"schedule.pdf","source_line":"P                          LTWT P/T Sample DDD                                   4.18.25             7.16.25                10.15.25                1.14.26             4.15.26"},{"id":"MS-0038","date":"2026-04-15","season":"SP28","gate":"PR","task":"PR (LTWT) BOM DDD","kind":"bom_ddd","week":"89","source":"schedule.pdf","source_line":"                            PR (LTWT) BOM DDD                                    4.18.25    88       7.16.25       89       10.15.25      89       1.14.26       89     4.15.26    89"},{"id":"MS-0149","date":"2026-04-16","season":"SP27","gate":"SPA","task":"RFC Revisions DDD","kind":"revisions_ddd","week":"36","source":"schedule.pdf","source_line":"                            RFC Revisions DDD                                    4.16.26    36       7.24.26       36       10.23.26      36        1.22.27      36     4.23.27    36"},{"id":"MS-0144","date":"2026-04-16","season":"SP27","gate":"SPA","task":"SPA WT Results Ready","kind":"results_ready","week":"37","source":"schedule.pdf","source_line":"                           SPA WT Results Ready                                  4.16.26    37       7.16.26       37       10.15.26      37        1.15.27      37     4.16.27    37"},{"id":"MS-0048","date":"2026-04-22","season":"SP28","gate":"PR","task":"PR/PA (LTWT) Product Freeze","kind":"product_freeze","week":"88","source":"schedule.pdf","source_line":"R                       PR/PA (LTWT) Product Freeze                              4.25.25    87       7.23.25       88       10.22.25      88       1.21.26       88     4.22.26    88"},{"id":"MS-0110","date":"2026-04-25","season":"SU27","gate":"SPA","task":"SPA WT Design Revisions Due","kind":"design_revisions_due","week":"49","source":"schedule.pdf","source_line":"                        SPA WT Design Revisions Due                              1.23.26    49       4.25.26       49       7.24.26       49       10.23.26      49     1.22.27    49"},{"id":"MS-0115","date":"2026-04-30","season":"SU27","gate":"SPA","task":"SPA Handoff","kind":"handoff","week":"48","source":"schedule.pdf","source_line":"                               SPA Handoff                                       1.28.26    48       4.30.26       48       7.29.26       48       10.28.26      48     1.29.27    48"},{"id":"MS-0120","date":"2026-05-03","season":"SU27","gate":"SPA","task":"LTWT P/T Sample to FPT","kind":"sample_to_fpt","week":"","source":"schedule.pdf","source_line":"                          LTWT P/T Sample to FPT                                 2.1.26               5.3.26                 8.2.26                 11.1.26              2.2.27"},{"id":"MS-0130","date":"2026-05-06","season":"SU27","gate":"SPA","task":"LTWT P/T Sample DDD","kind":"sample_ddd","week":"","source":"schedule.pdf","source_line":"P                          LTWT P/T Sample DDD                                   2.4.26               5.6.26                 8.5.26                 11.4.26              2.5.27"},{"id":"MS-0125","date":"2026-05-06","season":"SU27","gate":"SPA","task":"SPA BOM DDD","kind":"bom_ddd","week":"47","source":"schedule.pdf","source_line":"S                              SPA BOM DDD                                       2.4.26     47        5.6.26       47        8.5.26       47        11.4.26      47      2.5.27    47"},{"id":"MS-0135","date":"2026-05-13","season":"SU27","gate":"SPA","task":"SPA Product Freeze","kind":"product_freeze","week":"46","source":"schedule.pdf","source_line":"A                           SPA Product Freeze                                   2.11.26    46       5.13.26       46       8.12.26       46       11.11.26      46     2.12.27    46"},{"id":"MS-0096","date":"2026-05-15","season":"FA27","gate":"GGP","task":"GGP (LTWT) X-FTY","kind":"x_fty","week":"60","source":"schedule.pdf","source_line":"                             GGP (LTWT) X-FTY                                    11.7.25    59       2.13.26       60       5.15.26       60        8.14.26      60     11.6.26    60"},{"id":"MS-0057","date":"2026-05-18","season":"HO27","gate":"PR","task":"PR LTWT Results Ready","kind":"results_ready","week":"71","source":"schedule.pdf","source_line":"                           PR LTWT Results Ready                                 8.18.25    71       11.17.25      71       2.16.26       71       5.18.26       71     8.17.26    71"},{"id":"MS-0062","date":"2026-05-20","season":"HO27","gate":"PR","task":"PR Scrutiny","kind":"scrutiny","week":"71","source":"schedule.pdf","source_line":"                                PR Scrutiny                                      8.28.25    70       11.19.25      71       2.18.26       71        5.20.26      71     8.19.26    71"},{"id":"MS-0067","date":"2026-05-29","season":"HO27","gate":"GGP","task":"GGP LTWT Design Revisions Due","kind":"design_revisions_due","week":"70","source":"schedule.pdf","source_line":"                       GGP LTWT Design Revisions Due                             8.29.25    70       11.26.25      70       2.27.26       70        5.29.26      70     8.28.26    70"},{"id":"MS-0072","date":"2026-06-03","season":"HO27","gate":"GGP","task":"GGP (LTWT) Handoff","kind":"handoff","week":"69","source":"schedule.pdf","source_line":"                            GGP (LTWT) Handoff                                   9.3.25     69       12.3.25       69        3.4.26       69        6.3.26       69      9.2.26    69"},{"id":"MS-0077","date":"2026-06-07","season":"HO27","gate":"GGP","task":"LTWT P/T Sample to FPT","kind":"sample_to_fpt","week":"","source":"schedule.pdf","source_line":"                          LTWT P/T Sample to FPT                                 9.7.25              12.7.25                 3.8.26                 6.7.26               9.6.26"},{"id":"MS-0082","date":"2026-06-10","season":"HO27","gate":"GGP","task":"GGP LTWT BOM DDD","kind":"bom_ddd","week":"68","source":"schedule.pdf","source_line":"G                           GGP LTWT BOM DDD                                     9.10.25    68       12.10.25      68       3.11.26       68        6.10.26      68      9.9.26    68"},{"id":"MS-0087","date":"2026-06-10","season":"HO27","gate":"GGP","task":"LTWT P/T Sample DDD","kind":"sample_ddd","week":"","source":"schedule.pdf","source_line":"G                          LTWT P/T Sample DDD                                   9.10.25             12.10.25               3.11.26                 6.10.26              9.9.26"},{"id":"MS-0053","date":"2026-06-12","season":"SP28","gate":"PR","task":"PR/PA (LTWT) X-FTY","kind":"x_fty","week":"81","source":"schedule.pdf","source_line":"                            PR/PA (LTWT) X-FTY                                   6.13.25    80       9.12.25       81       12.12.25      81       3.13.26       81     6.12.26    81"},{"id":"MS-0092","date":"2026-06-17","season":"HO27","gate":"GGP","task":"GGP (LTWT) Product Freeze","kind":"product_freeze","week":"67","source":"schedule.pdf","source_line":"P                       GGP (LTWT) Product Freeze                                9.17.25    67       12.17.25      67       3.18.26       67        6.17.26      67     9.16.26    67"},{"id":"MS-0140","date":"2026-06-25","season":"SU27","gate":"SPA","task":"SPA CFM/WT Sample X-FTY","kind":"x_fty","week":"40","source":"schedule.pdf","source_line":"                        SPA CFM/WT Sample X-FTY                                  3.25.26    40       6.25.26       40       10.1.26       40       12.24.26      40     3.26.27    40"},{"id":"MS-0101","date":"2026-07-06","season":"FA27","gate":"GGP","task":"GGP Scrutiny","kind":"scrutiny","week":"51","source":"schedule.pdf","source_line":"                               GGP Scrutiny                                       1.5.26    51       4.6.26        51       7.6.26        51       10.5.26       51     1.6.27     51"},{"id":"MS-0106","date":"2026-07-15","season":"FA27","gate":"GGP","task":"GGP LTWT Results Ready","kind":"results_ready","week":"50","source":"schedule.pdf","source_line":"                          GGP LTWT Results Ready                                 1.12.26    50       4.13.26       50       7.15.26       50       10.16.26      50     1.15.27    50"},{"id":"MS-0145","date":"2026-07-16","season":"SU27","gate":"SPA","task":"SPA WT Results Ready","kind":"results_ready","week":"37","source":"schedule.pdf","source_line":"                           SPA WT Results Ready                                  4.16.26    37       7.16.26       37       10.15.26      37        1.15.27      37     4.16.27    37"},{"id":"MS-0111","date":"2026-07-24","season":"FA27","gate":"SPA","task":"SPA WT Design Revisions Due","kind":"design_revisions_due","week":"49","source":"schedule.pdf","source_line":"                        SPA WT Design Revisions Due                              1.23.26    49       4.25.26       49       7.24.26       49       10.23.26      49     1.22.27    49"},{"id":"MS-0150","date":"2026-07-24","season":"SU27","gate":"SPA","task":"RFC Revisions DDD","kind":"revisions_ddd","week":"36","source":"schedule.pdf","source_line":"                            RFC Revisions DDD                                    4.16.26    36       7.24.26       36       10.23.26      36        1.22.27      36     4.23.27    36"},{"id":"MS-0116","date":"2026-07-29","season":"FA27","gate":"SPA","task":"SPA Handoff","kind":"handoff","week":"48","source":"schedule.pdf","source_line":"                               SPA Handoff                                       1.28.26    48       4.30.26       48       7.29.26       48       10.28.26      48     1.29.27    48"},{"id":"MS-0121","date":"2026-08-02","season":"FA27","gate":"SPA","task":"LTWT P/T Sample to FPT","kind":"sample_to_fpt","week":"","source":"schedule.pdf","source_line":"                          LTWT P/T Sample to FPT                                 2.1.26               5.3.26                 8.2.26                 11.1.26              2.2.27"},{"id":"MS-0131","date":"2026-08-05","season":"FA27","gate":"SPA","task":"LTWT P/T Sample DDD","kind":"sample_ddd","week":"","source":"schedule.pdf","source_line":"P                          LTWT P/T Sample DDD                                   2.4.26               5.6.26                 8.5.26                 11.4.26              2.5.27"},{"id":"MS-0126","date":"2026-08-05","season":"FA27","gate":"SPA","task":"SPA BOM DDD","kind":"bom_ddd","week":"47","source":"schedule.pdf","source_line":"S                              SPA BOM DDD                                       2.4.26     47        5.6.26       47        8.5.26       47        11.4.26      47      2.5.27    47"},{"id":"MS-0136","date":"2026-08-12","season":"FA27","gate":"SPA","task":"SPA Product Freeze","kind":"product_freeze","week":"46","source":"schedule.pdf","source_line":"A                           SPA Product Freeze                                   2.11.26    46       5.13.26       46       8.12.26       46       11.11.26      46     2.12.27    46"},{"id":"MS-0097","date":"2026-08-14","season":"HO27","gate":"GGP","task":"GGP (LTWT) X-FTY","kind":"x_fty","week":"60","source":"schedule.pdf","source_line":"                             GGP (LTWT) X-FTY                                    11.7.25    59       2.13.26       60       5.15.26       60        8.14.26      60     11.6.26    60"},{"id":"MS-0058","date":"2026-08-17","season":"SP28","gate":"PR","task":"PR LTWT Results Ready","kind":"results_ready","week":"71","source":"schedule.pdf","source_line":"                           PR LTWT Results Ready                                 8.18.25    71       11.17.25      71       2.16.26       71       5.18.26       71     8.17.26    71"},{"id":"MS-0063","date":"2026-08-19","season":"SP28","gate":"PR","task":"PR Scrutiny","kind":"scrutiny","week":"71","source":"schedule.pdf","source_line":"                                PR Scrutiny                                      8.28.25    70       11.19.25      71       2.18.26       71        5.20.26      71     8.19.26    71"},{"id":"MS-0068","date":"2026-08-28","season":"SP28","gate":"GGP","task":"GGP LTWT Design Revisions Due","kind":"design_revisions_due","week":"70","source":"schedule.pdf","source_line":"                       GGP LTWT Design Revisions Due                             8.29.25    70       11.26.25      70       2.27.26       70        5.29.26      70     8.28.26    70"},{"id":"MS-0073","date":"2026-09-02","season":"SP28","gate":"GGP","task":"GGP (LTWT) Handoff","kind":"handoff","week":"69","source":"schedule.pdf","source_line":"                            GGP (LTWT) Handoff                                   9.3.25     69       12.3.25       69        3.4.26       69        6.3.26       69      9.2.26    69"},{"id":"MS-0078","date":"2026-09-06","season":"SP28","gate":"GGP","task":"LTWT P/T Sample to FPT","kind":"sample_to_fpt","week":"","source":"schedule.pdf","source_line":"                          LTWT P/T Sample to FPT                                 9.7.25              12.7.25                 3.8.26                 6.7.26               9.6.26"},{"id":"MS-0083","date":"2026-09-09","season":"SP28","gate":"GGP","task":"GGP LTWT BOM DDD","kind":"bom_ddd","week":"68","source":"schedule.pdf","source_line":"G                           GGP LTWT BOM DDD                                     9.10.25    68       12.10.25      68       3.11.26       68        6.10.26      68      9.9.26    68"},{"id":"MS-0088","date":"2026-09-09","season":"SP28","gate":"GGP","task":"LTWT P/T Sample DDD","kind":"sample_ddd","week":"","source":"schedule.pdf","source_line":"G                          LTWT P/T Sample DDD                                   9.10.25             12.10.25               3.11.26                 6.10.26              9.9.26"},{"id":"MS-0093","date":"2026-09-16","season":"SP28","gate":"GGP","task":"GGP (LTWT) Product Freeze","kind":"product_freeze","week":"67","source":"schedule.pdf","source_line":"P                       GGP (LTWT) Product Freeze                                9.17.25    67       12.17.25      67       3.18.26       67        6.17.26      67     9.16.26    67"},{"id":"MS-0141","date":"2026-10-01","season":"FA27","gate":"SPA","task":"SPA CFM/WT Sample X-FTY","kind":"x_fty","week":"40","source":"schedule.pdf","source_line":"                        SPA CFM/WT Sample X-FTY                                  3.25.26    40       6.25.26       40       10.1.26       40       12.24.26      40     3.26.27    40"},{"id":"MS-0102","date":"2026-10-05","season":"HO27","gate":"GGP","task":"GGP Scrutiny","kind":"scrutiny","week":"51","source":"schedule.pdf","source_line":"                               GGP Scrutiny                                       1.5.26    51       4.6.26        51       7.6.26        51       10.5.26       51     1.6.27     51"},{"id":"MS-0146","date":"2026-10-15","season":"FA27","gate":"SPA","task":"SPA WT Results Ready","kind":"results_ready","week":"37","source":"schedule.pdf","source_line":"                           SPA WT Results Ready                                  4.16.26    37       7.16.26       37       10.15.26      37        1.15.27      37     4.16.27    37"},{"id":"MS-0107","date":"2026-10-16","season":"HO27","gate":"GGP","task":"GGP LTWT Results Ready","kind":"results_ready","week":"50","source":"schedule.pdf","source_line":"                          GGP LTWT Results Ready                                 1.12.26    50       4.13.26       50       7.15.26       50       10.16.26      50     1.15.27    50"},{"id":"MS-0151","date":"2026-10-23","season":"FA27","gate":"SPA","task":"RFC Revisions DDD","kind":"revisions_ddd","week":"36","source":"schedule.pdf","source_line":"                            RFC Revisions DDD                                    4.16.26    36       7.24.26       36       10.23.26      36        1.22.27      36     4.23.27    36"},{"id":"MS-0112","date":"2026-10-23","season":"HO27","gate":"SPA","task":"SPA WT Design Revisions Due","kind":"design_revisions_due","week":"49","source":"schedule.pdf","source_line":"                        SPA WT Design Revisions Due                              1.23.26    49       4.25.26       49       7.24.26       49       10.23.26      49     1.22.27    49"},{"id":"MS-0117","date":"2026-10-28","season":"HO27","gate":"SPA","task":"SPA Handoff","kind":"handoff","week":"48","source":"schedule.pdf","source_line":"                               SPA Handoff                                       1.28.26    48       4.30.26       48       7.29.26       48       10.28.26      48     1.29.27    48"},{"id":"MS-0122","date":"2026-11-01","season":"HO27","gate":"SPA","task":"LTWT P/T Sample to FPT","kind":"sample_to_fpt","week":"","source":"schedule.pdf","source_line":"                          LTWT P/T Sample to FPT                                 2.1.26               5.3.26                 8.2.26                 11.1.26              2.2.27"},{"id":"MS-0132","date":"2026-11-04","season":"HO27","gate":"SPA","task":"LTWT P/T Sample DDD","kind":"sample_ddd","week":"","source":"schedule.pdf","source_line":"P                          LTWT P/T Sample DDD                                   2.4.26               5.6.26                 8.5.26                 11.4.26              2.5.27"},{"id":"MS-0127","date":"2026-11-04","season":"HO27","gate":"SPA","task":"SPA BOM DDD","kind":"bom_ddd","week":"47","source":"schedule.pdf","source_line":"S                              SPA BOM DDD                                       2.4.26     47        5.6.26       47        8.5.26       47        11.4.26      47      2.5.27    47"},{"id":"MS-0098","date":"2026-11-06","season":"SP28","gate":"GGP","task":"GGP (LTWT) X-FTY","kind":"x_fty","week":"60","source":"schedule.pdf","source_line":"                             GGP (LTWT) X-FTY                                    11.7.25    59       2.13.26       60       5.15.26       60        8.14.26      60     11.6.26    60"},{"id":"MS-0137","date":"2026-11-11","season":"HO27","gate":"SPA","task":"SPA Product Freeze","kind":"product_freeze","week":"46","source":"schedule.pdf","source_line":"A                           SPA Product Freeze                                   2.11.26    46       5.13.26       46       8.12.26       46       11.11.26      46     2.12.27    46"},{"id":"MS-0142","date":"2026-12-24","season":"HO27","gate":"SPA","task":"SPA CFM/WT Sample X-FTY","kind":"x_fty","week":"40","source":"schedule.pdf","source_line":"                        SPA CFM/WT Sample X-FTY                                  3.25.26    40       6.25.26       40       10.1.26       40       12.24.26      40     3.26.27    40"},{"id":"MS-0103","date":"2027-01-06","season":"SP28","gate":"GGP","task":"GGP Scrutiny","kind":"scrutiny","week":"51","source":"schedule.pdf","source_line":"                               GGP Scrutiny                                       1.5.26    51       4.6.26        51       7.6.26        51       10.5.26       51     1.6.27     51"},{"id":"MS-0147","date":"2027-01-15","season":"HO27","gate":"SPA","task":"SPA WT Results Ready","kind":"results_ready","week":"37","source":"schedule.pdf","source_line":"                           SPA WT Results Ready                                  4.16.26    37       7.16.26       37       10.15.26      37        1.15.27      37     4.16.27    37"},{"id":"MS-0108","date":"2027-01-15","season":"SP28","gate":"GGP","task":"GGP LTWT Results Ready","kind":"results_ready","week":"50","source":"schedule.pdf","source_line":"                          GGP LTWT Results Ready                                 1.12.26    50       4.13.26       50       7.15.26       50       10.16.26      50     1.15.27    50"},{"id":"MS-0152","date":"2027-01-22","season":"HO27","gate":"SPA","task":"RFC Revisions DDD","kind":"revisions_ddd","week":"36","source":"schedule.pdf","source_line":"                            RFC Revisions DDD                                    4.16.26    36       7.24.26       36       10.23.26      36        1.22.27      36     4.23.27    36"},{"id":"MS-0113","date":"2027-01-22","season":"SP28","gate":"SPA","task":"SPA WT Design Revisions Due","kind":"design_revisions_due","week":"49","source":"schedule.pdf","source_line":"                        SPA WT Design Revisions Due                              1.23.26    49       4.25.26       49       7.24.26       49       10.23.26      49     1.22.27    49"},{"id":"MS-0118","date":"2027-01-29","season":"SP28","gate":"SPA","task":"SPA Handoff","kind":"handoff","week":"48","source":"schedule.pdf","source_line":"                               SPA Handoff                                       1.28.26    48       4.30.26       48       7.29.26       48       10.28.26      48     1.29.27    48"},{"id":"MS-0123","date":"2027-02-02","season":"SP28","gate":"SPA","task":"LTWT P/T Sample to FPT","kind":"sample_to_fpt","week":"","source":"schedule.pdf","source_line":"                          LTWT P/T Sample to FPT                                 2.1.26               5.3.26                 8.2.26                 11.1.26              2.2.27"},{"id":"MS-0133","date":"2027-02-05","season":"SP28","gate":"SPA","task":"LTWT P/T Sample DDD","kind":"sample_ddd","week":"","source":"schedule.pdf","source_line":"P                          LTWT P/T Sample DDD                                   2.4.26               5.6.26                 8.5.26                 11.4.26              2.5.27"},{"id":"MS-0128","date":"2027-02-05","season":"SP28","gate":"SPA","task":"SPA BOM DDD","kind":"bom_ddd","week":"47","source":"schedule.pdf","source_line":"S                              SPA BOM DDD                                       2.4.26     47        5.6.26       47        8.5.26       47        11.4.26      47      2.5.27    47"},{"id":"MS-0138","date":"2027-02-12","season":"SP28","gate":"SPA","task":"SPA Product Freeze","kind":"product_freeze","week":"46","source":"schedule.pdf","source_line":"A                           SPA Product Freeze                                   2.11.26    46       5.13.26       46       8.12.26       46       11.11.26      46     2.12.27    46"},{"id":"MS-0143","date":"2027-03-26","season":"SP28","gate":"SPA","task":"SPA CFM/WT Sample X-FTY","kind":"x_fty","week":"40","source":"schedule.pdf","source_line":"                        SPA CFM/WT Sample X-FTY                                  3.25.26    40       6.25.26       40       10.1.26       40       12.24.26      40     3.26.27    40"},{"id":"MS-0148","date":"2027-04-16","season":"SP28","gate":"SPA","task":"SPA WT Results Ready","kind":"results_ready","week":"37","source":"schedule.pdf","source_line":"                           SPA WT Results Ready                                  4.16.26    37       7.16.26       37       10.15.26      37        1.15.27      37     4.16.27    37"},{"id":"MS-0153","date":"2027-04-23","season":"SP28","gate":"SPA","task":"RFC Revisions DDD","kind":"revisions_ddd","week":"36","source":"schedule.pdf","source_line":"                            RFC Revisions DDD                                    4.16.26    36       7.24.26       36       10.23.26      36        1.22.27      36     4.23.27    36"}],"holidays":[]};
 (function () {
   "use strict";
@@ -1362,3 +4112,5 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     boot();
   }
 })();
+
+</script>
