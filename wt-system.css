@@ -2658,20 +2658,25 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-flow-calendar-page .wt-season-dot {
-  height: 50px;
-  grid-template-columns: 24px minmax(0, 1fr);
-  gap: 6px;
+  height: 58px;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  gap: 2px;
   border-left-width: 4px;
   border-left-style: solid;
   border-radius: 8px;
   background: var(--flow-card);
-  padding: 0 8px 0 6px;
+  padding: 6px 9px;
 }
 
 .wt-flow-calendar-page .wt-season-dot span {
+  min-width: 0;
+  overflow: hidden;
   color: var(--flow-muted);
   font-size: 12px;
-  line-height: 16.8px;
+  line-height: 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .wt-flow-calendar-page .wt-season-dot b {
@@ -2680,7 +2685,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   color: var(--flow-ink);
   font-size: 12px;
   font-weight: 500;
-  line-height: 16.8px;
+  line-height: 16px;
   display: -webkit-box;
   white-space: normal;
   text-overflow: ellipsis;

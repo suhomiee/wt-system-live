@@ -532,33 +532,34 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var range = currentRange();
     var events = eventsForCurrentRange();
     var seasons = unique(events.map(function (event) { return event.season || "All"; })).slice(0, compact ? 5 : 10);
-    var months = monthUnits(range);
+    var units = seasonGridUnits(range);
     return [
       '<section class="wt-season-grid-board ' + (compact ? "compact" : "") + '" aria-label="Season grid calendar">',
-      '<div class="wt-season-grid-head" style="--wt-cols:' + text(months.length) + '">',
+      '<div class="wt-season-grid-head" style="--wt-cols:' + text(units.length) + '">',
       '<span>Season</span>',
-      months.map(function (month) { return '<b>' + text(month.label) + '</b>'; }).join(""),
+      units.map(function (unit) { return '<b>' + text(unit.label) + '</b>'; }).join(""),
       '</div>',
       '<div class="wt-season-grid-body">',
       seasons.length ? seasons.map(function (season) {
-        return renderSeasonGridRow(season, months, events.filter(function (event) { return (event.season || "All") === season; }), compact);
+        return renderSeasonGridRow(season, units, events.filter(function (event) { return (event.season || "All") === season; }), compact);
       }).join("") : renderEmptyBoard("No season data in this range."),
       '</div>',
       '</section>'
     ].join("");
   }
 
-  function renderSeasonGridRow(season, months, events, compact) {
+  function renderSeasonGridRow(season, units, events, compact) {
     return [
-      '<article class="wt-season-grid-row" style="--wt-cols:' + text(months.length) + '">',
+      '<article class="wt-season-grid-row" style="--wt-cols:' + text(units.length) + '">',
       '<div class="wt-season-grid-label"><b>' + text(season) + '</b><small>' + text(events.length) + ' milestones</small></div>',
-      months.map(function (month) {
-        var monthEvents = events.filter(function (event) {
-          return event.date >= month.start && event.date <= month.end;
-        }).slice(0, compact ? 2 : 5);
-        return '<div class="wt-season-cell">' + (monthEvents.length ? monthEvents.map(function (event) {
+      units.map(function (unit) {
+        var unitEvents = events.filter(function (event) {
+          return event.date >= unit.start && event.date <= unit.end;
+        });
+        if (compact) unitEvents = unitEvents.slice(0, 2);
+        return '<div class="wt-season-cell">' + (unitEvents.length ? unitEvents.map(function (event) {
           var selected = event.date === state.selectedDate ? " is-selected" : "";
-          return '<button type="button" class="wt-season-dot wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '"><span>' + text(dayOfMonth(event.date)) + '</span><b>' + text(event.gate || event.kind) + '</b></button>';
+          return '<button type="button" class="wt-season-dot wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '"><span>' + text(dayOfMonth(event.date) + " · " + (event.gate || event.kind)) + '</span><b>' + text(shortTitle(event.title, compact ? 24 : 44)) + '</b></button>';
         }).join("") : '<span class="wt-season-empty"></span>') + '</div>';
       }).join(""),
       '</article>'
@@ -1237,7 +1238,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function timelineUnits(range) {
     var days = daysBetween(range.start, range.end) + 1;
     if (days <= 14) return dayUnits(range);
+    if (state.period === "quarter" || state.period === "multi-month") return monthUnits(range);
+    if (state.period === "season") return quarterUnits(range);
     if (days <= 120) return weekUnits(range);
+    return monthUnits(range);
+  }
+
+  function seasonGridUnits(range) {
+    if (state.period === "season") return quarterUnits(range);
     return monthUnits(range);
   }
 
@@ -1285,6 +1293,26 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         caption: String(cursor.getFullYear())
       });
       cursor = addMonths(cursor, 1);
+    }
+    return units;
+  }
+
+  function quarterUnits(range) {
+    var units = [];
+    var start = fromIso(range.start);
+    var quarterStartMonth = Math.floor(start.getMonth() / 3) * 3;
+    var cursor = new Date(start.getFullYear(), quarterStartMonth, 1);
+    while (toIso(cursor) <= range.end) {
+      var quarterNumber = Math.floor(cursor.getMonth() / 3) + 1;
+      var quarterStart = toIso(cursor);
+      var quarterEnd = toIso(addDays(addMonths(cursor, 3), -1));
+      units.push({
+        start: quarterStart < range.start ? range.start : quarterStart,
+        end: quarterEnd > range.end ? range.end : quarterEnd,
+        label: "Q" + quarterNumber,
+        caption: String(cursor.getFullYear())
+      });
+      cursor = addMonths(cursor, 3);
     }
     return units;
   }
