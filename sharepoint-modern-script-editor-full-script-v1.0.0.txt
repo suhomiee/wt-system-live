@@ -2763,7 +2763,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   var WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   var DEFAULT_WEEK_START = "2026-06-01";
   var DEFAULT_SELECTED_DATE = "2026-06-03";
-  var DEFAULT_DIVISIONS = [];
   var SEASONS = ["All", "SP27", "SU27", "FA27", "HO27", "SP28"];
   var CALENDAR_VIEWS = [
     { id: "timeline", label: "Timeline View" },
@@ -2792,8 +2791,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     search: "",
     deadlineOnly: false,
     actionMessage: "",
-    season: "All",
-    selectedDivisions: {}
+    season: "All"
   };
 
   function boot() {
@@ -2815,7 +2813,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var weekButton = event.target.closest("[data-week-shift]");
       var todayButton = event.target.closest("[data-today]");
       var seasonButton = event.target.closest("[data-season]");
-      var divisionButton = event.target.closest("[data-division]");
       var calendarViewButton = event.target.closest("[data-calendar-view]");
       var periodButton = event.target.closest("[data-period]");
       var deadlineButton = event.target.closest("[data-deadline-toggle]");
@@ -2885,10 +2882,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         render(root);
       }
 
-      if (divisionButton && root.contains(divisionButton)) {
-        toggleDivision(divisionButton.getAttribute("data-division"));
-        render(root);
-      }
     });
 
     root.addEventListener("input", function (event) {
@@ -2917,12 +2910,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     window.addEventListener("resize", function () {
       applyViewportFit(root);
     });
-  }
-
-  function toggleDivision(division) {
-    var selected = selectedDivisions();
-    if (state.selectedDivisions[division] && selected.length === 1) return;
-    state.selectedDivisions[division] = !state.selectedDivisions[division];
   }
 
   function render(root) {
@@ -3070,19 +3057,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-picker-menu">',
       options.map(function (option) {
         return '<button class="' + (option === activeValue ? "active" : "") + '" type="button" data-' + text(dataName) + '="' + text(option) + '">' + text(option) + '</button>';
-      }).join(""),
-      '</div>',
-      '</details>'
-    ].join("");
-  }
-
-  function renderFlowDivisionFilter() {
-    return [
-      '<details class="wt-flow-filter">',
-      '<summary class="wt-flow-pill active">Division (' + text(selectedDivisions().length) + ')</summary>',
-      '<div class="wt-picker-menu">',
-      DEFAULT_DIVISIONS.map(function (division) {
-        return '<button class="' + (state.selectedDivisions[division] ? "active" : "") + '" type="button" data-division="' + text(division) + '">' + text(division) + '</button>';
       }).join(""),
       '</div>',
       '</details>'
@@ -3292,7 +3266,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<time>' + text(formatDateShort(event.date)) + '</time>',
       '<b>' + text(event.title) + '</b>',
       '<span>' + text(event.season || "All") + '</span>',
-      '<small>' + text(event.owner || event.division || "WT") + '</small>',
+      '<small>' + text(event.gate || event.owner || "WT") + '</small>',
       '</button>'
     ].join("");
   }
@@ -3371,9 +3345,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderEventCard(event, compact) {
     return [
       '<button type="button" class="wt-event wt-kind-' + text(event.kind) + '" data-date="' + text(event.date) + '">',
-      '<span>' + text(event.season || event.division || "WT") + '</span>',
+      '<span>' + text(event.season || "WT") + '</span>',
       '<b>' + text(event.title) + '</b>',
-      compact ? "" : '<small>' + text(event.time || event.gate || "All day") + ' · ' + text(event.owner || event.division || "WT") + '</small>',
+      compact ? "" : '<small>' + text(event.time || event.gate || "All day") + ' · ' + text(event.owner || "WT") + '</small>',
       '</button>'
     ].join("");
   }
@@ -3552,7 +3526,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       field("Title", "HO27 sample dispatch"),
       '<label>Date<input name="targetDate" type="date" value="' + text(state.selectedDate) + '"></label>',
       select("Type", ["deadline", "sample", "shipping", "report", "review"]),
-      select("Division", DEFAULT_DIVISIONS),
       select("Season", ["HO27", "SP28", "SU27", "FA27", "SP27"]),
       field("Owner", "WT Ops"),
       '<label>Memo<textarea name="notes" rows="5" placeholder="Model, sample size, report file, shipment note"></textarea></label>',
@@ -3602,7 +3575,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       projectName: form.elements.title ? form.elements.title.value : "",
       targetDate: form.elements.targetDate ? form.elements.targetDate.value : "",
       milestoneType: form.elements.type ? form.elements.type.value : "",
-      division: form.elements.division ? form.elements.division.value : "",
       season: form.elements.season ? form.elements.season.value : "",
       source: "wt-system-ui",
       owner: form.elements.owner ? form.elements.owner.value : "",
@@ -3638,14 +3610,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         event.title,
         event.kind,
         event.season || "",
-        event.division || "",
         event.gate || "",
         event.owner || "",
         event.source || ""
       ];
     });
     var csv = [
-      ["startDate", "endDate", "title", "type", "season", "division", "gate", "owner", "source"],
+      ["startDate", "endDate", "title", "type", "season", "gate", "owner", "source"],
     ].concat(rows).map(function (row) {
       return row.map(csvCell).join(",");
     }).join("\n");
@@ -3730,7 +3701,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         endDate: item.endDate || item.date,
         title: item.task || item.gate || "Milestone",
         kind: mapMilestoneKind(item.kind),
-        division: "",
         season: item.season || "All",
         gate: item.gate || "",
         owner: item.gate || "WT",
@@ -3777,7 +3747,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       event.title,
       event.season,
-      event.division,
       event.gate,
       event.owner,
       event.kind
@@ -3805,10 +3774,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var start = event.date;
     var end = event.endDate || event.date;
     return start <= endIso && end >= startIso;
-  }
-
-  function selectedDivisions() {
-    return DEFAULT_DIVISIONS.slice();
   }
 
   function countKind(events, kind) {
