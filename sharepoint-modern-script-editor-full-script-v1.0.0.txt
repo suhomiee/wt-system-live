@@ -1990,9 +1990,9 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   height: auto;
   min-height: 1031px;
   display: grid;
-  grid-template-rows: 68px 170px minmax(0, 1fr);
+  grid-template-rows: 58px 132px minmax(0, 1fr);
   gap: 0;
-  padding: 42px 36px 0 48px;
+  padding: 34px 36px 28px 48px;
   background: #ffffff;
 }
 
@@ -2021,7 +2021,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-flow-control-strip {
   position: relative;
   width: 100%;
-  min-height: 170px;
+  min-height: 132px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -2137,7 +2137,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-flow-actions {
   position: absolute;
-  top: 51px;
+  top: 44px;
   right: 0;
   display: flex;
   gap: 8px;
@@ -2185,7 +2185,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 18px;
+  bottom: 8px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -2266,8 +2266,8 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-flow-calendar-layout {
   width: 100%;
-  height: 785px;
-  min-height: 785px;
+  height: 100%;
+  min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0;
@@ -2278,7 +2278,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   height: 100%;
   min-height: 0;
   display: grid;
-  grid-template-rows: 30px minmax(0, 1fr);
+  grid-template-rows: 34px minmax(0, 1fr);
   border: 1px solid var(--flow-border);
   border-radius: 8px 8px 0 0;
   background: #ffffff;
@@ -2286,7 +2286,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-flow-timeline-board .wt-timeline-head {
-  height: 30px;
+  height: 34px;
   display: grid;
   grid-template-columns: 112px repeat(var(--wt-cols), minmax(0, 1fr));
   border-bottom: 1px solid var(--flow-border);
@@ -2334,7 +2334,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-timeline-lane {
   display: grid;
   grid-template-columns: 112px minmax(0, 1fr);
-  min-height: calc(24px + (var(--wt-lane-rows) * 67px));
+  min-height: calc(28px + (var(--wt-lane-rows) * 74px));
   border-bottom: 1px solid var(--flow-border);
 }
 
@@ -2343,7 +2343,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   border: 0;
   border-right: 1px solid var(--flow-border);
   background: #fafafa;
-  padding: 28px 12px 0;
+  padding: 30px 12px 0;
   color: var(--flow-ink);
 }
 
@@ -2359,17 +2359,17 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   min-width: 0;
   display: grid;
   grid-template-columns: repeat(var(--wt-cols), minmax(0, 1fr));
-  grid-template-rows: repeat(var(--wt-lane-rows), 67px);
+  grid-template-rows: repeat(var(--wt-lane-rows), 74px);
   align-items: start;
-  padding: 24px 0 0;
+  padding: 24px 0 14px;
   background:
     repeating-linear-gradient(90deg, transparent, transparent calc((100% / var(--wt-cols)) - 1px), var(--flow-border) calc((100% / var(--wt-cols)) - 1px), var(--flow-border) calc(100% / var(--wt-cols)));
 }
 
 .wt-flow-timeline-board .wt-timeline-bar {
   grid-row: var(--wt-event-row);
-  height: 52px;
-  min-height: 52px;
+  height: 60px;
+  min-height: 60px;
   align-self: start;
   margin: 0 10px 0 0;
   display: grid;
@@ -2395,8 +2395,11 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   font-size: 14px;
   font-weight: 500;
   line-height: 19.6px;
-  white-space: nowrap;
+  display: -webkit-box;
+  white-space: normal;
   text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .wt-flow-timeline-board .wt-timeline-bar span {
@@ -2447,8 +2450,8 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-flow-calendar-page .wt-gantt-board .wt-timeline-head,
 .wt-flow-calendar-page .wt-list-board header,
 .wt-flow-calendar-page .wt-season-grid-head {
-  height: 30px;
-  min-height: 30px;
+  height: 34px;
+  min-height: 34px;
   border-bottom: 1px solid var(--flow-border);
   background: #ffffff;
 }
@@ -2493,7 +2496,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-flow-calendar-page .wt-gantt-lane {
-  min-height: 116px;
+  min-height: calc(42px + (var(--wt-gantt-rows, 4) * 60px));
   grid-template-columns: 112px minmax(0, 1fr);
   border-bottom: 1px solid var(--flow-border);
 }
@@ -2525,18 +2528,18 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-flow-calendar-page .wt-gantt-track {
   min-width: 0;
   grid-template-columns: repeat(var(--wt-cols), minmax(0, 1fr));
-  grid-template-rows: repeat(4, 36px);
+  grid-template-rows: repeat(var(--wt-gantt-rows, 4), 52px);
   align-items: start;
   row-gap: 8px;
-  padding: 22px 0 0;
+  padding: 22px 0 16px;
   background:
     repeating-linear-gradient(90deg, transparent, transparent calc((100% / var(--wt-cols)) - 1px), var(--flow-border) calc((100% / var(--wt-cols)) - 1px), var(--flow-border) calc(100% / var(--wt-cols)));
 }
 
 .wt-flow-calendar-page .wt-gantt-chip {
   grid-row: var(--wt-row);
-  height: 36px;
-  min-height: 36px;
+  height: 52px;
+  min-height: 52px;
   margin: 0 10px 0 0;
   display: grid;
   align-content: center;
@@ -2548,7 +2551,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   border-radius: 8px;
   background: var(--flow-card);
   color: var(--flow-ink);
-  padding: 0 12px;
+  padding: 5px 12px;
   box-shadow: none;
 }
 
@@ -2559,12 +2562,22 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   font-size: 13px;
   font-weight: 500;
   line-height: 18.2px;
-  white-space: nowrap;
+  display: -webkit-box;
+  white-space: normal;
   text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .wt-flow-calendar-page .wt-gantt-chip span {
-  display: none;
+  min-width: 0;
+  overflow: hidden;
+  display: block;
+  color: var(--flow-muted);
+  font-size: 11px;
+  line-height: 13px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .wt-flow-calendar-page .wt-list-board header,
@@ -2590,7 +2603,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-flow-calendar-page .wt-list-row {
-  min-height: 52px;
+  min-height: 62px;
   border-bottom: 1px solid var(--flow-border);
   background: #ffffff;
   color: var(--flow-ink);
@@ -2613,7 +2626,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-flow-calendar-page .wt-list-row b {
   color: var(--flow-ink);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
 }
 
@@ -2644,18 +2657,18 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-flow-calendar-page .wt-season-grid-row {
-  min-height: 116px;
+  min-height: 168px;
   border-bottom: 1px solid var(--flow-border);
 }
 
 .wt-flow-calendar-page .wt-season-cell {
-  gap: 6px;
-  padding: 22px 10px 0;
+  gap: 8px;
+  padding: 20px 10px 12px;
   border-left: 1px solid var(--flow-border);
 }
 
 .wt-flow-calendar-page .wt-season-dot {
-  height: 32px;
+  height: 50px;
   grid-template-columns: 24px minmax(0, 1fr);
   gap: 6px;
   border-left-width: 4px;
@@ -2678,8 +2691,11 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   font-size: 12px;
   font-weight: 500;
   line-height: 16.8px;
-  white-space: nowrap;
+  display: -webkit-box;
+  white-space: normal;
   text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .wt-flow-calendar-page .wt-season-empty {
@@ -2690,9 +2706,19 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-flow-calendar-page .wt-board-more,
 .wt-flow-calendar-page .wt-empty-board {
-  min-height: 72px;
+  min-height: 92px;
   color: var(--flow-muted);
   font-size: 14px;
+}
+
+.wt-timeline-bar.is-selected,
+.wt-gantt-chip.is-selected,
+.wt-list-row.is-selected,
+.wt-season-dot.is-selected,
+.wt-event.is-selected {
+  outline: 2px solid rgba(17,17,17,.72);
+  outline-offset: -2px;
+  background: #ffffff;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app {
@@ -3004,7 +3030,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderCalendarWorkspace() {
     return [
-      '<section class="wt-calendar-page wt-flow-calendar-page">',
+      '<section class="wt-calendar-page wt-flow-calendar-page wt-period-' + text(state.period) + ' wt-view-' + text(state.calendarView) + '">',
       '<header class="wt-flow-page-head">',
       '<div class="wt-flow-heading"><h1>Calendar</h1></div>',
       '</header>',
@@ -3145,8 +3171,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderTimelineEvent(event, position, row, compact) {
+    var selected = event.date === state.selectedDate ? " is-selected" : "";
     return [
-      '<button type="button" class="wt-timeline-bar ' + text(eventAccentClass(event)) + ' wt-kind-' + text(event.kind) + '" data-date="' + text(event.date) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '; --wt-event-row:' + text(row) + '">',
+      '<button type="button" class="wt-timeline-bar ' + text(eventAccentClass(event)) + ' wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '; --wt-event-row:' + text(row) + '">',
       '<b>' + text(shortTitle(event.title, compact ? 34 : 54)) + '</b>',
       '<span>' + text(event.gate || event.owner || "WT") + '</span>',
       '</button>'
@@ -3224,7 +3251,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '</div>',
       '<div class="wt-gantt-body">',
       groups.length ? groups.map(function (season) {
-        var seasonEvents = events.filter(function (event) { return (event.season || "All") === season; }).slice(0, compact ? 8 : 18);
+        var seasonEvents = events.filter(function (event) { return (event.season || "All") === season; });
+        if (compact) seasonEvents = seasonEvents.slice(0, 8);
         return renderGanttLane(season, seasonEvents, units);
       }).join("") : renderEmptyBoard("No events in this range."),
       '</div>',
@@ -3233,13 +3261,17 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderGanttLane(label, events, units) {
+    var rows = assignLaneRows(events, units);
+    var rowCount = Math.max(1, rows.length);
     return [
-      '<article class="wt-gantt-lane">',
+      '<article class="wt-gantt-lane" style="--wt-gantt-rows:' + text(rowCount) + '">',
       '<div class="wt-gantt-label"><b>' + text(label) + '</b><small>' + text(events.length) + ' events</small></div>',
-      '<div class="wt-gantt-track" style="--wt-cols:' + text(units.length) + '">',
-      events.map(function (event, index) {
+      '<div class="wt-gantt-track" style="--wt-cols:' + text(units.length) + '; --wt-gantt-rows:' + text(rowCount) + '">',
+      events.map(function (event) {
         var position = eventUnitPosition(event, units);
-        return '<button type="button" class="wt-gantt-chip wt-kind-' + text(event.kind) + '" data-date="' + text(event.date) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '; --wt-row:' + text((index % 4) + 1) + '"><span>' + text(event.gate || event.kind) + '</span><b>' + text(event.title) + '</b></button>';
+        var row = event.__laneRow || 1;
+        var selected = event.date === state.selectedDate ? " is-selected" : "";
+        return '<button type="button" class="wt-gantt-chip wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '; --wt-row:' + text(row) + '"><span>' + text(formatDateShort(event.date) + " · " + (event.gate || event.kind)) + '</span><b>' + text(event.title) + '</b></button>';
       }).join(""),
       '</div>',
       '</article>'
@@ -3248,21 +3280,22 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderListBoard(compact) {
     var events = eventsForCurrentRange();
-    var maxRows = compact ? 10 : 36;
+    var maxRows = compact ? 10 : events.length;
     return [
       '<section class="wt-list-board ' + (compact ? "compact" : "") + '" aria-label="List calendar">',
       '<header><span>Date</span><span>Event</span><span>Season</span><span>Owner</span></header>',
       '<div>',
       events.length ? events.slice(0, maxRows).map(renderListRow).join("") : renderEmptyBoard("No events in this range."),
-      events.length > maxRows ? '<div class="wt-board-more">+' + text(events.length - maxRows) + ' more events in filters</div>' : "",
+      compact && events.length > maxRows ? '<div class="wt-board-more">+' + text(events.length - maxRows) + ' more events in filters</div>' : "",
       '</div>',
       '</section>'
     ].join("");
   }
 
   function renderListRow(event) {
+    var selected = event.date === state.selectedDate ? " is-selected" : "";
     return [
-      '<button type="button" class="wt-list-row wt-kind-' + text(event.kind) + '" data-date="' + text(event.date) + '">',
+      '<button type="button" class="wt-list-row wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
       '<time>' + text(formatDateShort(event.date)) + '</time>',
       '<b>' + text(event.title) + '</b>',
       '<span>' + text(event.season || "All") + '</span>',
@@ -3300,7 +3333,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
           return event.date >= month.start && event.date <= month.end;
         }).slice(0, compact ? 2 : 5);
         return '<div class="wt-season-cell">' + (monthEvents.length ? monthEvents.map(function (event) {
-          return '<button type="button" class="wt-season-dot wt-kind-' + text(event.kind) + '" data-date="' + text(event.date) + '"><span>' + text(dayOfMonth(event.date)) + '</span><b>' + text(event.gate || event.kind) + '</b></button>';
+          var selected = event.date === state.selectedDate ? " is-selected" : "";
+          return '<button type="button" class="wt-season-dot wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '"><span>' + text(dayOfMonth(event.date)) + '</span><b>' + text(event.gate || event.kind) + '</b></button>';
         }).join("") : '<span class="wt-season-empty"></span>') + '</div>';
       }).join(""),
       '</article>'
@@ -3343,8 +3377,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderEventCard(event, compact) {
+    var selected = event.date === state.selectedDate ? " is-selected" : "";
     return [
-      '<button type="button" class="wt-event wt-kind-' + text(event.kind) + '" data-date="' + text(event.date) + '">',
+      '<button type="button" class="wt-event wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
       '<span>' + text(event.season || "WT") + '</span>',
       '<b>' + text(event.title) + '</b>',
       compact ? "" : '<small>' + text(event.time || event.gate || "All day") + ' · ' + text(event.owner || "WT") + '</small>',
@@ -3386,6 +3421,15 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<span>' + text(event.time || event.gate || "All day") + ' / ' + text(event.owner || "WT") + '</span>',
       '</article>'
     ].join("");
+  }
+
+  function eventTooltip(event) {
+    return [
+      formatDateShort(event.date),
+      event.season || "All",
+      event.gate || "WT",
+      event.title
+    ].filter(Boolean).join(" · ");
   }
 
   function renderDashboard() {
@@ -3968,8 +4012,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function timelineUnits(range) {
     var days = daysBetween(range.start, range.end) + 1;
-    if (days <= 35) return dayUnits(range);
-    if (days <= 110) return weekUnits(range);
+    if (days <= 14) return dayUnits(range);
+    if (days <= 120) return weekUnits(range);
     return monthUnits(range);
   }
 

@@ -254,7 +254,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderCalendarWorkspace() {
     return [
-      '<section class="wt-calendar-page wt-flow-calendar-page">',
+      '<section class="wt-calendar-page wt-flow-calendar-page wt-period-' + text(state.period) + ' wt-view-' + text(state.calendarView) + '">',
       '<header class="wt-flow-page-head">',
       '<div class="wt-flow-heading"><h1>Calendar</h1></div>',
       '</header>',
@@ -395,8 +395,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderTimelineEvent(event, position, row, compact) {
+    var selected = event.date === state.selectedDate ? " is-selected" : "";
     return [
-      '<button type="button" class="wt-timeline-bar ' + text(eventAccentClass(event)) + ' wt-kind-' + text(event.kind) + '" data-date="' + text(event.date) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '; --wt-event-row:' + text(row) + '">',
+      '<button type="button" class="wt-timeline-bar ' + text(eventAccentClass(event)) + ' wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '; --wt-event-row:' + text(row) + '">',
       '<b>' + text(shortTitle(event.title, compact ? 34 : 54)) + '</b>',
       '<span>' + text(event.gate || event.owner || "WT") + '</span>',
       '</button>'
@@ -474,7 +475,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '</div>',
       '<div class="wt-gantt-body">',
       groups.length ? groups.map(function (season) {
-        var seasonEvents = events.filter(function (event) { return (event.season || "All") === season; }).slice(0, compact ? 8 : 18);
+        var seasonEvents = events.filter(function (event) { return (event.season || "All") === season; });
+        if (compact) seasonEvents = seasonEvents.slice(0, 8);
         return renderGanttLane(season, seasonEvents, units);
       }).join("") : renderEmptyBoard("No events in this range."),
       '</div>',
@@ -483,13 +485,17 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderGanttLane(label, events, units) {
+    var rows = assignLaneRows(events, units);
+    var rowCount = Math.max(1, rows.length);
     return [
-      '<article class="wt-gantt-lane">',
+      '<article class="wt-gantt-lane" style="--wt-gantt-rows:' + text(rowCount) + '">',
       '<div class="wt-gantt-label"><b>' + text(label) + '</b><small>' + text(events.length) + ' events</small></div>',
-      '<div class="wt-gantt-track" style="--wt-cols:' + text(units.length) + '">',
-      events.map(function (event, index) {
+      '<div class="wt-gantt-track" style="--wt-cols:' + text(units.length) + '; --wt-gantt-rows:' + text(rowCount) + '">',
+      events.map(function (event) {
         var position = eventUnitPosition(event, units);
-        return '<button type="button" class="wt-gantt-chip wt-kind-' + text(event.kind) + '" data-date="' + text(event.date) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '; --wt-row:' + text((index % 4) + 1) + '"><span>' + text(event.gate || event.kind) + '</span><b>' + text(event.title) + '</b></button>';
+        var row = event.__laneRow || 1;
+        var selected = event.date === state.selectedDate ? " is-selected" : "";
+        return '<button type="button" class="wt-gantt-chip wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '; --wt-row:' + text(row) + '"><span>' + text(formatDateShort(event.date) + " · " + (event.gate || event.kind)) + '</span><b>' + text(event.title) + '</b></button>';
       }).join(""),
       '</div>',
       '</article>'
@@ -498,21 +504,22 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderListBoard(compact) {
     var events = eventsForCurrentRange();
-    var maxRows = compact ? 10 : 36;
+    var maxRows = compact ? 10 : events.length;
     return [
       '<section class="wt-list-board ' + (compact ? "compact" : "") + '" aria-label="List calendar">',
       '<header><span>Date</span><span>Event</span><span>Season</span><span>Owner</span></header>',
       '<div>',
       events.length ? events.slice(0, maxRows).map(renderListRow).join("") : renderEmptyBoard("No events in this range."),
-      events.length > maxRows ? '<div class="wt-board-more">+' + text(events.length - maxRows) + ' more events in filters</div>' : "",
+      compact && events.length > maxRows ? '<div class="wt-board-more">+' + text(events.length - maxRows) + ' more events in filters</div>' : "",
       '</div>',
       '</section>'
     ].join("");
   }
 
   function renderListRow(event) {
+    var selected = event.date === state.selectedDate ? " is-selected" : "";
     return [
-      '<button type="button" class="wt-list-row wt-kind-' + text(event.kind) + '" data-date="' + text(event.date) + '">',
+      '<button type="button" class="wt-list-row wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
       '<time>' + text(formatDateShort(event.date)) + '</time>',
       '<b>' + text(event.title) + '</b>',
       '<span>' + text(event.season || "All") + '</span>',
@@ -550,7 +557,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
           return event.date >= month.start && event.date <= month.end;
         }).slice(0, compact ? 2 : 5);
         return '<div class="wt-season-cell">' + (monthEvents.length ? monthEvents.map(function (event) {
-          return '<button type="button" class="wt-season-dot wt-kind-' + text(event.kind) + '" data-date="' + text(event.date) + '"><span>' + text(dayOfMonth(event.date)) + '</span><b>' + text(event.gate || event.kind) + '</b></button>';
+          var selected = event.date === state.selectedDate ? " is-selected" : "";
+          return '<button type="button" class="wt-season-dot wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '"><span>' + text(dayOfMonth(event.date)) + '</span><b>' + text(event.gate || event.kind) + '</b></button>';
         }).join("") : '<span class="wt-season-empty"></span>') + '</div>';
       }).join(""),
       '</article>'
@@ -593,8 +601,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderEventCard(event, compact) {
+    var selected = event.date === state.selectedDate ? " is-selected" : "";
     return [
-      '<button type="button" class="wt-event wt-kind-' + text(event.kind) + '" data-date="' + text(event.date) + '">',
+      '<button type="button" class="wt-event wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
       '<span>' + text(event.season || "WT") + '</span>',
       '<b>' + text(event.title) + '</b>',
       compact ? "" : '<small>' + text(event.time || event.gate || "All day") + ' · ' + text(event.owner || "WT") + '</small>',
@@ -636,6 +645,15 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<span>' + text(event.time || event.gate || "All day") + ' / ' + text(event.owner || "WT") + '</span>',
       '</article>'
     ].join("");
+  }
+
+  function eventTooltip(event) {
+    return [
+      formatDateShort(event.date),
+      event.season || "All",
+      event.gate || "WT",
+      event.title
+    ].filter(Boolean).join(" · ");
   }
 
   function renderDashboard() {
@@ -1218,8 +1236,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function timelineUnits(range) {
     var days = daysBetween(range.start, range.end) + 1;
-    if (days <= 35) return dayUnits(range);
-    if (days <= 110) return weekUnits(range);
+    if (days <= 14) return dayUnits(range);
+    if (days <= 120) return weekUnits(range);
     return monthUnits(range);
   }
 
