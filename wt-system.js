@@ -17,15 +17,18 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   var CALENDAR_VIEWS = [
     { id: "timeline", label: "Timeline View" },
     { id: "gantt", label: "Gantt" },
+    { id: "calendar", label: "Calendar View" },
     { id: "list", label: "List" },
     { id: "season-grid", label: "Season Grid" }
   ];
+  var CALENDAR_PERIOD_IDS = ["month", "quarter", "year"];
   var PERIODS = [
     { id: "week", label: "1 week" },
     { id: "multi-week", label: "Multi-week" },
     { id: "month", label: "Month" },
     { id: "multi-month", label: "Multi-month" },
     { id: "quarter", label: "Quarter" },
+    { id: "year", label: "Year" },
     { id: "season", label: "Season" }
   ];
 
@@ -101,6 +104,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
       if (calendarViewButton && root.contains(calendarViewButton)) {
         state.calendarView = calendarViewButton.getAttribute("data-calendar-view");
+        if (state.calendarView === "calendar" && CALENDAR_PERIOD_IDS.indexOf(state.period) < 0) {
+          state.period = "month";
+          state.weekStart = periodAnchor(state.selectedDate, state.period);
+        }
         state.actionMessage = "";
         render(root);
       }
@@ -286,7 +293,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-range-title"><strong>' + text(formatRange(range)) + '</strong></div>',
       '<div class="wt-flow-view-controls">',
       renderPicker("View", calendarViewLabel(state.calendarView), CALENDAR_VIEWS, "calendar-view", state.calendarView),
-      renderPicker("Range", periodLabel(state.period), PERIODS, "period", state.period),
+      renderPicker("Range", periodLabel(state.period), periodOptionsForView(), "period", state.period),
       '<div class="wt-week-controls">',
       '<button type="button" data-week-shift="-1" aria-label="Previous">' + icon("chevron-left") + '</button>',
       '<button type="button" data-today>Today</button>',
@@ -326,6 +333,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     ].join("");
   }
 
+  function periodOptionsForView() {
+    if (state.calendarView !== "calendar") return PERIODS;
+    return PERIODS.filter(function (period) {
+      return CALENDAR_PERIOD_IDS.indexOf(period.id) >= 0;
+    });
+  }
+
   function filterButton(type, value, active) {
     return '<button class="' + (active ? "active" : "") + '" type="button" data-' + text(type) + '="' + text(value) + '">' + text(value) + '</button>';
   }
@@ -349,10 +363,118 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderCalendarBoard(compact) {
+    if (state.calendarView === "calendar") return renderCalendarViewBoard(compact);
     if (state.calendarView === "gantt") return renderGanttBoard(compact);
     if (state.calendarView === "list") return renderListBoard(compact);
     if (state.calendarView === "season-grid") return renderSeasonGridBoard(compact);
     return renderTimelineBoard(compact);
+  }
+
+  function renderCalendarViewBoard(compact) {
+    if (state.period === "month") return renderMonthCalendarBoard(compact);
+    return renderHorizontalCalendarBoard(compact);
+  }
+
+  function renderMonthCalendarBoard(compact) {
+    var range = currentRange();
+    var isoMonth = range.start.slice(0, 7);
+    var cells = calendarMonthCells(isoMonth);
+    var byDate = eventsByDate(eventsForCurrentRange());
+    var weekRows = Math.ceil(cells.length / 7);
+    return [
+      '<section class="wt-month-calendar-board ' + (compact ? "compact" : "") + '" aria-label="Monthly calendar">',
+      '<div class="wt-month-calendar-head">',
+      WEEKDAYS.map(function (day) { return '<span>' + text(day) + '</span>'; }).join(""),
+      '</div>',
+      '<div class="wt-month-calendar-grid" style="--wt-week-rows:' + text(weekRows) + '">',
+      cells.map(function (date) {
+        return renderMonthCalendarCell(date, byDate[date] || [], compact);
+      }).join(""),
+      '</div>',
+      '</section>'
+    ].join("");
+  }
+
+  function renderMonthCalendarCell(date, events, compact) {
+    if (!date) return '<article class="wt-month-cell is-empty" aria-hidden="true"></article>';
+    var todayIso = toIso(new Date());
+    var classes = [
+      date === state.selectedDate ? "is-selected" : "",
+      date === todayIso ? "is-today" : "",
+      events.length ? "has-events" : ""
+    ].filter(Boolean).join(" ");
+    var limit = compact ? 2 : 4;
+    return [
+      '<article class="wt-month-cell ' + text(classes) + '" data-day="' + text(date) + '">',
+      '<button type="button" class="wt-month-day-button" data-date="' + text(date) + '" aria-label="' + text(formatDateShort(date)) + '">',
+      '<span>' + text(dayNameShort(date)) + '</span><b>' + text(dayOfMonth(date)) + '</b>',
+      '</button>',
+      '<div class="wt-month-events">',
+      events.length ? events.slice(0, limit).map(function (event) {
+        return renderMonthEventPill(event);
+      }).join("") : '<span class="wt-month-empty">No events</span>',
+      events.length > limit ? '<small class="wt-month-more">+' + text(events.length - limit) + ' more</small>' : "",
+      '</div>',
+      '</article>'
+    ].join("");
+  }
+
+  function renderMonthEventPill(event) {
+    var selected = event.date === state.selectedDate ? " is-selected" : "";
+    return [
+      '<button type="button" class="wt-month-event wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+      '<span>' + text((event.gate || event.kind) + " · " + formatDateShort(event.date)) + '</span>',
+      '<b>' + text(shortTitle(event.title, 42)) + '</b>',
+      '</button>'
+    ].join("");
+  }
+
+  function renderHorizontalCalendarBoard(compact) {
+    var range = currentRange();
+    var units = state.period === "year" || state.period === "quarter" || state.period === "multi-month" || state.period === "season" ? monthUnits(range) : weekUnits(range);
+    var events = eventsForCurrentRange();
+    return [
+      '<section class="wt-horizontal-calendar-board wt-calendar-' + text(state.period) + ' ' + (compact ? "compact" : "") + '" aria-label="Horizontal calendar">',
+      '<div class="wt-horizontal-calendar-head" style="--wt-cols:' + text(units.length) + '">',
+      units.map(function (unit) {
+        var count = filteredEventsForRange(unit.start, unit.end).length;
+        return '<span class="' + (unitHasToday(unit) ? "today" : "") + '"><b>' + text(unit.label) + '</b><small>' + text(count + " events") + '</small></span>';
+      }).join(""),
+      '</div>',
+      '<div class="wt-horizontal-calendar-grid" style="--wt-cols:' + text(units.length) + '">',
+      units.map(function (unit) {
+        return renderHorizontalCalendarColumn(unit, events.filter(function (event) {
+          return eventOverlapsRange(event, unit.start, unit.end);
+        }), compact);
+      }).join(""),
+      '</div>',
+      '</section>'
+    ].join("");
+  }
+
+  function renderHorizontalCalendarColumn(unit, events, compact) {
+    var limit = compact ? 4 : events.length;
+    return [
+      '<article class="wt-horizontal-period">',
+      '<div class="wt-horizontal-period-meta"><time>' + text(formatRange(unit)) + '</time></div>',
+      '<div class="wt-horizontal-period-events">',
+      events.length ? events.slice(0, limit).map(function (event) {
+        return renderHorizontalCalendarEvent(event);
+      }).join("") : '<span class="wt-horizontal-empty">No events</span>',
+      events.length > limit ? '<small class="wt-month-more">+' + text(events.length - limit) + ' more</small>' : "",
+      '</div>',
+      '</article>'
+    ].join("");
+  }
+
+  function renderHorizontalCalendarEvent(event) {
+    var selected = event.date === state.selectedDate ? " is-selected" : "";
+    return [
+      '<button type="button" class="wt-horizontal-event wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+      '<span>' + text(formatDateShort(event.date) + " · " + (event.gate || event.kind)) + '</span>',
+      '<b>' + text(shortTitle(event.title, 36)) + '</b>',
+      '</button>'
+    ].join("");
   }
 
   function renderTimelineBoard(compact) {
@@ -1039,6 +1161,16 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return filteredEventsForRange(range.start, range.end);
   }
 
+  function eventsByDate(events) {
+    var byDate = {};
+    events.forEach(function (event) {
+      var key = event.date;
+      if (!byDate[key]) byDate[key] = [];
+      byDate[key].push(event);
+    });
+    return byDate;
+  }
+
   function eventOverlapsRange(event, startIso, endIso) {
     var start = event.date;
     var end = event.endDate || event.date;
@@ -1082,6 +1214,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var quarterEnd = addDays(addMonths(quarterStart, 3), -1);
       return { start: toIso(quarterStart), end: toIso(quarterEnd) };
     }
+    if (period === "year") {
+      return { start: anchor.getFullYear() + "-01-01", end: anchor.getFullYear() + "-12-31" };
+    }
     if (period === "season") {
       return seasonRange(anchorIso);
     }
@@ -1118,6 +1253,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       state.weekStart = periodAnchor(toIso(addMonths(start, direction * 3)), state.period);
       return;
     }
+    if (state.period === "year") {
+      state.weekStart = periodAnchor(toIso(addMonths(start, direction * 12)), state.period);
+      return;
+    }
     if (state.period === "season") {
       state.weekStart = periodAnchor(toIso(addMonths(start, direction * 6)), state.period);
       return;
@@ -1148,8 +1287,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var mondayOffset = (first.getDay() + 6) % 7;
     for (var i = 0; i < mondayOffset; i += 1) days.push(null);
     for (var day = 1; day <= total; day += 1) days.push(day);
-    while (days.length % 7) days.push(null);
+    while (days.length < 35 || days.length % 7) days.push(null);
     return days;
+  }
+
+  function calendarMonthCells(isoMonth) {
+    return buildMonth(isoMonth).map(function (day) {
+      return day ? isoMonth + "-" + pad(day) : "";
+    });
   }
 
   function weekDays(startIso) {
