@@ -206,7 +206,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       navItem("dashboard", "Dashboard"),
       navItem("creation", "Creation Plan"),
       navItem("calendar", "Calendar"),
-      navItem("projector", "Projector View"),
       navItem("libraries", "Libraries"),
       '</nav>',
       '</aside>'
@@ -246,7 +245,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function sectionTitle() {
     if (state.section === "dashboard") return "Dashboard";
     if (state.section === "creation") return "Creation Plan";
-    if (state.section === "projector") return "Projector View";
     if (state.section === "libraries") return "Libraries";
     return "Calendar";
   }
@@ -254,7 +252,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderSection(root) {
     if (state.section === "dashboard") return renderDashboard();
     if (state.section === "creation") return renderCreationPlan();
-    if (state.section === "projector") return renderDashboard();
     if (state.section === "libraries") return renderLibraries();
     return renderCalendarWorkspace(root);
   }
