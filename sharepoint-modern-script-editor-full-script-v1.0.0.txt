@@ -3508,7 +3508,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-month-events">',
       events.length ? events.slice(0, limit).map(function (event) {
         return renderMonthEventPill(event);
-      }).join("") : '<span class="wt-month-empty">No events</span>',
+      }).join("") : "",
       events.length > limit ? '<small class="wt-month-more">+' + text(events.length - limit) + ' more</small>' : "",
       '</div>',
       '</article>'
@@ -3556,7 +3556,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-horizontal-period-events">',
       events.length ? events.slice(0, limit).map(function (event) {
         return renderHorizontalCalendarEvent(event);
-      }).join("") : '<span class="wt-horizontal-empty">No events</span>',
+      }).join("") : "",
       events.length > limit ? '<small class="wt-month-more">+' + text(events.length - limit) + ' more</small>' : "",
       '</div>',
       '</article>'
