@@ -11,8 +11,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     "July", "August", "September", "October", "November", "December"
   ];
   var WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  var DEFAULT_WEEK_START = "2026-06-01";
-  var DEFAULT_SELECTED_DATE = "2026-06-03";
   var SEASONS = ["All", "SP27", "SU27", "FA27", "HO27", "SP28"];
   var CALENDAR_VIEWS = [
     { id: "timeline", label: "Timeline View" },
@@ -72,8 +70,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     view: "display",
     calendarView: "calendar",
     period: "month",
-    weekStart: DEFAULT_WEEK_START,
-    selectedDate: DEFAULT_SELECTED_DATE,
+    weekStart: "",
+    selectedDate: "",
     search: "",
     deadlineOnly: false,
     actionMessage: "",
@@ -84,6 +82,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var roots = document.querySelectorAll("[data-wt-system]");
     for (var i = 0; i < roots.length; i += 1) {
       roots[i].classList.add("wt-root");
+      initializeDateState(roots[i]);
       applyViewportFit(roots[i]);
       roots[i].innerHTML = renderApp(roots[i]);
       bind(roots[i]);
@@ -143,7 +142,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       }
 
       if (todayButton && root.contains(todayButton)) {
-        var todayIso = toIso(new Date());
+        var todayIso = currentDateIso(root);
         state.weekStart = periodAnchor(todayIso, state.period);
         state.selectedDate = todayIso;
         render(root);
@@ -226,6 +225,31 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     applyViewportFit(root);
     root.innerHTML = renderApp(root);
     updateClock(root);
+  }
+
+  function initializeDateState(root) {
+    var initialDate = currentDateIso(root);
+    state.selectedDate = initialDate;
+    state.weekStart = periodAnchor(initialDate, state.period);
+  }
+
+  function currentDateIso(root) {
+    var configured = queryParam("wt-date") || queryParam("wt-today") || (root ? root.getAttribute("data-wt-default-date") : "");
+    if (isIsoDate(configured)) return configured;
+    return toIso(new Date());
+  }
+
+  function queryParam(name) {
+    try {
+      return new URLSearchParams(window.location.search).get(name) || "";
+    } catch (error) {
+      return "";
+    }
+  }
+
+  function isIsoDate(value) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value || "")) return false;
+    return toIso(fromIso(value)) === value;
   }
 
   function applyViewportFit(root) {
@@ -1824,7 +1848,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function unitHasToday(unit) {
-    var todayIso = toIso(new Date());
+    var todayIso = currentDateIso();
     return unit.start <= todayIso && unit.end >= todayIso;
   }
 
