@@ -737,7 +737,8 @@ textarea:focus-visible {
 .wt-season-grid-board,
 .wt-inspector,
 .wt-dashboard-hero,
-.wt-scale-panel,
+.wt-dashboard-year-strip,
+.wt-dashboard-month-panel,
 .wt-today-stack,
 .wt-lab-hero,
 .wt-lab-panel,
@@ -1363,7 +1364,7 @@ textarea:focus-visible {
 }
 
 .wt-dashboard {
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto 170px minmax(0, 1fr) auto;
 }
 
 .wt-dashboard-hero {
@@ -1399,15 +1400,150 @@ textarea:focus-visible {
   gap: 12px;
 }
 
-.wt-dashboard-overview {
-  min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(440px, .92fr);
-  grid-template-rows: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+.wt-dashboard-year-strip h2,
+.wt-dashboard-month-panel h2,
+.wt-lab-hero h1,
+.wt-lab-panel h2 {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1;
 }
 
-.wt-scale-panel {
+.wt-dashboard-year-strip small,
+.wt-dashboard-month-panel small,
+.wt-lab-hero small,
+.wt-lab-panel small,
+.wt-lab-source-list small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.wt-dashboard-year-strip {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 8px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.wt-year-strip-header,
+.wt-dashboard-month-panel > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.wt-year-strip-header h2,
+.wt-dashboard-month-panel h2 {
+  margin-top: 3px;
+  font-family: var(--font-display);
+  font-size: 24px;
+}
+
+.wt-year-strip-header > span {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+}
+
+.wt-year-quarter-grid {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.wt-year-quarter {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 7px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  background: #fbfcfb;
+}
+
+.wt-year-quarter header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.wt-year-quarter header b {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 17px;
+  line-height: 1;
+}
+
+.wt-year-quarter header span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-year-months {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.wt-year-month-tile {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) 7px;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  background: #ffffff;
+  color: var(--ink);
+  text-align: left;
+}
+
+.wt-year-month-tile.is-selected {
+  background: #f7fbfb;
+  box-shadow: inset 0 0 0 2px rgba(17, 17, 17, .72);
+}
+
+.wt-year-month-tile span {
+  justify-self: end;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.wt-year-month-tile b {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.wt-year-month-tile i {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 7px;
+  display: block;
+  background: linear-gradient(90deg, var(--teal) var(--load), var(--panel) var(--load));
+}
+
+.wt-dashboard-month-panel {
   min-height: 0;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
@@ -1416,234 +1552,22 @@ textarea:focus-visible {
   overflow: hidden;
 }
 
-.wt-scale-month {
-  grid-row: 1 / -1;
-}
-
-.wt-scale-panel header {
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) auto;
-  gap: 10px;
-  align-items: center;
-}
-
-.wt-scale-panel header > span {
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--line-strong);
-  background: var(--panel);
+.wt-dashboard-month-panel > header > b {
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: 30px;
   line-height: 1;
 }
 
-.wt-scale-panel h2,
-.wt-lab-hero h1,
-.wt-lab-panel h2 {
-  margin: 0;
-  color: var(--ink);
-  line-height: 1;
-}
-
-.wt-scale-panel h2 {
-  font-size: 22px;
-}
-
-.wt-scale-panel small,
-.wt-lab-hero small,
-.wt-lab-panel small,
-.wt-lab-source-list small {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.wt-scale-panel header > b {
-  font-family: var(--font-display);
-  font-size: 28px;
-  line-height: 1;
-}
-
-.wt-scale-panel p {
+.wt-dashboard-month-panel > p {
   margin: 0;
   color: var(--muted);
   font-size: 12px;
 }
 
-.wt-scale-board {
+.wt-dashboard-month-board {
   min-height: 0;
   overflow: hidden;
-}
-
-.wt-dashboard-period-board {
-  height: 100%;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.wt-dashboard-year-board {
-  height: 100%;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  grid-template-rows: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.wt-dashboard-period-card {
-  min-width: 0;
-  min-height: 0;
-  display: grid;
-  grid-template-rows: auto 8px minmax(0, 1fr);
-  gap: 8px;
-  padding: 10px;
-  border: 1px solid var(--line);
-  background: #ffffff;
-  overflow: hidden;
-}
-
-.wt-dashboard-period-card.is-selected {
-  background: #f7fbfb;
-  box-shadow: inset 0 0 0 2px rgba(17, 17, 17, .72);
-}
-
-.wt-dashboard-period-card header {
-  min-width: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
-  align-items: start;
-}
-
-.wt-dashboard-period-card header b,
-.wt-dashboard-period-card header small {
-  min-width: 0;
-  overflow: hidden;
-  display: block;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.wt-dashboard-period-card header b {
-  color: var(--ink);
-  font-family: var(--font-display);
-  font-size: 19px;
-  line-height: 1;
-}
-
-.wt-dashboard-period-card header small {
-  margin-top: 3px;
-  color: var(--muted);
-  font-size: 10px;
-}
-
-.wt-dashboard-period-card header span {
-  color: var(--ink);
-  font-family: var(--font-display);
-  font-size: 24px;
-  line-height: 1;
-}
-
-.wt-dashboard-load {
-  height: 8px;
-  background: var(--panel);
-  overflow: hidden;
-}
-
-.wt-dashboard-load span {
-  width: var(--load);
-  height: 100%;
-  display: block;
-  background: var(--teal);
-}
-
-.wt-dashboard-period-events {
-  min-height: 0;
-  display: grid;
-  align-content: start;
-  gap: 6px;
-  overflow: hidden;
-}
-
-.wt-dashboard-mini-event {
-  min-width: 0;
-  min-height: 34px;
-  display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
-  gap: 6px;
-  align-items: center;
-  padding: 5px 7px;
-  border: 0;
-  border-left-width: 4px;
-  border-left-style: solid;
-  background: var(--panel);
-  color: var(--ink);
-  text-align: left;
-}
-
-.wt-dashboard-mini-event.is-selected {
-  outline: 2px solid rgba(17, 17, 17, .72);
-  outline-offset: -2px;
-}
-
-.wt-dashboard-mini-event time {
-  color: var(--muted);
-  font-size: 10px;
-  line-height: 1.1;
-}
-
-.wt-dashboard-mini-event b {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--ink);
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.12;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.wt-dashboard-period-empty,
-.wt-dashboard-period-more {
-  color: var(--muted);
-  font-size: 11px;
-}
-
-.wt-dashboard-period-more {
-  padding-top: 2px;
-  font-weight: 600;
-}
-
-.wt-scale-year .wt-scale-panel header,
-.wt-scale-year header {
-  gap: 8px;
-}
-
-.wt-scale-year .wt-dashboard-period-card {
-  gap: 6px;
-  padding: 8px;
-}
-
-.wt-scale-year .wt-dashboard-period-card header b {
-  font-size: 16px;
-}
-
-.wt-scale-year .wt-dashboard-period-card header span {
-  font-size: 20px;
-}
-
-.wt-scale-year .wt-dashboard-mini-event {
-  min-height: 28px;
-  grid-template-columns: 42px minmax(0, 1fr);
-  padding: 4px 6px;
-}
-
-.wt-scale-year .wt-dashboard-mini-event b {
-  font-size: 11px;
 }
 
 .wt-dashboard-focus {
@@ -1988,7 +1912,7 @@ textarea:focus-visible {
   .wt-toolbar,
   .wt-calendar-layout,
   .wt-projector-board,
-  .wt-dashboard-overview,
+  .wt-year-quarter-grid,
   .wt-lab-grid,
   .wt-creation,
   .wt-libraries,
@@ -2000,8 +1924,8 @@ textarea:focus-visible {
     grid-template-rows: auto;
   }
 
-  .wt-scale-month {
-    grid-row: auto;
+  .wt-year-quarter-grid {
+    gap: 12px;
   }
 
   .wt-filter-row,
@@ -2153,10 +2077,6 @@ textarea:focus-visible {
 
 #wt-system-root[data-wt-fit="viewport"] .wt-projector-board {
   grid-template-columns: minmax(0, 1fr) 360px;
-}
-
-#wt-system-root[data-wt-fit="viewport"] .wt-dashboard-overview {
-  grid-template-columns: minmax(0, 1.35fr) minmax(360px, .85fr);
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-lab-grid {
@@ -3350,10 +3270,6 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   grid-template-rows: repeat(var(--wt-week-rows, 5), minmax(86px, 1fr));
 }
 
-.wt-scale-panel .wt-month-calendar-board.compact .wt-month-calendar-grid {
-  grid-template-rows: repeat(var(--wt-week-rows, 5), minmax(52px, 1fr));
-}
-
 .wt-month-calendar-board.compact .wt-month-cell {
   grid-template-rows: 30px minmax(0, 1fr);
 }
@@ -3369,23 +3285,8 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   padding: 4px 7px;
 }
 
-.wt-scale-panel .wt-month-calendar-board.compact .wt-month-event,
-.wt-scale-panel .wt-horizontal-calendar-board.compact .wt-horizontal-event {
-  min-height: 30px;
-  padding: 3px 6px;
-}
-
-.wt-scale-panel .wt-horizontal-calendar-board.compact {
-  grid-template-rows: 30px minmax(0, 1fr);
-}
-
-.wt-scale-panel .wt-horizontal-calendar-head,
-.wt-scale-panel .wt-horizontal-calendar-grid {
-  grid-template-columns: repeat(var(--wt-cols), minmax(58px, 1fr));
-}
-
-.wt-scale-panel .wt-horizontal-period {
-  grid-template-rows: 28px minmax(0, 1fr);
+.wt-dashboard-month-panel .wt-month-calendar-board.compact .wt-month-calendar-grid {
+  grid-template-rows: repeat(var(--wt-week-rows, 5), minmax(78px, 1fr));
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app {

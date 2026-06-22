@@ -798,11 +798,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div><small>Schedule command center</small><h2>' + text(formatRange(range)) + '</h2></div>',
       '<div class="wt-now"><span data-clock>--:--</span><small>KST live board</small></div>',
       '</div>',
-      '<div class="wt-dashboard-overview">',
-      renderCalendarScalePanel("S", "Month", "Daily operating view", "month"),
-      renderCalendarScalePanel("M", "Quarter", "Season gate load", "quarter"),
-      renderCalendarScalePanel("L", "Year", "Annual milestone map", "year"),
-      '</div>',
+      renderDashboardYearStrip(),
+      renderDashboardMonthPanel(),
       '<div class="wt-dashboard-focus">',
       '<aside class="wt-today-stack"><h2>' + text(dayNameLong(state.selectedDate)) + '</h2>' + (selectedEvents.length ? selectedEvents.map(renderInspectorEvent).join("") : '<p class="wt-muted">No events selected.</p>') + '</aside>',
       '</div>',
@@ -810,73 +807,69 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     ].join("");
   }
 
-  function renderCalendarScalePanel(size, title, note, period) {
-    return withCalendarState(period, state.selectedDate, function () {
-      var range = currentRange();
-      var count = eventsForCurrentRange().length;
-      var board = period === "year" ? renderDashboardYearBoard(range) : period === "quarter" ? renderDashboardQuarterBoard(range) : renderCalendarViewBoard(true);
-      return [
-        '<article class="wt-scale-panel wt-scale-' + text(period) + '">',
-        '<header>',
-        '<span>' + text(size) + '</span>',
-        '<div><small>' + text(note) + '</small><h2>' + text(title) + '</h2></div>',
-        '<b>' + text(count) + '</b>',
-        '</header>',
-        '<p>' + text(formatRange(range)) + '</p>',
-        '<div class="wt-scale-board">',
-        board,
-        '</div>',
-        '</article>'
-      ].join("");
-    });
-  }
-
-  function renderDashboardQuarterBoard(range) {
+  function renderDashboardYearStrip() {
+    var range = periodRange(state.selectedDate, "year");
     var units = monthUnits(range);
     return [
-      '<section class="wt-dashboard-period-board wt-dashboard-quarter-board">',
-      units.map(function (unit) {
-        return renderDashboardPeriodCard(unit, 5);
+      '<section class="wt-dashboard-year-strip">',
+      '<header class="wt-year-strip-header">',
+      '<div><small>Year overview</small><h2>' + text(fromIso(state.selectedDate).getFullYear()) + '</h2></div>',
+      '<span>Quarter map</span>',
+      '</header>',
+      '<div class="wt-year-quarter-grid">',
+      [0, 1, 2, 3].map(function (quarterIndex) {
+        return renderDashboardQuarterGroup(quarterIndex, units.slice(quarterIndex * 3, quarterIndex * 3 + 3));
       }).join(""),
+      '</div>',
       '</section>'
     ].join("");
   }
 
-  function renderDashboardYearBoard(range) {
-    var units = monthUnits(range);
+  function renderDashboardQuarterGroup(quarterIndex, units) {
+    var eventCount = units.reduce(function (total, unit) {
+      return total + filteredEventsForRange(unit.start, unit.end).length;
+    }, 0);
     return [
-      '<section class="wt-dashboard-year-board">',
-      units.map(function (unit) {
-        return renderDashboardPeriodCard(unit, 2);
-      }).join(""),
-      '</section>'
-    ].join("");
-  }
-
-  function renderDashboardPeriodCard(unit, limit) {
-    var events = filteredEventsForRange(unit.start, unit.end);
-    var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " is-selected" : "";
-    var load = Math.min(100, events.length * 10);
-    return [
-      '<article class="wt-dashboard-period-card' + selected + '" data-range="' + text(unit.start + ":" + unit.end) + '">',
-      '<header><div><b>' + text(unit.label) + '</b><small>' + text(formatRange(unit)) + '</small></div><span>' + text(events.length) + '</span></header>',
-      '<div class="wt-dashboard-load"><span style="--load:' + text(load) + '%"></span></div>',
-      '<div class="wt-dashboard-period-events">',
-      events.length ? events.slice(0, limit).map(renderDashboardMiniEvent).join("") : '<small class="wt-dashboard-period-empty">No scheduled events</small>',
-      events.length > limit ? '<small class="wt-dashboard-period-more">+' + text(events.length - limit) + ' more</small>' : "",
+      '<article class="wt-year-quarter">',
+      '<header><b>Q' + text(quarterIndex + 1) + '</b><span>' + text(eventCount) + ' events</span></header>',
+      '<div class="wt-year-months">',
+      units.map(renderDashboardMonthTile).join(""),
       '</div>',
       '</article>'
     ].join("");
   }
 
-  function renderDashboardMiniEvent(event) {
-    var selected = event.date === state.selectedDate ? " is-selected" : "";
+  function renderDashboardMonthTile(unit) {
+    var events = filteredEventsForRange(unit.start, unit.end);
+    var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " is-selected" : "";
+    var load = Math.min(100, events.length * 9);
+    var monthNumber = fromIso(unit.start).getMonth() + 1;
     return [
-      '<button type="button" class="wt-dashboard-mini-event wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
-      '<time>' + text(formatDateShort(event.date)) + '</time>',
-      '<b>' + text(shortTitle(event.title, 34)) + '</b>',
+      '<button type="button" class="wt-year-month-tile' + selected + '" data-date="' + text(unit.start) + '" aria-label="' + text(unit.label + " " + events.length + " events") + '">',
+      '<b>' + text(monthNumber + "월") + '</b>',
+      '<span>' + text(events.length) + '</span>',
+      '<i style="--load:' + text(load) + '%"></i>',
       '</button>'
     ].join("");
+  }
+
+  function renderDashboardMonthPanel() {
+    return withCalendarState("month", state.selectedDate, function () {
+      var range = currentRange();
+      var count = eventsForCurrentRange().length;
+      return [
+        '<section class="wt-dashboard-month-panel">',
+        '<header>',
+        '<div><small>Monthly calendar</small><h2>Month</h2></div>',
+        '<b>' + text(count) + '</b>',
+        '</header>',
+        '<p>' + text(formatRange(range)) + '</p>',
+        '<div class="wt-dashboard-month-board">',
+        renderCalendarViewBoard(true),
+        '</div>',
+        '</section>'
+      ].join("");
+    });
   }
 
   function withCalendarState(period, anchorIso, callback) {
