@@ -1621,6 +1621,120 @@ textarea:focus-visible {
   font-size: 13px;
 }
 
+.wt-source-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  background: #fbfcfb;
+}
+
+.wt-source-tabs button {
+  min-width: 104px;
+  height: 34px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.wt-source-tabs button.active {
+  background: var(--ink);
+  color: #fff;
+}
+
+.wt-source-workspace {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 390px minmax(0, 1fr);
+  gap: 14px;
+  overflow: hidden;
+}
+
+.wt-source-sidebar {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 14px;
+  overflow: hidden;
+}
+
+.wt-source-card,
+.wt-source-frame-card {
+  min-height: 0;
+  border: 1px solid var(--line);
+  background: #ffffff;
+}
+
+.wt-source-card {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  padding: 18px;
+  overflow: hidden;
+}
+
+.wt-source-card h2,
+.wt-source-frame-card h2 {
+  margin: 4px 0 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  line-height: 1;
+}
+
+.wt-source-card h2 {
+  font-size: 28px;
+}
+
+.wt-source-frame-card h2 {
+  font-size: 24px;
+}
+
+.wt-source-card small,
+.wt-source-frame-card small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.wt-source-frame-card {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.wt-source-frame-card > header {
+  min-height: 72px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.wt-source-frame-card a {
+  display: inline-grid;
+  place-items: center;
+  height: 36px;
+  padding: 0 13px;
+  border: 1px solid var(--line-strong);
+  background: var(--ink);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.wt-source-frame {
+  width: 100%;
+  min-height: 0;
+  height: 100%;
+  border: 0;
+  background: #f9faf9;
+}
+
 .wt-lab-grid {
   min-height: 0;
   display: grid;
@@ -1644,7 +1758,8 @@ textarea:focus-visible {
 }
 
 .wt-lab-facts,
-.wt-lab-source-list {
+.wt-lab-source-list,
+.wt-pdf-list {
   display: grid;
   gap: 10px;
 }
@@ -1654,7 +1769,8 @@ textarea:focus-visible {
 }
 
 .wt-lab-facts div,
-.wt-lab-source-list div {
+.wt-lab-source-list div,
+.wt-source-row {
   display: grid;
   gap: 5px;
   padding: 12px;
@@ -1663,10 +1779,80 @@ textarea:focus-visible {
 }
 
 .wt-lab-facts b,
-.wt-lab-source-list b {
+.wt-lab-source-list b,
+.wt-source-row b {
   color: var(--ink);
   font-size: 15px;
   line-height: 1.15;
+}
+
+.wt-source-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  color: var(--ink);
+  text-decoration: none;
+  text-align: left;
+}
+
+.wt-source-row span {
+  grid-column: 1 / -1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-source-row small {
+  justify-self: end;
+  color: var(--teal-dark);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.wt-pdf-row:hover {
+  border-color: var(--line-strong);
+}
+
+.wt-pdf-row.is-selected {
+  border-color: var(--line-strong);
+  background: #f1f7f7;
+}
+
+.wt-report-url-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: end;
+  padding-top: 4px;
+}
+
+.wt-report-url-form label {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.wt-report-url-form input {
+  width: 100%;
+  height: 36px;
+  border: 1px solid var(--line);
+  background: #ffffff;
+  color: var(--ink);
+  padding: 0 10px;
+  font-size: 13px;
+}
+
+.wt-report-url-form button {
+  height: 36px;
+  border: 1px solid var(--line-strong);
+  background: var(--ink);
+  color: #fff;
+  padding: 0 13px;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .wt-lab-source-list div {
@@ -1914,10 +2100,15 @@ textarea:focus-visible {
   .wt-projector-board,
   .wt-year-quarter-grid,
   .wt-lab-grid,
+  .wt-source-workspace,
   .wt-creation,
   .wt-libraries,
   .wt-editor-layout {
     grid-template-columns: 1fr;
+  }
+
+  .wt-source-frame {
+    min-height: 620px;
   }
 
   .wt-dashboard {
@@ -2081,6 +2272,10 @@ textarea:focus-visible {
 
 #wt-system-root[data-wt-fit="viewport"] .wt-lab-grid {
   grid-template-columns: minmax(0, .95fr) minmax(0, 1.25fr);
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-source-workspace {
+  grid-template-columns: 390px minmax(0, 1fr);
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-creation,

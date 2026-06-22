@@ -33,9 +33,42 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   ];
 
   var EMBEDDED = window.WT_SYSTEM_EMBEDDED || { milestones: [], holidays: [] };
+  var SHAREPOINT_SOURCES = {
+    nikeRows: {
+      title: "B142 Raw Data",
+      eyebrow: "Excel row data",
+      label: "Nike Lab Test raw data",
+      caption: "Manual Excel table from B142 PDF reports",
+      status: "SharePoint workbook",
+      url: "https://taekwangcom.sharepoint.com/:x:/s/T2RL2/IQBQ3QW0jBVyR4JnhOJ1j_zSAQB25OBbUxJ37p_od5Mr4Uc?e=f6z0qd"
+    },
+    nikeReports: {
+      title: "Nike Lab Test PDF Reports",
+      eyebrow: "PDF report archive",
+      label: "Nike lab test reports",
+      caption: "Nike lab test PDF report folder",
+      status: "SharePoint folder",
+      manifestKey: "nikeLabReports",
+      url: "https://taekwangcom.sharepoint.com/:f:/s/T2RL2/IgBl9gmylH3wTpjAobY83-rwARqXBo4nsmOv41iT7f_ZGLk?e=1FKUUQ"
+    },
+    phkReports: {
+      title: "PHK WT Reports",
+      eyebrow: "PDF report archive",
+      label: "PHK WT report collection",
+      caption: "PHK WT PDF report folder",
+      status: "SharePoint folder",
+      manifestKey: "phkReports",
+      url: "https://taekwangcom.sharepoint.com/:f:/s/T2RL2/IgCvwsu5vd3ZRbKu3VViTI8TASAtSApdTnXdQtVvJ53nNzE?e=N9oicv"
+    }
+  };
+  var REPORT_MANIFEST = window.WT_REPORT_MANIFEST || { nikeLabReports: [], phkReports: [] };
 
   var state = {
     section: "dashboard",
+    labView: "raw",
+    reportFrameSource: "",
+    reportFrameUrl: "",
+    reportFrameLabel: "",
     view: "display",
     calendarView: "calendar",
     period: "month",
@@ -67,6 +100,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var todayButton = event.target.closest("[data-today]");
       var seasonButton = event.target.closest("[data-season]");
       var calendarViewButton = event.target.closest("[data-calendar-view]");
+      var labViewButton = event.target.closest("[data-lab-view]");
+      var reportButton = event.target.closest("[data-report-url]");
       var periodButton = event.target.closest("[data-period]");
       var deadlineButton = event.target.closest("[data-deadline-toggle]");
       var exportButton = event.target.closest("[data-export]");
@@ -75,6 +110,18 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       if (sectionButton && root.contains(sectionButton)) {
         state.section = sectionButton.getAttribute("data-section");
         state.view = "display";
+        render(root);
+      }
+
+      if (labViewButton && root.contains(labViewButton)) {
+        state.labView = labViewButton.getAttribute("data-lab-view");
+        render(root);
+      }
+
+      if (reportButton && root.contains(reportButton)) {
+        state.reportFrameSource = reportButton.getAttribute("data-report-source");
+        state.reportFrameUrl = reportButton.getAttribute("data-report-url");
+        state.reportFrameLabel = reportButton.getAttribute("data-report-label");
         render(root);
       }
 
@@ -155,6 +202,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
     root.addEventListener("submit", function (event) {
       var form = event.target.closest(".wt-edit-form");
+      var reportForm = event.target.closest(".wt-report-url-form");
+      if (reportForm && root.contains(reportForm)) {
+        event.preventDefault();
+        viewReportUrl(root, reportForm);
+        return;
+      }
       if (!form) return;
       event.preventDefault();
       submitSchedule(root, form);
@@ -207,6 +260,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       navItem("creation", "Creation Plan"),
       navItem("calendar", "Calendar"),
       navItem("lab", "Nike Lab Test"),
+      navItem("phk", "PHK WT Reports"),
       '</nav>',
       '</aside>'
     ].join("");
@@ -246,6 +300,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (state.section === "dashboard") return "Dashboard";
     if (state.section === "creation") return "Creation Plan";
     if (state.section === "lab") return "Nike Lab Test";
+    if (state.section === "phk") return "PHK WT Reports";
     return "Calendar";
   }
 
@@ -253,6 +308,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (state.section === "dashboard") return renderDashboard();
     if (state.section === "creation") return renderCreationPlan();
     if (state.section === "lab") return renderLabTest();
+    if (state.section === "phk") return renderPhkReports();
     return renderCalendarWorkspace(root);
   }
 
@@ -347,6 +403,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       creation: '<path d="M15 5l4 4"></path><path d="M13.5 6.5l4 4L7 21H3v-4L13.5 6.5z"></path><path d="M16 3l5 5"></path>',
       calendar: '<rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M8 2v4"></path><path d="M16 2v4"></path><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path>',
       lab: '<path d="M9 3v5l-4.5 8.2A3.2 3.2 0 0 0 7.3 21h9.4a3.2 3.2 0 0 0 2.8-4.8L15 8V3"></path><path d="M8 3h8"></path><path d="M7 15h10"></path>',
+      phk: '<path d="M4 4h7l2 2h7v14H4z"></path><path d="M8 11h8"></path><path d="M8 15h5"></path>',
       projector: '<rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8"></path><path d="M12 16v4"></path>',
       libraries: '<path d="M4 19.5V5.75A2.75 2.75 0 0 1 6.75 3H20v16H6.75A2.75 2.75 0 0 0 4 21.75"></path><path d="M8 7h8"></path><path d="M8 11h6"></path>',
       search: '<circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path>',
@@ -889,39 +946,143 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderLabTest() {
-    var rows = [
-      ["B142 PDF reports", "SharePoint archive", "Link pending"],
-      ["B142 row data", "Manual Excel table", "Source pending"],
-      ["Report extraction", "PDF to structured values", "Not connected"],
-      ["Specimen lookup", "Serial / QR detail pages", "Rule pending"]
-    ];
+    var activeView = state.labView === "reports" ? "reports" : "raw";
     return [
-      '<section class="wt-lab">',
+      '<section class="wt-lab wt-source-page">',
       '<header class="wt-lab-hero">',
       '<div><small>Nike Lab Test</small><h1>B142 midsole foam</h1></div>',
-      '<span>PDF archive + row data hub</span>',
+      '<div class="wt-source-tabs">',
+      sourceTab("raw", "Raw Data", activeView === "raw"),
+      sourceTab("reports", "PDF Reports", activeView === "reports"),
+      '</div>',
       '</header>',
-      '<div class="wt-lab-grid">',
-      '<article class="wt-lab-panel wt-lab-primary">',
-      '<header><small>Material record</small><h2>B142</h2></header>',
-      '<div class="wt-lab-facts">',
-      labFact("Source type", "PDF report"),
-      labFact("Row data", "Manual Excel entry"),
-      labFact("Archive", "SharePoint"),
-      labFact("System link", "Pending"),
-      '</div>',
-      '</article>',
-      '<article class="wt-lab-panel">',
-      '<header><small>Data pipeline</small><h2>Sources</h2></header>',
-      '<div class="wt-lab-source-list">',
-      rows.map(function (row) {
-        return '<div><b>' + text(row[0]) + '</b><span>' + text(row[1]) + '</span><small>' + text(row[2]) + '</small></div>';
-      }).join(""),
-      '</div>',
-      '</article>',
-      '</div>',
+      activeView === "reports" ? renderReportWorkspace(SHAREPOINT_SOURCES.nikeReports) : renderRawDataWorkspace(),
       '</section>'
     ].join("");
+  }
+
+  function renderPhkReports() {
+    return [
+      '<section class="wt-lab wt-source-page">',
+      '<header class="wt-lab-hero">',
+      '<div><small>PHK WT Report</small><h1>PHK WT Reports</h1></div>',
+      '<span>PDF report folder</span>',
+      '</header>',
+      renderReportWorkspace(SHAREPOINT_SOURCES.phkReports),
+      '</section>'
+    ].join("");
+  }
+
+  function sourceTab(id, label, active) {
+    return '<button type="button" class="' + (active ? "active" : "") + '" data-lab-view="' + text(id) + '">' + text(label) + '</button>';
+  }
+
+  function renderRawDataWorkspace() {
+    var source = SHAREPOINT_SOURCES.nikeRows;
+    return [
+      '<div class="wt-source-workspace">',
+      '<aside class="wt-source-sidebar">',
+      '<article class="wt-source-card wt-source-primary">',
+      '<header><small>Material record</small><h2>B142</h2></header>',
+      '<div class="wt-lab-facts">',
+      labFact("Source", "PDF reports"),
+      labFact("Raw data", "Excel workbook"),
+      labFact("Archive", "SharePoint"),
+      labFact("Access", "Auth required"),
+      '</div>',
+      '</article>',
+      '<article class="wt-source-card">',
+      '<header><small>Connected source</small><h2>Workbook</h2></header>',
+      renderSourceRow(source.title, source.caption, source.status),
+      renderSourceRow("PDF reports", SHAREPOINT_SOURCES.nikeReports.caption, SHAREPOINT_SOURCES.nikeReports.status),
+      renderSourceRow("Specimen lookup", "Serial / QR rule", "Pending"),
+      '</article>',
+      '</aside>',
+      renderSourceFrame(source),
+      '</div>'
+    ].join("");
+  }
+
+  function renderReportWorkspace(source) {
+    var reports = REPORT_MANIFEST[source.manifestKey] || [];
+    var frameSource = selectedReportFrameSource(source);
+    return [
+      '<div class="wt-source-workspace">',
+      '<aside class="wt-source-sidebar">',
+      '<article class="wt-source-card wt-source-primary">',
+      '<header><small>' + text(source.eyebrow) + '</small><h2>' + text(source.title) + '</h2></header>',
+      '<div class="wt-lab-facts">',
+      labFact("Format", "PDF"),
+      labFact("Source", "SharePoint"),
+      labFact("Index", reports.length ? reports.length + " files" : "Folder view"),
+      labFact("Access", "Auth required"),
+      '</div>',
+      '</article>',
+      '<article class="wt-source-card">',
+      '<header><small>Report index</small><h2>Files</h2></header>',
+      '<div class="wt-pdf-list">',
+      reports.length ? reports.map(function (report) { return renderPdfManifestRow(report, source.manifestKey); }).join("") : renderSourceRow("SharePoint folder", source.caption, source.status) + renderSourceRow("PDF file index", "Awaiting manifest", "Pending"),
+      '</div>',
+      renderReportUrlForm(source),
+      '</article>',
+      '</aside>',
+      renderSourceFrame(frameSource),
+      '</div>'
+    ].join("");
+  }
+
+  function selectedReportFrameSource(source) {
+    if (state.reportFrameSource !== source.manifestKey || !state.reportFrameUrl) return source;
+    return {
+      title: source.title,
+      eyebrow: "PDF report viewer",
+      label: state.reportFrameLabel || source.label,
+      url: state.reportFrameUrl
+    };
+  }
+
+  function renderSourceFrame(source) {
+    return [
+      '<section class="wt-source-frame-card">',
+      '<header>',
+      '<div><small>' + text(source.eyebrow) + '</small><h2>' + text(source.label) + '</h2></div>',
+      '<a href="' + text(source.url) + '" target="_blank" rel="noopener">Open SharePoint</a>',
+      '</header>',
+      '<iframe class="wt-source-frame" src="' + text(source.url) + '" title="' + text(source.label) + '" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>',
+      '</section>'
+    ].join("");
+  }
+
+  function renderSourceRow(title, detail, status) {
+    return '<div class="wt-source-row"><b>' + text(title) + '</b><span>' + text(detail) + '</span><small>' + text(status) + '</small></div>';
+  }
+
+  function renderPdfManifestRow(report, sourceKey) {
+    var title = report.title || report.name || "PDF report";
+    var detail = report.detail || report.date || report.model || "PDF";
+    var url = report.url || "#";
+    var active = state.reportFrameSource === sourceKey && state.reportFrameUrl === url ? " is-selected" : "";
+    return '<button type="button" class="wt-source-row wt-pdf-row' + active + '" data-report-source="' + text(sourceKey) + '" data-report-url="' + text(url) + '" data-report-label="' + text(title) + '"><b>' + text(title) + '</b><span>' + text(detail) + '</span><small>PDF</small></button>';
+  }
+
+  function renderReportUrlForm(source) {
+    return [
+      '<form class="wt-report-url-form" data-report-source="' + text(source.manifestKey) + '">',
+      '<label><small>PDF URL</small><input type="url" data-report-url-input placeholder="SharePoint PDF URL"></label>',
+      '<button type="submit">View</button>',
+      '</form>'
+    ].join("");
+  }
+
+  function viewReportUrl(root, form) {
+    var input = form.querySelector("[data-report-url-input]");
+    var url = input ? input.value.trim() : "";
+    if (!url) return;
+    state.reportFrameSource = form.getAttribute("data-report-source");
+    state.reportFrameUrl = url;
+    state.reportFrameLabel = "PDF preview";
+    state.actionMessage = "";
+    render(root);
   }
 
   function labFact(label, value) {
