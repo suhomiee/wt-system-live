@@ -747,7 +747,6 @@ textarea:focus-visible {
 .wt-season-grid-board,
 .wt-inspector,
 .wt-dashboard-hero,
-.wt-metric,
 .wt-scale-panel,
 .wt-today-stack,
 .wt-lab-hero,
@@ -860,8 +859,7 @@ textarea:focus-visible {
 .wt-deadline-row small,
 .wt-library-row span,
 .wt-report-item span,
-.wt-report-item small,
-.wt-metric span {
+.wt-report-item small {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.15;
@@ -1375,7 +1373,7 @@ textarea:focus-visible {
 }
 
 .wt-dashboard {
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
 .wt-dashboard-hero {
@@ -1404,32 +1402,6 @@ textarea:focus-visible {
   line-height: 1;
 }
 
-.wt-dashboard-grid {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr 1fr;
-  gap: 12px;
-}
-
-.wt-metric {
-  min-height: 104px;
-  display: grid;
-  align-content: center;
-  gap: 8px;
-  padding: 16px;
-}
-
-.wt-metric small {
-  color: var(--muted);
-  font-size: 12px;
-  text-transform: uppercase;
-}
-
-.wt-metric b {
-  font-family: var(--font-display);
-  font-size: 38px;
-  line-height: 1;
-}
-
 .wt-projector-board {
   min-height: 0;
   display: grid;
@@ -1440,7 +1412,7 @@ textarea:focus-visible {
 .wt-dashboard-overview {
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(360px, .85fr);
+  grid-template-columns: minmax(0, 1.08fr) minmax(440px, .92fr);
   grid-template-rows: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
@@ -1449,8 +1421,8 @@ textarea:focus-visible {
   min-height: 0;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
-  gap: 8px;
-  padding: 12px;
+  gap: 10px;
+  padding: 14px;
   overflow: hidden;
 }
 
@@ -1487,7 +1459,7 @@ textarea:focus-visible {
 }
 
 .wt-scale-panel h2 {
-  font-size: 20px;
+  font-size: 22px;
 }
 
 .wt-scale-panel small,
@@ -1513,6 +1485,175 @@ textarea:focus-visible {
 .wt-scale-board {
   min-height: 0;
   overflow: hidden;
+}
+
+.wt-dashboard-period-board {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.wt-dashboard-year-board {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.wt-dashboard-period-card {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto 8px minmax(0, 1fr);
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.wt-dashboard-period-card.is-selected {
+  background: #f7fbfb;
+  box-shadow: inset 0 0 0 2px rgba(17, 17, 17, .72);
+}
+
+.wt-dashboard-period-card header {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+}
+
+.wt-dashboard-period-card header b,
+.wt-dashboard-period-card header small {
+  min-width: 0;
+  overflow: hidden;
+  display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-dashboard-period-card header b {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 19px;
+  line-height: 1;
+}
+
+.wt-dashboard-period-card header small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.wt-dashboard-period-card header span {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.wt-dashboard-load {
+  height: 8px;
+  background: var(--panel);
+  overflow: hidden;
+}
+
+.wt-dashboard-load span {
+  width: var(--load);
+  height: 100%;
+  display: block;
+  background: var(--teal);
+}
+
+.wt-dashboard-period-events {
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.wt-dashboard-mini-event {
+  min-width: 0;
+  min-height: 34px;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 6px;
+  align-items: center;
+  padding: 5px 7px;
+  border: 0;
+  border-left-width: 4px;
+  border-left-style: solid;
+  background: var(--panel);
+  color: var(--ink);
+  text-align: left;
+}
+
+.wt-dashboard-mini-event.is-selected {
+  outline: 2px solid rgba(17, 17, 17, .72);
+  outline-offset: -2px;
+}
+
+.wt-dashboard-mini-event time {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.1;
+}
+
+.wt-dashboard-mini-event b {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.12;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-dashboard-period-empty,
+.wt-dashboard-period-more {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.wt-dashboard-period-more {
+  padding-top: 2px;
+  font-weight: 600;
+}
+
+.wt-scale-year .wt-scale-panel header,
+.wt-scale-year header {
+  gap: 8px;
+}
+
+.wt-scale-year .wt-dashboard-period-card {
+  gap: 6px;
+  padding: 8px;
+}
+
+.wt-scale-year .wt-dashboard-period-card header b {
+  font-size: 16px;
+}
+
+.wt-scale-year .wt-dashboard-period-card header span {
+  font-size: 20px;
+}
+
+.wt-scale-year .wt-dashboard-mini-event {
+  min-height: 28px;
+  grid-template-columns: 42px minmax(0, 1fr);
+  padding: 4px 6px;
+}
+
+.wt-scale-year .wt-dashboard-mini-event b {
+  font-size: 11px;
 }
 
 .wt-dashboard-focus {
@@ -1909,9 +2050,6 @@ textarea:focus-visible {
     grid-template-columns: 116px repeat(var(--wt-cols), 122px);
   }
 
-  .wt-dashboard-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (min-width: 1241px) and (max-height: 880px) {
@@ -2049,10 +2187,6 @@ textarea:focus-visible {
 #wt-system-root[data-wt-fit="viewport"] .wt-week-head {
   grid-template-columns: repeat(7, minmax(0, 1fr));
   overflow: visible;
-}
-
-#wt-system-root[data-wt-fit="viewport"] .wt-dashboard-grid {
-  grid-template-columns: 1.2fr 1fr 1fr 1fr;
 }
 
 /* Flow parity pass: calendar screen */
@@ -4116,12 +4250,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div><small>Schedule command center</small><h2>' + text(formatRange(range)) + '</h2></div>',
       '<div class="wt-now"><span data-clock>--:--</span><small>KST live board</small></div>',
       '</div>',
-      '<div class="wt-dashboard-grid">',
-      metricCard("Range events", events.length, "Calendar, shipment, report, deadline"),
-      metricCard("Sample handoffs", countKind(events, "sample") + countKind(events, "handoff"), "FPT and product gates"),
-      metricCard("Report queue", countKind(events, "report"), "AI file analysis"),
-      metricCard("Shipping", countKind(events, "shipping"), "Dispatch windows"),
-      '</div>',
       '<div class="wt-dashboard-overview">',
       renderCalendarScalePanel("S", "Month", "Daily operating view", "month"),
       renderCalendarScalePanel("M", "Quarter", "Season gate load", "quarter"),
@@ -4134,14 +4262,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     ].join("");
   }
 
-  function metricCard(label, value, note) {
-    return '<article class="wt-metric"><small>' + text(label) + '</small><b>' + text(value) + '</b><span>' + text(note) + '</span></article>';
-  }
-
   function renderCalendarScalePanel(size, title, note, period) {
     return withCalendarState(period, state.selectedDate, function () {
       var range = currentRange();
       var count = eventsForCurrentRange().length;
+      var board = period === "year" ? renderDashboardYearBoard(range) : period === "quarter" ? renderDashboardQuarterBoard(range) : renderCalendarViewBoard(true);
       return [
         '<article class="wt-scale-panel wt-scale-' + text(period) + '">',
         '<header>',
@@ -4151,11 +4276,59 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         '</header>',
         '<p>' + text(formatRange(range)) + '</p>',
         '<div class="wt-scale-board">',
-        renderCalendarViewBoard(true),
+        board,
         '</div>',
         '</article>'
       ].join("");
     });
+  }
+
+  function renderDashboardQuarterBoard(range) {
+    var units = monthUnits(range);
+    return [
+      '<section class="wt-dashboard-period-board wt-dashboard-quarter-board">',
+      units.map(function (unit) {
+        return renderDashboardPeriodCard(unit, 5);
+      }).join(""),
+      '</section>'
+    ].join("");
+  }
+
+  function renderDashboardYearBoard(range) {
+    var units = monthUnits(range);
+    return [
+      '<section class="wt-dashboard-year-board">',
+      units.map(function (unit) {
+        return renderDashboardPeriodCard(unit, 2);
+      }).join(""),
+      '</section>'
+    ].join("");
+  }
+
+  function renderDashboardPeriodCard(unit, limit) {
+    var events = filteredEventsForRange(unit.start, unit.end);
+    var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " is-selected" : "";
+    var load = Math.min(100, events.length * 10);
+    return [
+      '<article class="wt-dashboard-period-card' + selected + '" data-range="' + text(unit.start + ":" + unit.end) + '">',
+      '<header><div><b>' + text(unit.label) + '</b><small>' + text(formatRange(unit)) + '</small></div><span>' + text(events.length) + '</span></header>',
+      '<div class="wt-dashboard-load"><span style="--load:' + text(load) + '%"></span></div>',
+      '<div class="wt-dashboard-period-events">',
+      events.length ? events.slice(0, limit).map(renderDashboardMiniEvent).join("") : '<small class="wt-dashboard-period-empty">No scheduled events</small>',
+      events.length > limit ? '<small class="wt-dashboard-period-more">+' + text(events.length - limit) + ' more</small>' : "",
+      '</div>',
+      '</article>'
+    ].join("");
+  }
+
+  function renderDashboardMiniEvent(event) {
+    var selected = event.date === state.selectedDate ? " is-selected" : "";
+    return [
+      '<button type="button" class="wt-dashboard-mini-event wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+      '<time>' + text(formatDateShort(event.date)) + '</time>',
+      '<b>' + text(shortTitle(event.title, 34)) + '</b>',
+      '</button>'
+    ].join("");
   }
 
   function withCalendarState(period, anchorIso, callback) {
@@ -4645,10 +4818,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var start = event.date;
     var end = event.endDate || event.date;
     return start <= endIso && end >= startIso;
-  }
-
-  function countKind(events, kind) {
-    return events.filter(function (event) { return event.kind === kind; }).length;
   }
 
   function unique(items) {
