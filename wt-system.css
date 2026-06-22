@@ -1700,7 +1700,7 @@ textarea:focus-visible {
 
 .wt-source-frame-card {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   overflow: hidden;
 }
 
@@ -1725,6 +1725,29 @@ textarea:focus-visible {
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
+}
+
+.wt-embed-status {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3px;
+  align-items: center;
+  min-height: 52px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  background: #f7fbfb;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.wt-embed-status b {
+  color: var(--teal-dark);
+  font-size: 13px;
+}
+
+.wt-embed-status span {
+  min-width: 0;
+  line-height: 1.25;
 }
 
 .wt-source-frame {

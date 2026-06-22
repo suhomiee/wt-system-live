@@ -1710,7 +1710,7 @@ textarea:focus-visible {
 
 .wt-source-frame-card {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   overflow: hidden;
 }
 
@@ -1735,6 +1735,29 @@ textarea:focus-visible {
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
+}
+
+.wt-embed-status {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3px;
+  align-items: center;
+  min-height: 52px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  background: #f7fbfb;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.wt-embed-status b {
+  color: var(--teal-dark);
+  font-size: 13px;
+}
+
+.wt-embed-status span {
+  min-width: 0;
+  line-height: 1.25;
 }
 
 .wt-source-frame {
@@ -3551,8 +3574,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   "use strict";
 
   var MONTHS = [
-    "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-    "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
   ];
   var MONTH_NAMES = [
     "January", "February", "March", "April", "May", "June",
@@ -4448,10 +4471,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var events = filteredEventsForRange(unit.start, unit.end);
     var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " is-selected" : "";
     var load = Math.min(100, events.length * 9);
-    var monthNumber = fromIso(unit.start).getMonth() + 1;
+    var monthLabel = MONTHS[fromIso(unit.start).getMonth()];
     return [
       '<button type="button" class="wt-year-month-tile' + selected + '" data-date="' + text(unit.start) + '" aria-label="' + text(unit.label + " " + events.length + " events") + '">',
-      '<b>' + text(monthNumber + "월") + '</b>',
+      '<b>' + text(monthLabel) + '</b>',
       '<span>' + text(events.length) + '</span>',
       '<i style="--load:' + text(load) + '%"></i>',
       '</button>'
@@ -4596,6 +4619,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div><small>' + text(source.eyebrow) + '</small><h2>' + text(source.label) + '</h2></div>',
       '<a href="' + text(source.url) + '" target="_blank" rel="noopener">Open SharePoint</a>',
       '</header>',
+      '<div class="wt-embed-status"><b>External SharePoint embed may be blocked.</b><span>If the viewer stays blank, use Open SharePoint in a signed-in browser or paste a direct PDF URL.</span></div>',
       '<iframe class="wt-source-frame" src="' + text(source.url) + '" title="' + text(source.label) + '" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>',
       '</section>'
     ].join("");
@@ -5255,8 +5279,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function titleCaseMonth(date) {
-    var month = MONTHS[date.getMonth()].toLowerCase();
-    return month.charAt(0).toUpperCase() + month.slice(1);
+    return MONTHS[date.getMonth()];
   }
 
   function calendarViewLabel(id) {
