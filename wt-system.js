@@ -35,10 +35,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   var EMBEDDED = window.WT_SYSTEM_EMBEDDED || { milestones: [], holidays: [] };
 
   var state = {
-    section: "calendar",
+    section: "dashboard",
     view: "display",
-    calendarView: "timeline",
-    period: "week",
+    calendarView: "calendar",
+    period: "month",
     weekStart: DEFAULT_WEEK_START,
     selectedDate: DEFAULT_SELECTED_DATE,
     search: "",
@@ -206,6 +206,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       navItem("dashboard", "Dashboard"),
       navItem("creation", "Creation Plan"),
       navItem("calendar", "Calendar"),
+      navItem("lab", "Nike Lab Test"),
       '</nav>',
       '</aside>'
     ].join("");
@@ -244,12 +245,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function sectionTitle() {
     if (state.section === "dashboard") return "Dashboard";
     if (state.section === "creation") return "Creation Plan";
+    if (state.section === "lab") return "Nike Lab Test";
     return "Calendar";
   }
 
   function renderSection(root) {
     if (state.section === "dashboard") return renderDashboard();
     if (state.section === "creation") return renderCreationPlan();
+    if (state.section === "lab") return renderLabTest();
     return renderCalendarWorkspace(root);
   }
 
@@ -276,7 +279,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<span class="wt-event-count">' + text(rangeEvents.length) + ' Events</span>',
       '<span class="wt-flow-divider"></span>',
       '<label class="wt-search wt-flow-search"><span class="wt-search-icon">' + icon("search") + '</span><input data-calendar-search type="search" value="' + text(state.search) + '" placeholder="Search"></label>',
-      renderFlowFilter("Season", SEASONS, "season", state.season),
+      renderFlowFilter("Season", availableSeasons(), "season", state.season),
       '<button class="wt-deadline-toggle wt-flow-pill ' + (state.deadlineOnly ? "active" : "") + '" type="button" data-deadline-toggle>' + icon("flag") + '<span>Deadline</span></button>',
       '</div>',
       '<div class="wt-action-buttons wt-flow-actions">',
@@ -343,6 +346,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       dashboard: '<rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect>',
       creation: '<path d="M15 5l4 4"></path><path d="M13.5 6.5l4 4L7 21H3v-4L13.5 6.5z"></path><path d="M16 3l5 5"></path>',
       calendar: '<rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M8 2v4"></path><path d="M16 2v4"></path><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path>',
+      lab: '<path d="M9 3v5l-4.5 8.2A3.2 3.2 0 0 0 7.3 21h9.4a3.2 3.2 0 0 0 2.8-4.8L15 8V3"></path><path d="M8 3h8"></path><path d="M7 15h10"></path>',
       projector: '<rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8"></path><path d="M12 16v4"></path>',
       libraries: '<path d="M4 19.5V5.75A2.75 2.75 0 0 1 6.75 3H20v16H6.75A2.75 2.75 0 0 0 4 21.75"></path><path d="M8 7h8"></path><path d="M8 11h6"></path>',
       search: '<circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path>',
@@ -760,6 +764,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<small>' + text(event.gate || "WT") + ' · ' + text(event.season || "All") + '</small>',
       '<b>' + text(event.title) + '</b>',
       '<span>' + text(event.time || event.gate || "All day") + ' / ' + text(event.owner || "WT") + '</span>',
+      eventProductDetails(event) ? '<small>' + text(eventProductDetails(event)) + '</small>' : "",
+      event.notes ? '<small>' + text(event.notes) + '</small>' : "",
       '</article>'
     ].join("");
   }
@@ -769,7 +775,16 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       formatDateShort(event.date),
       event.season || "All",
       event.gate || "WT",
+      eventProductDetails(event),
       event.title
+    ].filter(Boolean).join(" · ");
+  }
+
+  function eventProductDetails(event) {
+    return [
+      event.modelName,
+      event.size,
+      event.sampleQuantity
     ].filter(Boolean).join(" · ");
   }
 
@@ -780,7 +795,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       '<section class="wt-dashboard">',
       '<div class="wt-dashboard-hero">',
-      '<div><small>24H Projector</small><h2>' + text(formatRange(range)) + '</h2></div>',
+      '<div><small>Schedule command center</small><h2>' + text(formatRange(range)) + '</h2></div>',
       '<div class="wt-now"><span data-clock>--:--</span><small>KST live board</small></div>',
       '</div>',
       '<div class="wt-dashboard-grid">',
@@ -789,8 +804,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       metricCard("Report queue", countKind(events, "report"), "AI file analysis"),
       metricCard("Shipping", countKind(events, "shipping"), "Dispatch windows"),
       '</div>',
-      '<div class="wt-projector-board">',
-      renderCalendarBoard(true),
+      '<div class="wt-dashboard-overview">',
+      renderCalendarScalePanel("S", "Month", "Daily operating view", "month"),
+      renderCalendarScalePanel("M", "Quarter", "Season gate load", "quarter"),
+      renderCalendarScalePanel("L", "Year", "Annual milestone map", "year"),
+      '</div>',
+      '<div class="wt-dashboard-focus">',
       '<aside class="wt-today-stack"><h2>' + text(dayNameLong(state.selectedDate)) + '</h2>' + (selectedEvents.length ? selectedEvents.map(renderInspectorEvent).join("") : '<p class="wt-muted">No events selected.</p>') + '</aside>',
       '</div>',
       '</section>'
@@ -801,11 +820,88 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return '<article class="wt-metric"><small>' + text(label) + '</small><b>' + text(value) + '</b><span>' + text(note) + '</span></article>';
   }
 
+  function renderCalendarScalePanel(size, title, note, period) {
+    return withCalendarState(period, state.selectedDate, function () {
+      var range = currentRange();
+      var count = eventsForCurrentRange().length;
+      return [
+        '<article class="wt-scale-panel wt-scale-' + text(period) + '">',
+        '<header>',
+        '<span>' + text(size) + '</span>',
+        '<div><small>' + text(note) + '</small><h2>' + text(title) + '</h2></div>',
+        '<b>' + text(count) + '</b>',
+        '</header>',
+        '<p>' + text(formatRange(range)) + '</p>',
+        '<div class="wt-scale-board">',
+        renderCalendarViewBoard(true),
+        '</div>',
+        '</article>'
+      ].join("");
+    });
+  }
+
+  function withCalendarState(period, anchorIso, callback) {
+    var savedPeriod = state.period;
+    var savedCalendarView = state.calendarView;
+    var savedWeekStart = state.weekStart;
+    state.period = period;
+    state.calendarView = "calendar";
+    state.weekStart = periodAnchor(anchorIso, period);
+    try {
+      return callback();
+    } finally {
+      state.period = savedPeriod;
+      state.calendarView = savedCalendarView;
+      state.weekStart = savedWeekStart;
+    }
+  }
+
+  function renderLabTest() {
+    var rows = [
+      ["B142 PDF reports", "SharePoint archive", "Link pending"],
+      ["B142 row data", "Manual Excel table", "Source pending"],
+      ["Report extraction", "PDF to structured values", "Not connected"],
+      ["Specimen lookup", "Serial / QR detail pages", "Rule pending"]
+    ];
+    return [
+      '<section class="wt-lab">',
+      '<header class="wt-lab-hero">',
+      '<div><small>Nike Lab Test</small><h1>B142 midsole foam</h1></div>',
+      '<span>PDF archive + row data hub</span>',
+      '</header>',
+      '<div class="wt-lab-grid">',
+      '<article class="wt-lab-panel wt-lab-primary">',
+      '<header><small>Material record</small><h2>B142</h2></header>',
+      '<div class="wt-lab-facts">',
+      labFact("Source type", "PDF report"),
+      labFact("Row data", "Manual Excel entry"),
+      labFact("Archive", "SharePoint"),
+      labFact("System link", "Pending"),
+      '</div>',
+      '</article>',
+      '<article class="wt-lab-panel">',
+      '<header><small>Data pipeline</small><h2>Sources</h2></header>',
+      '<div class="wt-lab-source-list">',
+      rows.map(function (row) {
+        return '<div><b>' + text(row[0]) + '</b><span>' + text(row[1]) + '</span><small>' + text(row[2]) + '</small></div>';
+      }).join(""),
+      '</div>',
+      '</article>',
+      '</div>',
+      '</section>'
+    ].join("");
+  }
+
+  function labFact(label, value) {
+    return '<div><small>' + text(label) + '</small><b>' + text(value) + '</b></div>';
+  }
+
   function renderCreationPlan() {
     var events = normalizedEvents().filter(matchesFilters).filter(function (event) {
       return event.season && event.season !== "All";
     });
     var seasons = unique(events.map(function (event) { return event.season; })).slice(0, 8);
+    var selectedEvents = events.filter(function (event) { return event.date === state.selectedDate; });
     return [
       '<section class="wt-creation">',
       '<div class="wt-plan-map">',
@@ -817,8 +913,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '</div>',
       '</div>',
       '<aside class="wt-plan-side">',
+      '<section class="wt-plan-selected">',
+      '<h2>Selected Day</h2>',
+      selectedEvents.length ? selectedEvents.map(renderInspectorEvent).join("") : '<p class="wt-muted">No creation milestones selected.</p>',
+      '</section>',
+      '<section>',
       '<h2>Monthly Load</h2>',
       renderMonthLoad(events),
+      '</section>',
       '</aside>',
       '</section>'
     ].join("");
@@ -831,7 +933,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div><b>' + text(season) + '</b><span>' + text(events.length) + ' milestones</span></div>',
       '<div class="wt-lane-track">',
       upcoming.map(function (event) {
-        return '<button type="button" class="wt-lane-chip wt-kind-' + text(event.kind) + '" data-date="' + text(event.date) + '"><span>' + text(formatDateShort(event.date)) + '</span><b>' + text(event.gate || event.kind) + '</b></button>';
+        var selected = event.date === state.selectedDate ? " is-selected" : "";
+        return '<button type="button" class="wt-lane-chip wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '"><span>' + text(formatDateShort(event.date) + " · " + (event.gate || event.kind)) + '</span><b>' + text(shortTitle(event.title, 30)) + '</b></button>';
       }).join(""),
       '</div>',
       '</article>'
@@ -911,9 +1014,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       field("Title", "HO27 sample dispatch"),
       '<label>Date<input name="targetDate" type="date" value="' + text(state.selectedDate) + '"></label>',
       select("Type", ["deadline", "sample", "shipping", "report", "review"]),
-      select("Season", ["HO27", "SP28", "SU27", "FA27", "SP27"]),
+      seasonInput(),
+      field("Model Name", "Pegasus 42 / style code", "modelName"),
+      field("Size", "US 9 / 270mm", "size"),
+      field("Sample Qty", "8 pairs", "sampleQuantity"),
       field("Owner", "WT Ops"),
-      '<label>Memo<textarea name="notes" rows="5" placeholder="Model, sample size, report file, shipment note"></textarea></label>',
+      '<label>Memo<textarea name="notes" rows="5" placeholder="Report file, shipment note, blocker, or extra context"></textarea></label>',
       '<p class="wt-form-message" aria-live="polite">Target list: ' + text(listTitle) + '</p>',
       '<button class="primary" type="submit">Save Schedule</button>',
       '</form>',
@@ -922,15 +1028,25 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function field(label, placeholder) {
-    var name = label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    var name = arguments.length > 2 && arguments[2] ? arguments[2] : label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     return '<label>' + text(label) + '<input name="' + text(name) + '" type="text" placeholder="' + text(placeholder) + '"></label>';
   }
 
   function select(label, options) {
-    var name = label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    var name = arguments.length > 2 && arguments[2] ? arguments[2] : label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     return '<label>' + text(label) + '<select name="' + text(name) + '">' + options.map(function (option) {
       return '<option value="' + text(option) + '">' + text(option) + '</option>';
     }).join("") + '</select></label>';
+  }
+
+  function seasonInput() {
+    var options = availableSeasons().filter(function (season) { return season !== "All"; });
+    return [
+      '<label>Season<input name="season" type="text" placeholder="HO27 / SP28" list="wt-season-options"></label>',
+      '<datalist id="wt-season-options">',
+      options.map(function (option) { return '<option value="' + text(option) + '"></option>'; }).join(""),
+      '</datalist>'
+    ].join("");
   }
 
   function renderMiniMonth(isoMonth) {
@@ -957,13 +1073,16 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var payload = {
       rowKey: "WT-" + Date.now(),
       submittedAt: new Date().toISOString(),
-      projectName: form.elements.title ? form.elements.title.value : "",
-      targetDate: form.elements.targetDate ? form.elements.targetDate.value : "",
-      milestoneType: form.elements.type ? form.elements.type.value : "",
-      season: form.elements.season ? form.elements.season.value : "",
+      projectName: formValue(form, "title"),
+      targetDate: formValue(form, "targetDate"),
+      milestoneType: formValue(form, "type"),
+      season: formValue(form, "season"),
+      modelName: formValue(form, "modelName"),
+      size: formValue(form, "size"),
+      sampleQuantity: formValue(form, "sampleQuantity"),
       source: "wt-system-ui",
-      owner: form.elements.owner ? form.elements.owner.value : "",
-      notes: form.elements.notes ? form.elements.notes.value : ""
+      owner: formValue(form, "owner"),
+      notes: formValue(form, "notes")
     };
 
     if (mode === "sharepoint-list") {
@@ -997,11 +1116,15 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         event.season || "",
         event.gate || "",
         event.owner || "",
+        event.modelName || "",
+        event.size || "",
+        event.sampleQuantity || "",
+        event.notes || "",
         event.source || ""
       ];
     });
     var csv = [
-      ["startDate", "endDate", "title", "type", "season", "gate", "owner", "source"],
+      ["startDate", "endDate", "title", "type", "season", "gate", "owner", "modelName", "size", "sampleQuantity", "notes", "source"],
     ].concat(rows).map(function (row) {
       return row.map(csvCell).join(",");
     }).join("\n");
@@ -1020,6 +1143,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function csvCell(value) {
     var stringValue = String(value == null ? "" : value);
     return '"' + stringValue.replace(/"/g, '""') + '"';
+  }
+
+  function formValue(form, name) {
+    return form.elements[name] ? form.elements[name].value.trim() : "";
   }
 
   function saveLocalSubmission(payload) {
@@ -1093,6 +1220,25 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         source: "schedule.pdf"
       });
     });
+    loadLocalSubmissions().forEach(function (item, index) {
+      if (!item || !item.targetDate) return;
+      events.push({
+        id: item.rowKey || ("WT-LOCAL-" + index),
+        date: item.targetDate,
+        endDate: item.targetDate,
+        title: item.projectName || "WT schedule",
+        kind: mapMilestoneKind(item.milestoneType || item.kind || "deadline"),
+        season: item.season || "All",
+        gate: item.milestoneType || "",
+        owner: item.owner || "WT",
+        modelName: item.modelName || "",
+        size: item.size || "",
+        sampleQuantity: item.sampleQuantity || "",
+        notes: item.notes || "",
+        time: "",
+        source: item.source || "wt-system-ui"
+      });
+    });
 
     return events.filter(function (event) {
       return !!event.date;
@@ -1110,6 +1256,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function mapMilestoneKind(kind) {
+    if (["deadline", "sample", "shipping", "report", "review", "handoff", "creation"].indexOf(kind) >= 0) return kind;
     if (kind === "sample_to_fpt" || kind === "sample_ddd") return "sample";
     if (kind === "handoff") return "handoff";
     if (kind === "results_ready") return "report";
@@ -1134,8 +1281,19 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       event.season,
       event.gate,
       event.owner,
-      event.kind
+      event.kind,
+      event.modelName,
+      event.size,
+      event.sampleQuantity,
+      event.notes
     ].join(" ").toLowerCase().indexOf(query) >= 0;
+  }
+
+  function availableSeasons() {
+    var values = normalizedEvents().map(function (event) { return event.season; }).filter(function (season) {
+      return season && season !== "All";
+    });
+    return ["All"].concat(unique(values).sort(compareSeasonLabels));
   }
 
   function filteredEventsForDate(date) {

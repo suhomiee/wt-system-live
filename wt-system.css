@@ -476,6 +476,7 @@ textarea:focus-visible {
 .wt-calendar-page,
 .wt-dashboard,
 .wt-creation,
+.wt-lab,
 .wt-libraries,
 .wt-editor-layout {
   min-height: 0;
@@ -737,7 +738,10 @@ textarea:focus-visible {
 .wt-inspector,
 .wt-dashboard-hero,
 .wt-metric,
+.wt-scale-panel,
 .wt-today-stack,
+.wt-lab-hero,
+.wt-lab-panel,
 .wt-plan-map,
 .wt-plan-side,
 .wt-library-main,
@@ -1361,7 +1365,7 @@ textarea:focus-visible {
 }
 
 .wt-dashboard {
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
 }
 
 .wt-dashboard-hero {
@@ -1423,6 +1427,88 @@ textarea:focus-visible {
   gap: 12px;
 }
 
+.wt-dashboard-overview {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(360px, .85fr);
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.wt-scale-panel {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 8px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.wt-scale-month {
+  grid-row: 1 / -1;
+}
+
+.wt-scale-panel header {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.wt-scale-panel header > span {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.wt-scale-panel h2,
+.wt-lab-hero h1,
+.wt-lab-panel h2 {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.wt-scale-panel h2 {
+  font-size: 20px;
+}
+
+.wt-scale-panel small,
+.wt-lab-hero small,
+.wt-lab-panel small,
+.wt-lab-source-list small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.wt-scale-panel header > b {
+  font-family: var(--font-display);
+  font-size: 28px;
+  line-height: 1;
+}
+
+.wt-scale-panel p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.wt-scale-board {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.wt-dashboard-focus {
+  min-height: 0;
+}
+
 .wt-week-board.compact .wt-event {
   min-height: 58px;
 }
@@ -1439,6 +1525,88 @@ textarea:focus-visible {
   min-height: 0;
   padding: 18px;
   overflow: hidden;
+}
+
+.wt-dashboard-focus .wt-today-stack {
+  min-height: 112px;
+}
+
+.wt-lab {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 14px;
+}
+
+.wt-lab-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  padding: 20px 22px;
+}
+
+.wt-lab-hero h1 {
+  margin-top: 5px;
+  font-family: var(--font-display);
+  font-size: 42px;
+}
+
+.wt-lab-hero span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.wt-lab-grid {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, .95fr) minmax(0, 1.25fr);
+  gap: 14px;
+}
+
+.wt-lab-panel {
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  padding: 18px;
+  overflow: hidden;
+}
+
+.wt-lab-panel h2 {
+  margin-top: 5px;
+  font-family: var(--font-display);
+  font-size: 34px;
+}
+
+.wt-lab-facts,
+.wt-lab-source-list {
+  display: grid;
+  gap: 10px;
+}
+
+.wt-lab-facts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.wt-lab-facts div,
+.wt-lab-source-list div {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  background: #fbfcfb;
+}
+
+.wt-lab-facts b,
+.wt-lab-source-list b {
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.15;
+}
+
+.wt-lab-source-list div {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) auto;
+  align-items: center;
 }
 
 .wt-creation,
@@ -1529,6 +1697,18 @@ textarea:focus-visible {
   font-size: 13px;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+.wt-lane-chip.is-selected {
+  border-color: var(--teal);
+  background: #eef8f8;
+  box-shadow: inset 0 3px 0 var(--teal);
+}
+
+.wt-plan-side section + section {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-strong);
 }
 
 .wt-month-load {
@@ -1657,6 +1837,7 @@ textarea:focus-visible {
   .wt-calendar-page,
   .wt-dashboard,
   .wt-creation,
+  .wt-lab,
   .wt-libraries,
   .wt-editor-layout {
     height: auto;
@@ -1666,10 +1847,20 @@ textarea:focus-visible {
   .wt-toolbar,
   .wt-calendar-layout,
   .wt-projector-board,
+  .wt-dashboard-overview,
+  .wt-lab-grid,
   .wt-creation,
   .wt-libraries,
   .wt-editor-layout {
     grid-template-columns: 1fr;
+  }
+
+  .wt-dashboard {
+    grid-template-rows: auto;
+  }
+
+  .wt-scale-month {
+    grid-row: auto;
   }
 
   .wt-filter-row,
@@ -1793,6 +1984,7 @@ textarea:focus-visible {
 #wt-system-root[data-wt-fit="viewport"] .wt-calendar-page,
 #wt-system-root[data-wt-fit="viewport"] .wt-dashboard,
 #wt-system-root[data-wt-fit="viewport"] .wt-creation,
+#wt-system-root[data-wt-fit="viewport"] .wt-lab,
 #wt-system-root[data-wt-fit="viewport"] .wt-libraries,
 #wt-system-root[data-wt-fit="viewport"] .wt-editor-layout {
   height: 100%;
@@ -1823,6 +2015,14 @@ textarea:focus-visible {
 
 #wt-system-root[data-wt-fit="viewport"] .wt-projector-board {
   grid-template-columns: minmax(0, 1fr) 360px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-dashboard-overview {
+  grid-template-columns: minmax(0, 1.35fr) minmax(360px, .85fr);
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-lab-grid {
+  grid-template-columns: minmax(0, .95fr) minmax(0, 1.25fr);
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-creation,
@@ -3016,6 +3216,10 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   grid-template-rows: repeat(var(--wt-week-rows, 5), minmax(86px, 1fr));
 }
 
+.wt-scale-panel .wt-month-calendar-board.compact .wt-month-calendar-grid {
+  grid-template-rows: repeat(var(--wt-week-rows, 5), minmax(52px, 1fr));
+}
+
 .wt-month-calendar-board.compact .wt-month-cell {
   grid-template-rows: 30px minmax(0, 1fr);
 }
@@ -3029,6 +3233,25 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-horizontal-calendar-board.compact .wt-horizontal-event {
   min-height: 36px;
   padding: 4px 7px;
+}
+
+.wt-scale-panel .wt-month-calendar-board.compact .wt-month-event,
+.wt-scale-panel .wt-horizontal-calendar-board.compact .wt-horizontal-event {
+  min-height: 30px;
+  padding: 3px 6px;
+}
+
+.wt-scale-panel .wt-horizontal-calendar-board.compact {
+  grid-template-rows: 30px minmax(0, 1fr);
+}
+
+.wt-scale-panel .wt-horizontal-calendar-head,
+.wt-scale-panel .wt-horizontal-calendar-grid {
+  grid-template-columns: repeat(var(--wt-cols), minmax(58px, 1fr));
+}
+
+.wt-scale-panel .wt-horizontal-period {
+  grid-template-rows: 28px minmax(0, 1fr);
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app {
