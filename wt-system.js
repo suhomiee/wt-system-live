@@ -33,10 +33,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   var EMBEDDED = window.WT_SYSTEM_EMBEDDED || { milestones: [], holidays: [] };
   var SHAREPOINT_SOURCES = {
     nikeRows: {
-      title: "Material Test Database",
+      title: "Product Test Database",
       eyebrow: "Excel database",
-      label: "Material test database",
-      caption: "Structured material test data from B142 PDF reports",
+      label: "Product test database",
+      caption: "Structured product test data from finished-model PDF reports",
       status: "Excel Online workbook",
       sourceType: "workbook",
       pathAttribute: "data-wt-nike-rows-path",
@@ -296,7 +296,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       navItem("calendar", "Calendar"),
       externalNavItem("nikeReports", "Nike Lab Reports", "phk"),
       externalNavItem("phkReports", "PHK WT Reports", "phk"),
-      externalNavItem("nikeRows", "Material Test Database", "lab"),
+      externalNavItem("nikeRows", "Product Test Database", "lab"),
       '</nav>',
       '</aside>'
     ].join("");
