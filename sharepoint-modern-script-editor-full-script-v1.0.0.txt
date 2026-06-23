@@ -4714,30 +4714,32 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function ensureSourceIndex(root, source) {
-    var path = configuredSourcePath(root, source);
-    if (!path) return;
+    var request = sourceIndexRequest(root, source);
+    if (!request.value) return;
     var key = sourceIndexKey(source);
     var current = state.sourceIndex[key];
-    if (current && (current.status === "loading" || current.path === path && current.status === "loaded")) return;
+    if (current && current.value === request.value && (current.status === "loading" || current.status === "loaded" || current.status === "error")) return;
 
-    state.sourceIndex[key] = { status: "loading", path: path, items: [], error: "" };
+    state.sourceIndex[key] = { status: "loading", value: request.value, mode: request.mode, items: [], error: "" };
     window.setTimeout(function () { render(root); }, 0);
-    fetchSourceIndex(path, source.sourceType).then(function (items) {
-      state.sourceIndex[key] = { status: "loaded", path: path, items: items, error: "" };
+    fetchSourceIndex(request, source).then(function (items) {
+      state.sourceIndex[key] = { status: "loaded", value: request.value, mode: request.mode, items: items, error: "" };
       render(root);
     }).catch(function (error) {
-      state.sourceIndex[key] = { status: "error", path: path, items: [], error: error.message || String(error) };
+      state.sourceIndex[key] = { status: "error", value: request.value, mode: request.mode, items: [], error: error.message || String(error) };
       render(root);
     });
   }
 
-  function fetchSourceIndex(path, sourceType) {
-    var endpoint;
-    if (sourceType === "folder") {
-      endpoint = getSitePath() + "/_api/web/GetFolderByServerRelativePath(decodedurl='" + encodeODataString(path) + "')/Files?$select=Name,ServerRelativeUrl,TimeLastModified,Length&$orderby=TimeLastModified desc";
-    } else {
-      endpoint = getSitePath() + "/_api/web/GetFileByServerRelativePath(decodedurl='" + encodeODataString(path) + "')?$select=Name,ServerRelativeUrl,TimeLastModified,Length";
-    }
+  function fetchSourceIndex(request, source) {
+    if (request.mode === "sharingLink") return fetchShareLinkIndex(request.value);
+    return fetchPathIndex(request.value, source.sourceType);
+  }
+
+  function fetchPathIndex(path, sourceType) {
+    var endpoint = sourceType === "folder"
+      ? getSitePath() + "/_api/web/GetFolderByServerRelativePath(decodedurl='" + encodeODataString(path) + "')/Files?$select=Name,ServerRelativeUrl,TimeLastModified,Length&$orderby=TimeLastModified desc"
+      : getSitePath() + "/_api/web/GetFileByServerRelativePath(decodedurl='" + encodeODataString(path) + "')?$select=Name,ServerRelativeUrl,TimeLastModified,Length";
     return window.fetch(endpoint, {
       method: "GET",
       credentials: "same-origin",
@@ -4751,6 +4753,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         return {
           name: item.Name || "SharePoint file",
           serverRelativeUrl: item.ServerRelativeUrl || "",
+          webUrl: item.ServerRelativeUrl ? window.location.origin + item.ServerRelativeUrl : "",
           timeLastModified: item.TimeLastModified || "",
           length: item.Length || 0
         };
@@ -4758,8 +4761,52 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     });
   }
 
+  function fetchShareLinkIndex(url) {
+    var token = encodedSharingUrl(url);
+    var itemEndpoint = "/_api/v2.0/shares/" + token + "/driveItem";
+    return window.fetch(itemEndpoint, {
+      method: "GET",
+      credentials: "same-origin",
+      headers: { "Accept": "application/json" }
+    }).then(function (response) {
+      if (!response.ok) throw new Error("SharePoint sharing link HTTP " + response.status);
+      return response.json();
+    }).then(function (item) {
+      if (item.folder) return fetchDriveItemChildren(item);
+      return [driveItemToSourceItem(item)];
+    });
+  }
+
+  function fetchDriveItemChildren(item) {
+    var driveId = item.parentReference && item.parentReference.driveId;
+    var itemId = item.id;
+    if (!driveId || !itemId) throw new Error("SharePoint sharing link did not expose drive item ids.");
+    var endpoint = "/_api/v2.0/drives/" + encodeURIComponent(driveId) + "/items/" + encodeURIComponent(itemId) + "/children?$select=name,webUrl,size,lastModifiedDateTime,file,folder,parentReference";
+    return window.fetch(endpoint, {
+      method: "GET",
+      credentials: "same-origin",
+      headers: { "Accept": "application/json" }
+    }).then(function (response) {
+      if (!response.ok) throw new Error("SharePoint children HTTP " + response.status);
+      return response.json();
+    }).then(function (data) {
+      return (data.value || []).map(driveItemToSourceItem);
+    });
+  }
+
+  function driveItemToSourceItem(item) {
+    return {
+      name: item.name || "SharePoint file",
+      webUrl: item.webUrl || "",
+      serverRelativeUrl: serverRelativeFromWebUrl(item.webUrl || ""),
+      timeLastModified: item.lastModifiedDateTime || "",
+      length: item.size || 0
+    };
+  }
+
   function sourceIndexFor(root, source) {
-    return state.sourceIndex[sourceIndexKey(source)] || { status: "idle", path: configuredSourcePath(root, source), items: [], error: "" };
+    var request = sourceIndexRequest(root, source);
+    return state.sourceIndex[sourceIndexKey(source)] || { status: "idle", value: request.value, mode: request.mode, items: [], error: "" };
   }
 
   function sourceIndexKey(source) {
@@ -4770,6 +4817,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return source.pathAttribute && root ? (root.getAttribute(source.pathAttribute) || "").trim() : "";
   }
 
+  function sourceIndexRequest(root, source) {
+    var path = configuredSourcePath(root, source);
+    if (path) return { mode: "serverRelativePath", value: path };
+    if (isSharePointHost() && source.url && isSharePointUrl(source.url)) return { mode: "sharingLink", value: source.url };
+    return { mode: "", value: "" };
+  }
+
   function sourceReportsFromIndex(index) {
     if (!index || index.status !== "loaded") return [];
     return (index.items || []).filter(function (item) {
@@ -4778,14 +4832,19 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       return {
         title: item.name,
         detail: sharePointFileDetail(item),
-        url: window.location.origin + item.serverRelativeUrl
+        url: item.webUrl || (item.serverRelativeUrl ? window.location.origin + item.serverRelativeUrl : "")
       };
     });
   }
 
   function sourceIndexLabel(root, source, index) {
     if (!isSharePointHost()) return "SharePoint page required";
+    if (!configuredSourcePath(root, source) && source.url) return index.status === "idle" ? "Sharing link" : sourceIndexStatusText(index);
     if (!configuredSourcePath(root, source)) return "Path not configured";
+    return sourceIndexStatusText(index);
+  }
+
+  function sourceIndexStatusText(index) {
     if (index.status === "loading") return "Loading...";
     if (index.status === "error") return "REST error";
     if (index.status === "loaded") return (index.items || []).length + " files";
@@ -4800,6 +4859,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       ].join("");
     }
     var path = configuredSourcePath(root, source);
+    if (!path && source.url) {
+      if (index.status === "loading") return renderSourceRow("Live file index", "Resolving actual SharePoint sharing link.", "Loading");
+      if (index.status === "error") return renderSourceRow("Live file index", index.error || "Sharing link resolution failed", "Error");
+      if (index.status === "loaded") return renderSourceRow("Live file index", "No PDF files found from the sharing link.", "Empty");
+      return renderSourceRow("Live file index", "Actual sharing URL will be resolved inside SharePoint mode.", "Sharing URL");
+    }
     if (!path) {
       return [
         renderSourceRow("Live file index", "Set " + source.pathAttribute + " to the SharePoint server-relative folder path.", "Required"),
@@ -4815,6 +4880,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderSourceIndexStatusRow(root, source, index) {
     if (!isSharePointHost()) return renderSourceRow(source.title, "GitHub Pages cannot read private SharePoint workbooks directly.", "Link only");
     var path = configuredSourcePath(root, source);
+    if (!path && source.url) {
+      if (index.status === "loading") return renderSourceRow(source.title, "Resolving actual SharePoint sharing link.", "Loading");
+      if (index.status === "error") return renderSourceRow(source.title, index.error || "Sharing link resolution failed", "Error");
+      if (index.status === "loaded" && index.items && index.items[0]) return renderSourceRow(index.items[0].name, sharePointFileDetail(index.items[0]), "REST loaded");
+      return renderSourceRow(source.title, "Actual sharing URL will be resolved inside SharePoint mode.", "Sharing URL");
+    }
     if (!path) return renderSourceRow(source.title, "Set " + source.pathAttribute + " to the workbook server-relative path.", "Required");
     if (index.status === "loading") return renderSourceRow(source.title, path, "Loading");
     if (index.status === "error") return renderSourceRow(source.title, index.error || "SharePoint REST failed", "Error");
@@ -5019,6 +5090,21 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (/^\/:[a-z]:\//i.test(parsed.pathname)) return "";
     var path = decodeURIComponent(parsed.pathname);
     return path.replace(/\/$/, "");
+  }
+
+  function serverRelativeFromWebUrl(value) {
+    var parsed = parseUrl(value);
+    if (!parsed || !isSharePointUrl(parsed.href)) return "";
+    return decodeURIComponent(parsed.pathname || "");
+  }
+
+  function encodedSharingUrl(url) {
+    var bytes = new TextEncoder().encode(url);
+    var binary = "";
+    for (var i = 0; i < bytes.length; i += 1) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return "u!" + window.btoa(binary).replace(/=+$/g, "").replace(/\+/g, "-").replace(/\//g, "_");
   }
 
   function parseUrl(value) {
