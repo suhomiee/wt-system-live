@@ -33,11 +33,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   var EMBEDDED = window.WT_SYSTEM_EMBEDDED || { milestones: [], holidays: [] };
   var SHAREPOINT_SOURCES = {
     nikeRows: {
-      title: "B142 Raw Data",
-      eyebrow: "Excel row data",
-      label: "Nike Lab Test raw data",
-      caption: "Manual Excel table from B142 PDF reports",
-      status: "SharePoint workbook",
+      title: "Material Test Database",
+      eyebrow: "Excel database",
+      label: "Material test database",
+      caption: "Structured material test data from B142 PDF reports",
+      status: "Excel Online workbook",
       sourceType: "workbook",
       pathAttribute: "data-wt-nike-rows-path",
       url: "https://taekwangcom.sharepoint.com/:x:/s/T2RL2/IQBQ3QW0jBVyR4JnhOJ1j_zSAQB25OBbUxJ37p_od5Mr4Uc?e=f6z0qd"
@@ -295,9 +295,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       navItem("dashboard", "Dashboard"),
       navItem("creation", "Creation Plan"),
       navItem("calendar", "Calendar"),
-      externalNavItem("nikeRows", "Nike Lab Raw Data", "lab"),
       externalNavItem("nikeReports", "Nike Lab Reports", "phk"),
       externalNavItem("phkReports", "PHK WT Reports", "phk"),
+      externalNavItem("nikeRows", "Material Test Database", "lab"),
       '</nav>',
       '</aside>'
     ].join("");
