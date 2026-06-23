@@ -1724,7 +1724,14 @@ textarea:focus-visible {
   border-bottom: 1px solid var(--line);
 }
 
-.wt-source-frame-card a {
+.wt-source-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.wt-source-frame-card a,
+.wt-source-fallback a {
   display: inline-grid;
   place-items: center;
   height: 36px;
@@ -1755,9 +1762,57 @@ textarea:focus-visible {
   font-size: 13px;
 }
 
+.wt-embed-blocked b,
+.wt-embed-error b {
+  color: #8a3b20;
+}
+
+.wt-embed-blocked {
+  background: #fff8f1;
+}
+
+.wt-embed-error {
+  background: #fff3f0;
+}
+
 .wt-embed-status span {
   min-width: 0;
   line-height: 1.25;
+}
+
+.wt-source-fallback {
+  min-height: 0;
+  display: grid;
+  align-content: center;
+  gap: 18px;
+  padding: 34px;
+  background:
+    linear-gradient(135deg, rgba(15, 110, 110, .08), transparent 34%),
+    #fbfcfb;
+  color: var(--ink);
+}
+
+.wt-source-fallback h3 {
+  margin-top: 5px;
+  font-family: var(--font-display);
+  font-size: 30px;
+  line-height: 1;
+}
+
+.wt-source-fallback ul {
+  display: grid;
+  gap: 9px;
+  max-width: 780px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.wt-source-fallback a {
+  justify-self: start;
+  text-decoration: none;
 }
 
 .wt-source-frame {
@@ -3559,6 +3614,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 #wt-system-root[data-wt-fit="viewport"] .wt-calendar-layout {
   grid-template-columns: minmax(0, 1fr);
 }
+
 </style>
 <div
   id="wt-system-root"
@@ -3630,6 +3686,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     }
   };
   var REPORT_MANIFEST = window.WT_REPORT_MANIFEST || { nikeLabReports: [], phkReports: [] };
+  var SHAREPOINT_HOST_RE = /(^|\.)sharepoint\.com$/i;
 
   var state = {
     section: "dashboard",
@@ -3637,6 +3694,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     reportFrameSource: "",
     reportFrameUrl: "",
     reportFrameLabel: "",
+    reportFrameObjectUrl: "",
+    reportFrameStatus: "",
+    reportFrameError: "",
+    reportFrameRequestId: 0,
     view: "display",
     calendarView: "calendar",
     period: "month",
@@ -3688,10 +3749,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       }
 
       if (reportButton && root.contains(reportButton)) {
-        state.reportFrameSource = reportButton.getAttribute("data-report-source");
-        state.reportFrameUrl = reportButton.getAttribute("data-report-url");
-        state.reportFrameLabel = reportButton.getAttribute("data-report-label");
-        render(root);
+        event.preventDefault();
+        viewReport(root, reportButton.getAttribute("data-report-source"), reportButton.getAttribute("data-report-url"), reportButton.getAttribute("data-report-label"));
       }
 
       if (viewButton && root.contains(viewButton)) {
@@ -4631,21 +4690,68 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       title: source.title,
       eyebrow: "PDF report viewer",
       label: state.reportFrameLabel || source.label,
-      url: state.reportFrameUrl
+      url: state.reportFrameUrl,
+      objectUrl: state.reportFrameObjectUrl,
+      previewStatus: state.reportFrameStatus,
+      previewError: state.reportFrameError,
+      originalUrl: state.reportFrameUrl
     };
   }
 
   function renderSourceFrame(source) {
+    var originalUrl = source.originalUrl || source.url;
+    var previewUrl = source.objectUrl || nativePreviewUrl(source);
     return [
       '<section class="wt-source-frame-card">',
       '<header>',
       '<div><small>' + text(source.eyebrow) + '</small><h2>' + text(source.label) + '</h2></div>',
-      '<a href="' + text(source.url) + '" target="_blank" rel="noopener">Open SharePoint</a>',
+      '<div class="wt-source-actions">',
+      '<a href="' + text(originalUrl) + '" target="_blank" rel="noopener">Open SharePoint</a>',
+      '</div>',
       '</header>',
-      '<div class="wt-embed-status"><b>External SharePoint embed may be blocked.</b><span>If the viewer stays blank, use Open SharePoint in a signed-in browser or paste a direct PDF URL.</span></div>',
-      '<iframe class="wt-source-frame" src="' + text(source.url) + '" title="' + text(source.label) + '" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>',
+      renderSourceFrameStatus(source, originalUrl),
+      previewUrl ? '<iframe class="wt-source-frame" src="' + text(previewUrl) + '" title="' + text(source.label) + '" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>' : renderSourceFrameFallback(source, originalUrl),
       '</section>'
     ].join("");
+  }
+
+  function renderSourceFrameStatus(source, originalUrl) {
+    if (source.previewError) return renderSourceNotice("error", "Preview blocked", source.previewError);
+    if (source.previewStatus) return renderSourceNotice("active", "SharePoint REST bridge", source.previewStatus);
+    if (!isSharePointUrl(originalUrl)) return renderSourceNotice("active", "Native preview", "This source can be rendered directly by the browser.");
+    if (source.objectUrl) return renderSourceNotice("active", "SharePoint REST bridge", "Loaded through authenticated SharePoint file access.");
+    if (isSharePointHost()) return renderSourceNotice("active", "SharePoint page mode", "Open a PDF file in SharePoint, copy its direct PDF URL, then paste it below to preview through the authenticated REST bridge.");
+    return renderSourceNotice("blocked", "SharePoint blocks external iframe preview", "This GitHub Pages domain cannot frame private SharePoint pages. Use the SharePoint-hosted script page for inline PDF preview, or open the source in a signed-in browser.");
+  }
+
+  function renderSourceNotice(kind, title, detail) {
+    return '<div class="wt-embed-status wt-embed-' + text(kind) + '"><b>' + text(title) + '</b><span>' + text(detail) + '</span></div>';
+  }
+
+  function renderSourceFrameFallback(source, originalUrl) {
+    var bridge = sharePointBridgeInfo(originalUrl);
+    var items = [
+      "SharePoint folder and sharing pages cannot be embedded from GitHub Pages.",
+      "Private files should stay in SharePoint; do not mirror Nike / PHK reports into public GitHub Pages.",
+      isSharePointHost() ? "On the SharePoint-hosted page, paste a direct PDF file URL to load it through REST without leaving this interface." : "Deploy the SharePoint Modern Script Editor version to unlock same-tenant REST preview."
+    ];
+    if (bridge.canBridge) items.unshift("This PDF can be loaded through SharePoint REST from the SharePoint-hosted page.");
+    return [
+      '<div class="wt-source-fallback">',
+      '<div><small>Preview route</small><h3>Secure SharePoint bridge required</h3></div>',
+      '<ul>',
+      items.map(function (item) { return '<li>' + text(item) + '</li>'; }).join(""),
+      '</ul>',
+      '<a href="' + text(originalUrl) + '" target="_blank" rel="noopener">Open source</a>',
+      '</div>'
+    ].join("");
+  }
+
+  function nativePreviewUrl(source) {
+    var url = source.objectUrl || source.url || "";
+    if (!url || isSharePointUrl(url)) return "";
+    if (/^(blob:|data:|\.?\/|https?:)/i.test(url) && /\.pdf([?#].*)?$/i.test(url)) return url;
+    return "";
   }
 
   function renderSourceRow(title, detail, status) {
@@ -4673,11 +4779,109 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var input = form.querySelector("[data-report-url-input]");
     var url = input ? input.value.trim() : "";
     if (!url) return;
-    state.reportFrameSource = form.getAttribute("data-report-source");
-    state.reportFrameUrl = url;
-    state.reportFrameLabel = "PDF preview";
+    viewReport(root, form.getAttribute("data-report-source"), url, "PDF preview");
+  }
+
+  function viewReport(root, sourceKey, url, label) {
+    resetReportPreview();
+    state.reportFrameSource = sourceKey || "";
+    state.reportFrameUrl = url || "";
+    state.reportFrameLabel = label || "PDF preview";
+    state.reportFrameError = "";
+    state.reportFrameStatus = "";
+    state.reportFrameRequestId += 1;
     state.actionMessage = "";
+
+    var requestId = state.reportFrameRequestId;
+    var bridge = sharePointBridgeInfo(url);
+    if (!bridge.canBridge) {
+      render(root);
+      return;
+    }
+
+    state.reportFrameStatus = "Loading protected PDF through same-tenant SharePoint REST...";
     render(root);
+    fetchSharePointPdfObjectUrl(bridge).then(function (objectUrl) {
+      if (requestId !== state.reportFrameRequestId) {
+        window.URL.revokeObjectURL(objectUrl);
+        return;
+      }
+      resetReportPreview();
+      state.reportFrameObjectUrl = objectUrl;
+      state.reportFrameStatus = "Loaded as a private browser blob from SharePoint. The file was not copied to GitHub Pages.";
+      render(root);
+    }).catch(function (error) {
+      if (requestId !== state.reportFrameRequestId) return;
+      state.reportFrameError = error.message || String(error);
+      state.reportFrameStatus = "";
+      render(root);
+    });
+  }
+
+  function resetReportPreview() {
+    if (state.reportFrameObjectUrl) {
+      window.URL.revokeObjectURL(state.reportFrameObjectUrl);
+      state.reportFrameObjectUrl = "";
+    }
+  }
+
+  function fetchSharePointPdfObjectUrl(bridge) {
+    return window.fetch(bridge.endpoint, {
+      method: "GET",
+      credentials: "same-origin",
+      headers: { "Accept": "application/pdf,*/*" }
+    }).then(function (response) {
+      if (!response.ok) throw new Error("SharePoint REST HTTP " + response.status);
+      return response.blob();
+    }).then(function (blob) {
+      if (!blob || !blob.size) throw new Error("SharePoint returned an empty file.");
+      return window.URL.createObjectURL(blob);
+    });
+  }
+
+  function sharePointBridgeInfo(url) {
+    if (!isSharePointUrl(url)) return { canBridge: false, reason: "Not a SharePoint URL." };
+    if (!isSharePointHost()) return { canBridge: false, reason: "Current page is not hosted on SharePoint." };
+    if (!sameSharePointHost(url)) return { canBridge: false, reason: "SharePoint file is on a different host." };
+    var serverRelativePath = serverRelativePathFromSharePointUrl(url);
+    if (!serverRelativePath) return { canBridge: false, reason: "Use a direct PDF file URL, not a folder or sharing URL." };
+    if (!/\.pdf$/i.test(serverRelativePath)) return { canBridge: false, reason: "The REST bridge previews PDF files only." };
+    return {
+      canBridge: true,
+      serverRelativePath: serverRelativePath,
+      endpoint: getSitePath() + "/_api/web/GetFileByServerRelativePath(decodedurl='" + encodeODataString(serverRelativePath) + "')/$value"
+    };
+  }
+
+  function isSharePointHost() {
+    return SHAREPOINT_HOST_RE.test(window.location.hostname);
+  }
+
+  function isSharePointUrl(value) {
+    var parsed = parseUrl(value);
+    return !!parsed && SHAREPOINT_HOST_RE.test(parsed.hostname);
+  }
+
+  function sameSharePointHost(value) {
+    var parsed = parseUrl(value);
+    return !!parsed && parsed.hostname.toLowerCase() === window.location.hostname.toLowerCase();
+  }
+
+  function serverRelativePathFromSharePointUrl(value) {
+    var parsed = parseUrl(value);
+    if (!parsed) return "";
+    if (parsed.hostname && !sameSharePointHost(parsed.href)) return "";
+    if (/^\/:[a-z]:\//i.test(parsed.pathname)) return "";
+    var path = decodeURIComponent(parsed.pathname);
+    return path.replace(/\/$/, "");
+  }
+
+  function parseUrl(value) {
+    try {
+      return new URL(value, window.location.href);
+    } catch (error) {
+      return null;
+    }
   }
 
   function labFact(label, value) {
@@ -5453,4 +5657,5 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     boot();
   }
 })();
+
 </script>
