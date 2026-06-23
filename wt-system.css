@@ -472,6 +472,7 @@ textarea:focus-visible {
 .wt-dashboard,
 .wt-creation,
 .wt-lab,
+.wt-ai-page,
 .wt-libraries,
 .wt-editor-layout {
   min-height: 0;
@@ -1597,6 +1598,189 @@ textarea:focus-visible {
   gap: 14px;
 }
 
+.wt-ai-page {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 14px;
+}
+
+.wt-ai-layout {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 14px;
+}
+
+.wt-ai-chat,
+.wt-ai-source-panel {
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.wt-ai-chat {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.wt-ai-form {
+  display: grid;
+  gap: 10px;
+}
+
+.wt-ai-form label {
+  display: grid;
+  gap: 6px;
+}
+
+.wt-ai-form small,
+.wt-ai-source-panel small,
+.wt-ai-answer small,
+.wt-ai-match small,
+.wt-ai-source-card small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.wt-ai-form textarea {
+  width: 100%;
+  min-height: 118px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  background: #fbfcfb;
+  color: var(--ink);
+  padding: 12px;
+  font-family: var(--font-text);
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.wt-ai-form-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.wt-ai-form-footer span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.wt-ai-form-footer button {
+  height: 36px;
+  min-width: 88px;
+  border: 1px solid var(--line-strong);
+  background: var(--ink);
+  color: #fff;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.wt-ai-answer {
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: #fbfcfb;
+  overflow: auto;
+}
+
+.wt-ai-answer header,
+.wt-ai-source-panel header,
+.wt-ai-match header {
+  display: grid;
+  gap: 4px;
+}
+
+.wt-ai-answer b,
+.wt-ai-source-panel h2,
+.wt-ai-source-card b,
+.wt-ai-match b {
+  color: var(--ink);
+}
+
+.wt-ai-answer > p {
+  margin: 0;
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.wt-ai-empty > p {
+  color: var(--muted);
+}
+
+.wt-ai-warning {
+  padding: 10px 12px;
+  border: 1px solid #e4d7a4;
+  background: #fff9df;
+  color: #78620e;
+  font-size: 12px;
+}
+
+.wt-ai-matches {
+  display: grid;
+  gap: 10px;
+}
+
+.wt-ai-match,
+.wt-ai-source-card {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  background: #ffffff;
+}
+
+.wt-ai-match p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.wt-ai-match a,
+.wt-ai-source-card a {
+  justify-self: start;
+  color: var(--teal-dark);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.wt-ai-source-panel h2 {
+  margin-top: 4px;
+  font-family: var(--font-display);
+  font-size: 28px;
+}
+
+.wt-ai-source-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.wt-ai-source-card div {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.wt-ai-source-card span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .wt-lab-hero {
   display: flex;
   justify-content: space-between;
@@ -2162,6 +2346,7 @@ textarea:focus-visible {
   .wt-dashboard,
   .wt-creation,
   .wt-lab,
+  .wt-ai-page,
   .wt-libraries,
   .wt-editor-layout {
     height: auto;
@@ -2174,6 +2359,7 @@ textarea:focus-visible {
   .wt-year-quarter-grid,
   .wt-lab-grid,
   .wt-source-workspace,
+  .wt-ai-layout,
   .wt-creation,
   .wt-libraries,
   .wt-editor-layout {
@@ -2311,6 +2497,7 @@ textarea:focus-visible {
 #wt-system-root[data-wt-fit="viewport"] .wt-dashboard,
 #wt-system-root[data-wt-fit="viewport"] .wt-creation,
 #wt-system-root[data-wt-fit="viewport"] .wt-lab,
+#wt-system-root[data-wt-fit="viewport"] .wt-ai-page,
 #wt-system-root[data-wt-fit="viewport"] .wt-libraries,
 #wt-system-root[data-wt-fit="viewport"] .wt-editor-layout {
   height: 100%;
@@ -2349,6 +2536,10 @@ textarea:focus-visible {
 
 #wt-system-root[data-wt-fit="viewport"] .wt-source-workspace {
   grid-template-columns: 390px minmax(0, 1fr);
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-ai-layout {
+  grid-template-columns: minmax(0, 1fr) 360px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-creation,

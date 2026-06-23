@@ -79,6 +79,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     reportFrameError: "",
     reportFrameRequestId: 0,
     sourceIndex: {},
+    assistantQuestion: "",
+    assistantStatus: "idle",
+    assistantAnswer: null,
+    assistantError: "",
     view: "display",
     calendarView: "calendar",
     period: "month",
@@ -213,6 +217,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     root.addEventListener("submit", function (event) {
       var form = event.target.closest(".wt-edit-form");
       var reportForm = event.target.closest(".wt-report-url-form");
+      var assistantForm = event.target.closest(".wt-ai-form");
+      if (assistantForm && root.contains(assistantForm)) {
+        event.preventDefault();
+        submitAssistantQuestion(root, assistantForm);
+        return;
+      }
       if (reportForm && root.contains(reportForm)) {
         event.preventDefault();
         viewReportUrl(root, reportForm);
@@ -294,6 +304,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       navItem("dashboard", "Dashboard"),
       navItem("creation", "Creation Plan"),
       navItem("calendar", "Calendar"),
+      navItem("assistant", "AI Q&A"),
       externalNavItem("nikeReports", "Nike Lab Reports", "phk"),
       externalNavItem("phkReports", "PHK WT Reports", "phk"),
       externalNavItem("nikeRows", "Product Test Database", "lab"),
@@ -346,12 +357,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function sectionTitle() {
     if (state.section === "dashboard") return "Dashboard";
     if (state.section === "creation") return "Creation Plan";
+    if (state.section === "assistant") return "AI Q&A";
     return "Calendar";
   }
 
   function renderSection(root) {
     if (state.section === "dashboard") return renderDashboard();
     if (state.section === "creation") return renderCreationPlan();
+    if (state.section === "assistant") return renderAssistantPage(root);
     return renderCalendarWorkspace(root);
   }
 
@@ -445,6 +458,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       dashboard: '<rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect>',
       creation: '<path d="M15 5l4 4"></path><path d="M13.5 6.5l4 4L7 21H3v-4L13.5 6.5z"></path><path d="M16 3l5 5"></path>',
       calendar: '<rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M8 2v4"></path><path d="M16 2v4"></path><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path>',
+      assistant: '<path d="M12 3a7 7 0 0 0-7 7v2a7 7 0 0 0 14 0v-2a7 7 0 0 0-7-7z"></path><path d="M9 10h.01"></path><path d="M15 10h.01"></path><path d="M9.5 15c1.7 1 3.3 1 5 0"></path><path d="M4 20l2-2"></path><path d="M20 20l-2-2"></path>',
       lab: '<path d="M9 3v5l-4.5 8.2A3.2 3.2 0 0 0 7.3 21h9.4a3.2 3.2 0 0 0 2.8-4.8L15 8V3"></path><path d="M8 3h8"></path><path d="M7 15h10"></path>',
       phk: '<path d="M4 4h7l2 2h7v14H4z"></path><path d="M8 11h8"></path><path d="M8 15h5"></path>',
       projector: '<rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8"></path><path d="M12 16v4"></path>',
@@ -1014,6 +1028,331 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       renderReportWorkspace(root, SHAREPOINT_SOURCES.phkReports),
       '</section>'
     ].join("");
+  }
+
+  function renderAssistantPage(root) {
+    return [
+      '<section class="wt-ai-page">',
+      '<header class="wt-flow-page-head">',
+      '<div class="wt-flow-heading"><h1>AI Q&A</h1></div>',
+      '</header>',
+      '<div class="wt-ai-layout">',
+      '<section class="wt-ai-chat">',
+      renderAssistantForm(root),
+      renderAssistantAnswer(),
+      '</section>',
+      renderAssistantSources(root),
+      '</div>',
+      '</section>'
+    ].join("");
+  }
+
+  function renderAssistantForm(root) {
+    var endpoint = configuredAssistantEndpoint(root);
+    return [
+      '<form class="wt-ai-form">',
+      '<label>',
+      '<small>Question</small>',
+      '<textarea name="question" rows="4" placeholder="Ask about schedules, product tests, reports, seasons, gates, or dates.">' + text(state.assistantQuestion) + '</textarea>',
+      '</label>',
+      '<div class="wt-ai-form-footer">',
+      '<span>' + text(endpoint ? "AI backend connected" : "Local source index") + '</span>',
+      '<button type="submit">' + text(state.assistantStatus === "loading" ? "Searching" : "Ask") + '</button>',
+      '</div>',
+      '</form>'
+    ].join("");
+  }
+
+  function renderAssistantAnswer() {
+    if (state.assistantStatus === "loading") {
+      return '<article class="wt-ai-answer"><header><small>Working</small><b>Searching sources</b></header><p>Building an answer from the connected source index.</p></article>';
+    }
+    if (state.assistantError && state.assistantAnswer) {
+      return renderAssistantAnswerCard(state.assistantAnswer, state.assistantError);
+    }
+    if (state.assistantError) {
+      return '<article class="wt-ai-answer wt-ai-error"><header><small>Error</small><b>Unable to answer</b></header><p>' + text(state.assistantError) + '</p></article>';
+    }
+    if (!state.assistantAnswer) {
+      return '<article class="wt-ai-answer wt-ai-empty"><header><small>Ready</small><b>Source-grounded Q&A</b></header><p>Ask a question against the schedule index and connected SharePoint sources.</p></article>';
+    }
+    return renderAssistantAnswerCard(state.assistantAnswer, "");
+  }
+
+  function renderAssistantAnswerCard(answer, warning) {
+    return [
+      '<article class="wt-ai-answer">',
+      '<header><small>' + text(answer.mode || "Local index") + '</small><b>Answer</b></header>',
+      warning ? '<div class="wt-ai-warning">' + text(warning) + '</div>' : "",
+      '<p>' + text(answer.answer) + '</p>',
+      answer.matches && answer.matches.length ? '<div class="wt-ai-matches">' + answer.matches.map(renderAssistantMatch).join("") + '</div>' : "",
+      '</article>'
+    ].join("");
+  }
+
+  function renderAssistantMatch(match) {
+    var meta = [match.sourceName, assistantDateLabel(match.date), match.season || "", match.gate || ""].filter(Boolean).join(" / ");
+    return [
+      '<article class="wt-ai-match">',
+      '<header><b>' + text(match.title) + '</b><small>' + text(meta || match.type) + '</small></header>',
+      match.excerpt ? '<p>' + text(match.excerpt) + '</p>' : "",
+      match.url ? '<a href="' + text(match.url) + '" target="_blank" rel="noopener noreferrer">Open source</a>' : "",
+      '</article>'
+    ].join("");
+  }
+
+  function renderAssistantSources(root) {
+    var docs = assistantSourceCards(root);
+    return [
+      '<aside class="wt-ai-source-panel">',
+      '<header><small>Connected sources</small><h2>Index</h2></header>',
+      docs.map(function (doc) {
+        return [
+          '<article class="wt-ai-source-card">',
+          '<div><b>' + text(doc.title) + '</b><small>' + text(doc.detail) + '</small></div>',
+          doc.url ? '<a href="' + text(doc.url) + '" target="_blank" rel="noopener noreferrer">Open</a>' : '<span>' + text(doc.status) + '</span>',
+          '</article>'
+        ].join("");
+      }).join(""),
+      '</aside>'
+    ].join("");
+  }
+
+  function submitAssistantQuestion(root, form) {
+    var input = form.querySelector('[name="question"]');
+    var question = input ? input.value.trim() : "";
+    state.assistantQuestion = question;
+    state.assistantError = "";
+    if (!question) {
+      state.assistantAnswer = null;
+      state.assistantStatus = "idle";
+      render(root);
+      return;
+    }
+
+    var endpoint = configuredAssistantEndpoint(root);
+    if (!endpoint) {
+      state.assistantAnswer = answerAssistantQuestionLocally(root, question);
+      state.assistantStatus = "done";
+      render(root);
+      return;
+    }
+
+    state.assistantStatus = "loading";
+    state.assistantAnswer = null;
+    render(root);
+    var context = assistantMatches(root, question).slice(0, 10);
+    window.fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        question: question,
+        context: context,
+        sources: assistantSourceCards(root)
+      })
+    }).then(function (response) {
+      if (!response.ok) throw new Error("AI endpoint HTTP " + response.status);
+      return response.json();
+    }).then(function (payload) {
+      state.assistantStatus = "done";
+      state.assistantAnswer = normalizeAssistantBackendAnswer(payload, root, question);
+      state.assistantError = "";
+      render(root);
+    }).catch(function (error) {
+      state.assistantStatus = "done";
+      state.assistantAnswer = answerAssistantQuestionLocally(root, question);
+      state.assistantError = "AI backend unavailable. Showing local source-index results instead.";
+      render(root);
+    });
+  }
+
+  function configuredAssistantEndpoint(root) {
+    return root ? (root.getAttribute("data-wt-ai-endpoint") || "").trim() : "";
+  }
+
+  function normalizeAssistantBackendAnswer(payload, root, question) {
+    if (!payload || typeof payload !== "object") return answerAssistantQuestionLocally(root, question);
+    return {
+      mode: "AI backend",
+      answer: payload.answer || payload.text || "The AI backend returned no answer text.",
+      matches: Array.isArray(payload.matches) ? payload.matches : (Array.isArray(payload.sources) ? payload.sources : [])
+    };
+  }
+
+  function answerAssistantQuestionLocally(root, question) {
+    var allMatches = assistantMatches(root, question);
+    var sourceMatches = assistantIsSourceQuestion(question) ? allMatches.filter(function (match) { return match.kind === "source"; }) : [];
+    var matches = (sourceMatches.length ? sourceMatches : allMatches).slice(0, 6);
+    if (!matches.length) {
+      return {
+        mode: "Local index",
+        answer: "I could not find a matching indexed record. The current browser index covers WT schedule milestones and source links; full PDF or Excel row-level answers require the SharePoint-hosted AI backend.",
+        matches: assistantSourceCards(root).filter(function (source) { return source.url; }).slice(0, 3).map(function (source) {
+          return { type: "source", title: source.title, sourceName: source.detail, excerpt: source.status, url: source.url };
+        })
+      };
+    }
+    return {
+      mode: "Local index",
+      answer: assistantAnswerSentence(matches),
+      matches: matches
+    };
+  }
+
+  function assistantAnswerSentence(matches) {
+    var top = matches[0];
+    var scheduleMatches = matches.filter(function (match) { return match.kind === "event"; });
+    if (top.kind === "event") {
+      var related = scheduleMatches.slice(1, 4).map(function (match) {
+        return assistantDateLabel(match.date) + " " + match.title;
+      });
+      return "I found " + scheduleMatches.length + " matching schedule record" + (scheduleMatches.length === 1 ? "" : "s") + ". The strongest match is " + top.title + " on " + assistantDateLabel(top.date) + " for " + (top.season || "the selected season") + (top.gate ? " / " + top.gate : "") + "." + (related.length ? " Related matches: " + related.join("; ") + "." : "");
+    }
+    return "The strongest matching source is " + top.title + ". " + (top.excerpt || "Open the linked source for the full workbook or report archive.");
+  }
+
+  function assistantDateLabel(date) {
+    return date ? date + " (" + formatDateShort(date) + ")" : "";
+  }
+
+  function assistantIsSourceQuestion(question) {
+    return assistantTokens(question).some(function (token) {
+      return ["database", "report", "reports", "pdf", "excel", "source", "archive", "folder", "file", "link", "db", "데이터", "보고서", "리포트", "엑셀", "파일"].indexOf(token) >= 0;
+    });
+  }
+
+  function assistantMatches(root, question) {
+    var tokens = assistantTokens(question);
+    if (!tokens.length) return [];
+    return assistantDocuments(root).map(function (doc) {
+      var score = assistantScoreDocument(doc, tokens);
+      return Object.assign({}, doc, { score: score });
+    }).filter(function (doc) {
+      return doc.score > 0;
+    }).sort(function (a, b) {
+      return b.score - a.score || (a.date || "").localeCompare(b.date || "");
+    });
+  }
+
+  function assistantScoreDocument(doc, tokens) {
+    var haystack = assistantNormalize([doc.title, doc.type, doc.sourceName, doc.excerpt, doc.searchText].join(" "));
+    var title = assistantNormalize(doc.title || "");
+    var score = 0;
+    tokens.forEach(function (token) {
+      if (title.indexOf(token) >= 0) score += 8;
+      if (haystack.indexOf(token) >= 0) score += 3;
+      if (doc.date && doc.date.indexOf(token) >= 0) score += 5;
+      if (doc.season && assistantNormalize(doc.season).indexOf(token) >= 0) score += 5;
+      if (doc.gate && assistantNormalize(doc.gate).indexOf(token) >= 0) score += 4;
+    });
+    return score;
+  }
+
+  function assistantDocuments(root) {
+    var docs = normalizedEvents().map(function (event) {
+      return {
+        kind: "event",
+        type: "Schedule milestone",
+        title: event.title,
+        date: event.date,
+        season: event.season,
+        gate: event.gate,
+        sourceName: event.source || "schedule.pdf",
+        excerpt: [event.season, event.gate, event.kind, event.modelName, event.size, event.notes].filter(Boolean).join(" / "),
+        searchText: [
+          "schedule calendar milestone date season gate event 일정 마일스톤 날짜 시즌 게이트",
+          event.title,
+          event.date,
+          event.season,
+          event.gate,
+          event.kind,
+          event.owner,
+          event.modelName,
+          event.size,
+          event.sampleQuantity,
+          event.notes
+        ].join(" ")
+      };
+    });
+
+    assistantSourceCards(root).forEach(function (source) {
+      docs.push({
+        kind: "source",
+        type: source.detail,
+        title: source.title,
+        sourceName: source.detail,
+        excerpt: source.searchSummary,
+        searchText: source.searchText,
+        url: source.url
+      });
+    });
+
+    Object.keys(SHAREPOINT_SOURCES).forEach(function (key) {
+      var source = SHAREPOINT_SOURCES[key];
+      var index = sourceIndexFor(root, source);
+      if (!index || index.status !== "loaded") return;
+      (index.items || []).forEach(function (item) {
+        docs.push({
+          kind: "source",
+          type: source.title,
+          title: item.name || source.title,
+          sourceName: source.title,
+          excerpt: sharePointFileDetail(item),
+          searchText: [source.title, source.caption, item.name, item.serverRelativeUrl, item.webUrl].join(" "),
+          url: item.webUrl || source.url
+        });
+      });
+    });
+
+    return docs;
+  }
+
+  function assistantSourceCards(root) {
+    return [
+      {
+        title: "WT Schedule Index",
+        detail: normalizedEvents().length + " milestones",
+        status: "Indexed",
+        url: "",
+        searchSummary: "Embedded creation schedule and local user-entered WT milestones.",
+        searchText: "schedule calendar creation plan season gate milestone date sample handoff product freeze results ready 일정 마일스톤 시즌 날짜"
+      },
+      {
+        title: SHAREPOINT_SOURCES.nikeRows.title,
+        detail: SHAREPOINT_SOURCES.nikeRows.status,
+        status: "Excel Online",
+        url: SHAREPOINT_SOURCES.nikeRows.url,
+        searchSummary: "Finished-model product test data workbook. The filename may be Silo DB, but the user-facing source is product testing data.",
+        searchText: "product test database finished model running shoe footwear excel silo db raw data B142 완제 완제품 러닝화 모델 테스트 데이터 엑셀"
+      },
+      {
+        title: SHAREPOINT_SOURCES.nikeReports.title,
+        detail: SHAREPOINT_SOURCES.nikeReports.status,
+        status: "PDF archive",
+        url: SHAREPOINT_SOURCES.nikeReports.url,
+        searchSummary: "Nike lab test PDF report archive.",
+        searchText: "nike lab test reports pdf archive report 리포트 보고서"
+      },
+      {
+        title: SHAREPOINT_SOURCES.phkReports.title,
+        detail: SHAREPOINT_SOURCES.phkReports.status,
+        status: "PDF archive",
+        url: SHAREPOINT_SOURCES.phkReports.url,
+        searchSummary: "PHK WT PDF report archive.",
+        searchText: "phk wt reports pdf archive report 리포트 보고서"
+      }
+    ];
+  }
+
+  function assistantTokens(value) {
+    var stopWords = ["the", "and", "for", "with", "about", "what", "when", "where", "which", "how", "are", "is", "was", "this", "that", "from", "into", "에게", "에서", "으로", "하고", "그리고"];
+    return unique(assistantNormalize(value).split(/[^a-z0-9가-힣]+/).filter(function (token) {
+      return token.length > 1 && stopWords.indexOf(token) < 0;
+    }));
+  }
+
+  function assistantNormalize(value) {
+    return String(value || "").toLowerCase();
   }
 
   function sourceTab(id, label, active) {
