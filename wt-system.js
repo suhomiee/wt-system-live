@@ -38,6 +38,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       label: "Nike Lab Test raw data",
       caption: "Manual Excel table from B142 PDF reports",
       status: "SharePoint workbook",
+      sourceType: "workbook",
+      pathAttribute: "data-wt-nike-rows-path",
       url: "https://taekwangcom.sharepoint.com/:x:/s/T2RL2/IQBQ3QW0jBVyR4JnhOJ1j_zSAQB25OBbUxJ37p_od5Mr4Uc?e=f6z0qd"
     },
     nikeReports: {
@@ -46,6 +48,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       label: "Nike lab test reports",
       caption: "Nike lab test PDF report folder",
       status: "SharePoint folder",
+      sourceType: "folder",
+      pathAttribute: "data-wt-nike-reports-path",
       manifestKey: "nikeLabReports",
       url: "https://taekwangcom.sharepoint.com/:f:/s/T2RL2/IgBl9gmylH3wTpjAobY83-rwARqXBo4nsmOv41iT7f_ZGLk?e=1FKUUQ"
     },
@@ -55,6 +59,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       label: "PHK WT report collection",
       caption: "PHK WT PDF report folder",
       status: "SharePoint folder",
+      sourceType: "folder",
+      pathAttribute: "data-wt-phk-reports-path",
       manifestKey: "phkReports",
       url: "https://taekwangcom.sharepoint.com/:f:/s/T2RL2/IgCvwsu5vd3ZRbKu3VViTI8TASAtSApdTnXdQtVvJ53nNzE?e=N9oicv"
     }
@@ -72,6 +78,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     reportFrameStatus: "",
     reportFrameError: "",
     reportFrameRequestId: 0,
+    sourceIndex: {},
     view: "display",
     calendarView: "calendar",
     period: "month",
@@ -92,6 +99,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       roots[i].innerHTML = renderApp(roots[i]);
       bind(roots[i]);
       updateClock(roots[i]);
+      ensureActiveSourceIndexes(roots[i]);
     }
   }
 
@@ -228,6 +236,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     applyViewportFit(root);
     root.innerHTML = renderApp(root);
     updateClock(root);
+    ensureActiveSourceIndexes(root);
   }
 
   function initializeDateState(root) {
@@ -334,8 +343,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderSection(root) {
     if (state.section === "dashboard") return renderDashboard();
     if (state.section === "creation") return renderCreationPlan();
-    if (state.section === "lab") return renderLabTest();
-    if (state.section === "phk") return renderPhkReports();
+    if (state.section === "lab") return renderLabTest(root);
+    if (state.section === "phk") return renderPhkReports(root);
     return renderCalendarWorkspace(root);
   }
 
@@ -972,7 +981,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     }
   }
 
-  function renderLabTest() {
+  function renderLabTest(root) {
     var activeView = state.labView === "reports" ? "reports" : "raw";
     return [
       '<section class="wt-lab wt-source-page">',
@@ -983,19 +992,19 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       sourceTab("reports", "PDF Reports", activeView === "reports"),
       '</div>',
       '</header>',
-      activeView === "reports" ? renderReportWorkspace(SHAREPOINT_SOURCES.nikeReports) : renderRawDataWorkspace(),
+      activeView === "reports" ? renderReportWorkspace(root, SHAREPOINT_SOURCES.nikeReports) : renderRawDataWorkspace(root),
       '</section>'
     ].join("");
   }
 
-  function renderPhkReports() {
+  function renderPhkReports(root) {
     return [
       '<section class="wt-lab wt-source-page">',
       '<header class="wt-lab-hero">',
       '<div><small>PHK WT Report</small><h1>PHK WT Reports</h1></div>',
       '<span>PDF report folder</span>',
       '</header>',
-      renderReportWorkspace(SHAREPOINT_SOURCES.phkReports),
+      renderReportWorkspace(root, SHAREPOINT_SOURCES.phkReports),
       '</section>'
     ].join("");
   }
@@ -1004,8 +1013,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return '<button type="button" class="' + (active ? "active" : "") + '" data-lab-view="' + text(id) + '">' + text(label) + '</button>';
   }
 
-  function renderRawDataWorkspace() {
+  function renderRawDataWorkspace(root) {
     var source = SHAREPOINT_SOURCES.nikeRows;
+    var index = sourceIndexFor(root, source);
     return [
       '<div class="wt-source-workspace">',
       '<aside class="wt-source-sidebar">',
@@ -1020,7 +1030,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '</article>',
       '<article class="wt-source-card">',
       '<header><small>Connected source</small><h2>Workbook</h2></header>',
-      renderSourceRow(source.title, source.caption, source.status),
+      renderSourceIndexStatusRow(root, source, index),
       renderSourceRow("PDF reports", SHAREPOINT_SOURCES.nikeReports.caption, SHAREPOINT_SOURCES.nikeReports.status),
       renderSourceRow("Specimen lookup", "Serial / QR rule", "Pending"),
       '</article>',
@@ -1030,8 +1040,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     ].join("");
   }
 
-  function renderReportWorkspace(source) {
-    var reports = REPORT_MANIFEST[source.manifestKey] || [];
+  function renderReportWorkspace(root, source) {
+    var manifestReports = REPORT_MANIFEST[source.manifestKey] || [];
+    var index = sourceIndexFor(root, source);
+    var reports = sourceReportsFromIndex(index);
+    if (!reports.length) reports = manifestReports;
     var frameSource = selectedReportFrameSource(source);
     return [
       '<div class="wt-source-workspace">',
@@ -1041,14 +1054,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-lab-facts">',
       labFact("Format", "PDF"),
       labFact("Source", "SharePoint"),
-      labFact("Index", reports.length ? reports.length + " files" : "Folder view"),
+      labFact("Index", reports.length ? reports.length + " files" : sourceIndexLabel(root, source, index)),
       labFact("Access", "Auth required"),
       '</div>',
       '</article>',
       '<article class="wt-source-card">',
       '<header><small>Report index</small><h2>Files</h2></header>',
       '<div class="wt-pdf-list">',
-      reports.length ? reports.map(function (report) { return renderPdfManifestRow(report, source.manifestKey); }).join("") : renderSourceRow("SharePoint folder", source.caption, source.status) + renderSourceRow("PDF file index", "Awaiting manifest", "Pending"),
+      reports.length ? reports.map(function (report) { return renderPdfManifestRow(report, source.manifestKey); }).join("") : renderSourceIndexEmpty(root, source, index),
       '</div>',
       renderReportUrlForm(source),
       '</article>',
@@ -1056,6 +1069,135 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       renderSourceFrame(frameSource),
       '</div>'
     ].join("");
+  }
+
+  function ensureActiveSourceIndexes(root) {
+    if (!isSharePointHost()) return;
+    if (state.section === "lab" && state.labView === "reports") {
+      ensureSourceIndex(root, SHAREPOINT_SOURCES.nikeReports);
+    }
+    if (state.section === "lab" && state.labView !== "reports") {
+      ensureSourceIndex(root, SHAREPOINT_SOURCES.nikeRows);
+    }
+    if (state.section === "phk") {
+      ensureSourceIndex(root, SHAREPOINT_SOURCES.phkReports);
+    }
+  }
+
+  function ensureSourceIndex(root, source) {
+    var path = configuredSourcePath(root, source);
+    if (!path) return;
+    var key = sourceIndexKey(source);
+    var current = state.sourceIndex[key];
+    if (current && (current.status === "loading" || current.path === path && current.status === "loaded")) return;
+
+    state.sourceIndex[key] = { status: "loading", path: path, items: [], error: "" };
+    window.setTimeout(function () { render(root); }, 0);
+    fetchSourceIndex(path, source.sourceType).then(function (items) {
+      state.sourceIndex[key] = { status: "loaded", path: path, items: items, error: "" };
+      render(root);
+    }).catch(function (error) {
+      state.sourceIndex[key] = { status: "error", path: path, items: [], error: error.message || String(error) };
+      render(root);
+    });
+  }
+
+  function fetchSourceIndex(path, sourceType) {
+    var endpoint;
+    if (sourceType === "folder") {
+      endpoint = getSitePath() + "/_api/web/GetFolderByServerRelativePath(decodedurl='" + encodeODataString(path) + "')/Files?$select=Name,ServerRelativeUrl,TimeLastModified,Length&$orderby=TimeLastModified desc";
+    } else {
+      endpoint = getSitePath() + "/_api/web/GetFileByServerRelativePath(decodedurl='" + encodeODataString(path) + "')?$select=Name,ServerRelativeUrl,TimeLastModified,Length";
+    }
+    return window.fetch(endpoint, {
+      method: "GET",
+      credentials: "same-origin",
+      headers: { "Accept": "application/json;odata=nometadata" }
+    }).then(function (response) {
+      if (!response.ok) throw new Error("SharePoint index HTTP " + response.status);
+      return response.json();
+    }).then(function (data) {
+      var rows = data.value || (data.Name ? [data] : []);
+      return rows.map(function (item) {
+        return {
+          name: item.Name || "SharePoint file",
+          serverRelativeUrl: item.ServerRelativeUrl || "",
+          timeLastModified: item.TimeLastModified || "",
+          length: item.Length || 0
+        };
+      });
+    });
+  }
+
+  function sourceIndexFor(root, source) {
+    return state.sourceIndex[sourceIndexKey(source)] || { status: "idle", path: configuredSourcePath(root, source), items: [], error: "" };
+  }
+
+  function sourceIndexKey(source) {
+    return source.manifestKey || source.pathAttribute || source.title;
+  }
+
+  function configuredSourcePath(root, source) {
+    return source.pathAttribute && root ? (root.getAttribute(source.pathAttribute) || "").trim() : "";
+  }
+
+  function sourceReportsFromIndex(index) {
+    if (!index || index.status !== "loaded") return [];
+    return (index.items || []).filter(function (item) {
+      return /\.pdf$/i.test(item.name || item.serverRelativeUrl || "");
+    }).map(function (item) {
+      return {
+        title: item.name,
+        detail: sharePointFileDetail(item),
+        url: window.location.origin + item.serverRelativeUrl
+      };
+    });
+  }
+
+  function sourceIndexLabel(root, source, index) {
+    if (!isSharePointHost()) return "SharePoint page required";
+    if (!configuredSourcePath(root, source)) return "Path not configured";
+    if (index.status === "loading") return "Loading...";
+    if (index.status === "error") return "REST error";
+    if (index.status === "loaded") return (index.items || []).length + " files";
+    return "Ready";
+  }
+
+  function renderSourceIndexEmpty(root, source, index) {
+    if (!isSharePointHost()) {
+      return [
+        renderSourceRow("Live file index", "Not available from GitHub Pages. SharePoint auth and same-origin REST are required.", "SharePoint mode"),
+        renderSourceRow("Current item", source.caption, "Link only")
+      ].join("");
+    }
+    var path = configuredSourcePath(root, source);
+    if (!path) {
+      return [
+        renderSourceRow("Live file index", "Set " + source.pathAttribute + " to the SharePoint server-relative folder path.", "Required"),
+        renderSourceRow("Sharing URL", "The :f: sharing URL opens the folder but does not expose a REST file list by itself.", "Link only")
+      ].join("");
+    }
+    if (index.status === "loading") return renderSourceRow("Live file index", path, "Loading");
+    if (index.status === "error") return renderSourceRow("Live file index", index.error || "SharePoint REST failed", "Error");
+    if (index.status === "loaded") return renderSourceRow("Live file index", "No PDF files found in " + path, "Empty");
+    return renderSourceRow("Live file index", path, "Ready");
+  }
+
+  function renderSourceIndexStatusRow(root, source, index) {
+    if (!isSharePointHost()) return renderSourceRow(source.title, "GitHub Pages cannot read private SharePoint workbooks directly.", "Link only");
+    var path = configuredSourcePath(root, source);
+    if (!path) return renderSourceRow(source.title, "Set " + source.pathAttribute + " to the workbook server-relative path.", "Required");
+    if (index.status === "loading") return renderSourceRow(source.title, path, "Loading");
+    if (index.status === "error") return renderSourceRow(source.title, index.error || "SharePoint REST failed", "Error");
+    if (index.status === "loaded" && index.items && index.items[0]) return renderSourceRow(index.items[0].name, sharePointFileDetail(index.items[0]), "REST loaded");
+    return renderSourceRow(source.title, path, "Ready");
+  }
+
+  function sharePointFileDetail(item) {
+    var parts = [];
+    if (item.timeLastModified) parts.push(formatDateTime(item.timeLastModified));
+    if (item.length) parts.push(formatBytes(Number(item.length)));
+    return parts.join(" / ") || "SharePoint file";
   }
 
   function selectedReportFrameSource(source) {
@@ -1877,6 +2019,19 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function formatDateShort(date) {
     var d = fromIso(date);
     return titleCaseMonth(d) + " " + d.getDate();
+  }
+
+  function formatDateTime(value) {
+    var d = new Date(value);
+    if (Number.isNaN(d.getTime())) return value;
+    return MONTHS[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+  }
+
+  function formatBytes(value) {
+    if (!value || Number.isNaN(value)) return "";
+    if (value < 1024) return value + " B";
+    if (value < 1024 * 1024) return Math.round(value / 1024) + " KB";
+    return (value / 1024 / 1024).toFixed(value < 10 * 1024 * 1024 ? 1 : 0) + " MB";
   }
 
   function titleCaseMonth(date) {
