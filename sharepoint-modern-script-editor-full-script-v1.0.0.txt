@@ -1,5 +1,5 @@
 <!--
-  T2 FPT Wear Test Calendar System v1.0.0
+  FPT WT Management System v1.0.0
   Full inline Modern Script Editor payload.
 
   CSP warning:
@@ -155,22 +155,10 @@ textarea:focus-visible {
 
 .wt-brand {
   display: grid;
-  grid-template-columns: 44px 1fr;
-  gap: 12px;
+  grid-template-columns: 1fr;
+  gap: 0;
   align-items: center;
   min-height: 54px;
-}
-
-.wt-brand > span {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border: 1px solid rgba(255,255,255,.16);
-  background: #f8faf8;
-  color: #1c211f;
-  font-size: 18px;
-  font-weight: 700;
 }
 
 .wt-brand b,
@@ -181,7 +169,7 @@ textarea:focus-visible {
 .wt-brand b {
   font-family: var(--font-display);
   font-size: 20px;
-  line-height: 1;
+  line-height: 1.12;
   letter-spacing: .02em;
 }
 
@@ -2428,25 +2416,16 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-brand {
   min-height: 49px;
-  grid-template-columns: 46px 1fr;
-  gap: 10px;
+  grid-template-columns: 1fr;
+  gap: 0;
   border-bottom: 1px solid rgba(255,255,255,.08);
-}
-
-.wt-brand > .wt-brand-mark {
-  width: 38px;
-  height: 24px;
-  border: 1px solid rgba(255,255,255,.78);
-  background: transparent;
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: 700;
 }
 
 .wt-brand b {
   font-family: var(--font-text);
   font-size: 16px;
   font-weight: 400;
+  line-height: 1.2;
   letter-spacing: 0;
 }
 
@@ -3928,8 +3907,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       '<aside class="wt-sidebar" aria-label="WT System navigation">',
       '<div class="wt-brand">',
-      '<span class="wt-brand-mark">WT</span>',
-      '<div><b>WT_Flow</b></div>',
+      '<div><b>FPT WT Management System</b></div>',
       '</div>',
       '<nav class="wt-primary-nav" aria-label="Primary">',
       navItem("dashboard", "Dashboard"),

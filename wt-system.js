@@ -288,8 +288,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       '<aside class="wt-sidebar" aria-label="WT System navigation">',
       '<div class="wt-brand">',
-      '<span class="wt-brand-mark">WT</span>',
-      '<div><b>WT_Flow</b></div>',
+      '<div><b>FPT WT Management System</b></div>',
       '</div>',
       '<nav class="wt-primary-nav" aria-label="Primary">',
       navItem("dashboard", "Dashboard"),
