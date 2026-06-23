@@ -190,7 +190,8 @@ textarea:focus-visible {
   border-bottom: 1px solid rgba(255,255,255,.10);
 }
 
-.wt-primary-nav button {
+.wt-primary-nav button,
+.wt-primary-nav a {
   height: 42px;
   display: grid;
   grid-template-columns: 18px 1fr;
@@ -200,27 +201,33 @@ textarea:focus-visible {
   background: transparent;
   color: #cfd7d4;
   text-align: left;
+  text-decoration: none;
   font-size: 16px;
+  cursor: pointer;
 }
 
-.wt-primary-nav button i {
+.wt-primary-nav button i,
+.wt-primary-nav a i {
   width: 10px;
   height: 10px;
   margin-left: 4px;
   border: 1px solid currentColor;
 }
 
-.wt-primary-nav button .wt-icon {
+.wt-primary-nav button .wt-icon,
+.wt-primary-nav a .wt-icon {
   width: 18px;
   height: 18px;
 }
 
-.wt-primary-nav button.active {
+.wt-primary-nav button.active,
+.wt-primary-nav a.active {
   background: rgba(255,255,255,.08);
   color: #fff;
 }
 
-.wt-primary-nav button.active i {
+.wt-primary-nav button.active i,
+.wt-primary-nav a.active i {
   background: var(--teal);
   border-color: var(--teal);
 }
@@ -2439,7 +2446,8 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   border: 0;
 }
 
-.wt-primary-nav button {
+.wt-primary-nav button,
+.wt-primary-nav a {
   height: 36px;
   grid-template-columns: 22px 1fr;
   gap: 10px;
@@ -2450,7 +2458,8 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   font-weight: 500;
 }
 
-.wt-primary-nav button i {
+.wt-primary-nav button i,
+.wt-primary-nav a i {
   position: relative;
   width: 16px;
   height: 16px;
@@ -2459,19 +2468,22 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   border-radius: 2px;
 }
 
-.wt-primary-nav button .wt-icon {
+.wt-primary-nav button .wt-icon,
+.wt-primary-nav a .wt-icon {
   width: 17px;
   height: 17px;
   color: currentColor;
   opacity: .95;
 }
 
-.wt-primary-nav button.active {
+.wt-primary-nav button.active,
+.wt-primary-nav a.active {
   background: var(--flow-active);
   color: #e2e8f0;
 }
 
-.wt-primary-nav button.active i {
+.wt-primary-nav button.active i,
+.wt-primary-nav a.active i {
   background: transparent;
   border-color: currentColor;
 }

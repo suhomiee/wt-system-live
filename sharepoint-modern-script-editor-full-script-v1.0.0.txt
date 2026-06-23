@@ -200,7 +200,8 @@ textarea:focus-visible {
   border-bottom: 1px solid rgba(255,255,255,.10);
 }
 
-.wt-primary-nav button {
+.wt-primary-nav button,
+.wt-primary-nav a {
   height: 42px;
   display: grid;
   grid-template-columns: 18px 1fr;
@@ -210,27 +211,33 @@ textarea:focus-visible {
   background: transparent;
   color: #cfd7d4;
   text-align: left;
+  text-decoration: none;
   font-size: 16px;
+  cursor: pointer;
 }
 
-.wt-primary-nav button i {
+.wt-primary-nav button i,
+.wt-primary-nav a i {
   width: 10px;
   height: 10px;
   margin-left: 4px;
   border: 1px solid currentColor;
 }
 
-.wt-primary-nav button .wt-icon {
+.wt-primary-nav button .wt-icon,
+.wt-primary-nav a .wt-icon {
   width: 18px;
   height: 18px;
 }
 
-.wt-primary-nav button.active {
+.wt-primary-nav button.active,
+.wt-primary-nav a.active {
   background: rgba(255,255,255,.08);
   color: #fff;
 }
 
-.wt-primary-nav button.active i {
+.wt-primary-nav button.active i,
+.wt-primary-nav a.active i {
   background: var(--teal);
   border-color: var(--teal);
 }
@@ -2449,7 +2456,8 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   border: 0;
 }
 
-.wt-primary-nav button {
+.wt-primary-nav button,
+.wt-primary-nav a {
   height: 36px;
   grid-template-columns: 22px 1fr;
   gap: 10px;
@@ -2460,7 +2468,8 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   font-weight: 500;
 }
 
-.wt-primary-nav button i {
+.wt-primary-nav button i,
+.wt-primary-nav a i {
   position: relative;
   width: 16px;
   height: 16px;
@@ -2469,19 +2478,22 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   border-radius: 2px;
 }
 
-.wt-primary-nav button .wt-icon {
+.wt-primary-nav button .wt-icon,
+.wt-primary-nav a .wt-icon {
   width: 17px;
   height: 17px;
   color: currentColor;
   opacity: .95;
 }
 
-.wt-primary-nav button.active {
+.wt-primary-nav button.active,
+.wt-primary-nav a.active {
   background: var(--flow-active);
   color: #e2e8f0;
 }
 
-.wt-primary-nav button.active i {
+.wt-primary-nav button.active i,
+.wt-primary-nav a.active i {
   background: transparent;
   border-color: currentColor;
 }
@@ -3614,7 +3626,6 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 #wt-system-root[data-wt-fit="viewport"] .wt-calendar-layout {
   grid-template-columns: minmax(0, 1fr);
 }
-
 </style>
 <div
   id="wt-system-root"
@@ -3924,8 +3935,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       navItem("dashboard", "Dashboard"),
       navItem("creation", "Creation Plan"),
       navItem("calendar", "Calendar"),
-      navItem("lab", "Nike Lab Test"),
-      navItem("phk", "PHK WT Reports"),
+      externalNavItem("nikeRows", "Nike Lab Raw Data", "lab"),
+      externalNavItem("nikeReports", "Nike Lab Reports", "phk"),
+      externalNavItem("phkReports", "PHK WT Reports", "phk"),
       '</nav>',
       '</aside>'
     ].join("");
@@ -3937,6 +3949,17 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       icon(section),
       '<span>' + text(label) + '</span>',
       '</button>'
+    ].join("");
+  }
+
+  function externalNavItem(sourceKey, label, iconName) {
+    var source = SHAREPOINT_SOURCES[sourceKey] || {};
+    var href = source.url || "#";
+    return [
+      '<a href="' + text(href) + '" target="_blank" rel="noopener noreferrer" data-external-source="' + text(sourceKey) + '" title="' + text(label) + '">',
+      icon(iconName || "phk"),
+      '<span>' + text(label) + '</span>',
+      '</a>'
     ].join("");
   }
 
@@ -3964,16 +3987,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function sectionTitle() {
     if (state.section === "dashboard") return "Dashboard";
     if (state.section === "creation") return "Creation Plan";
-    if (state.section === "lab") return "Nike Lab Test";
-    if (state.section === "phk") return "PHK WT Reports";
     return "Calendar";
   }
 
   function renderSection(root) {
     if (state.section === "dashboard") return renderDashboard();
     if (state.section === "creation") return renderCreationPlan();
-    if (state.section === "lab") return renderLabTest(root);
-    if (state.section === "phk") return renderPhkReports(root);
     return renderCalendarWorkspace(root);
   }
 
@@ -5901,5 +5920,4 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     boot();
   }
 })();
-
 </script>

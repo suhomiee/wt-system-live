@@ -295,8 +295,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       navItem("dashboard", "Dashboard"),
       navItem("creation", "Creation Plan"),
       navItem("calendar", "Calendar"),
-      navItem("lab", "Nike Lab Test"),
-      navItem("phk", "PHK WT Reports"),
+      externalNavItem("nikeRows", "Nike Lab Raw Data", "lab"),
+      externalNavItem("nikeReports", "Nike Lab Reports", "phk"),
+      externalNavItem("phkReports", "PHK WT Reports", "phk"),
       '</nav>',
       '</aside>'
     ].join("");
@@ -308,6 +309,17 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       icon(section),
       '<span>' + text(label) + '</span>',
       '</button>'
+    ].join("");
+  }
+
+  function externalNavItem(sourceKey, label, iconName) {
+    var source = SHAREPOINT_SOURCES[sourceKey] || {};
+    var href = source.url || "#";
+    return [
+      '<a href="' + text(href) + '" target="_blank" rel="noopener noreferrer" data-external-source="' + text(sourceKey) + '" title="' + text(label) + '">',
+      icon(iconName || "phk"),
+      '<span>' + text(label) + '</span>',
+      '</a>'
     ].join("");
   }
 
@@ -335,16 +347,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function sectionTitle() {
     if (state.section === "dashboard") return "Dashboard";
     if (state.section === "creation") return "Creation Plan";
-    if (state.section === "lab") return "Nike Lab Test";
-    if (state.section === "phk") return "PHK WT Reports";
     return "Calendar";
   }
 
   function renderSection(root) {
     if (state.section === "dashboard") return renderDashboard();
     if (state.section === "creation") return renderCreationPlan();
-    if (state.section === "lab") return renderLabTest(root);
-    if (state.section === "phk") return renderPhkReports(root);
     return renderCalendarWorkspace(root);
   }
 
