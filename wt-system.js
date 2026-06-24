@@ -133,7 +133,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     search: "",
     deadlineOnly: false,
     actionMessage: "",
-    season: "All"
+    season: "All",
+    localSubmissions: []
   };
 
   function boot() {
@@ -2408,9 +2409,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function saveLocalSubmission(payload) {
-    var existing = JSON.parse(window.localStorage.getItem("wt-system-submissions") || "[]");
-    existing.push(payload);
-    window.localStorage.setItem("wt-system-submissions", JSON.stringify(existing));
+    state.localSubmissions = dedupeSubmissions(state.localSubmissions.concat([payload]));
+    var merged = dedupeSubmissions(readStoredSubmissions().concat(state.localSubmissions));
+    state.localSubmissions = merged;
+    writeStoredSubmissions(merged);
   }
 
   function submitToSharePointList(root, payload) {
@@ -2506,11 +2508,43 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function loadLocalSubmissions() {
+    return dedupeSubmissions(readStoredSubmissions().concat(state.localSubmissions));
+  }
+
+  function readStoredSubmissions() {
     try {
-      return JSON.parse(window.localStorage.getItem("wt-system-submissions") || "[]");
+      if (!window.localStorage) return [];
+      var parsed = JSON.parse(window.localStorage.getItem("wt-system-submissions") || "[]");
+      return Array.isArray(parsed) ? parsed : [];
     } catch (error) {
       return [];
     }
+  }
+
+  function writeStoredSubmissions(items) {
+    try {
+      if (!window.localStorage) return false;
+      window.localStorage.setItem("wt-system-submissions", JSON.stringify(items));
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function dedupeSubmissions(items) {
+    var seen = {};
+    return (items || []).filter(function (item) {
+      if (!item || !item.targetDate) return false;
+      var key = item.rowKey || [
+        item.targetDate,
+        item.projectName,
+        item.milestoneType,
+        item.submittedAt
+      ].join("|");
+      if (seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
   }
 
   function mapMilestoneKind(kind) {
