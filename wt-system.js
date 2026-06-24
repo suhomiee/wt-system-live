@@ -577,8 +577,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderMonthEventPill(event) {
     var selected = event.date === state.selectedDate ? " is-selected" : "";
     return [
-      '<button type="button" class="wt-month-event wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
-      '<span>' + text((event.gate || event.kind) + " · " + formatDateShort(event.date)) + '</span>',
+      '<button type="button" class="wt-month-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+      renderEventMetaLine(event, (event.gate || event.kind) + " · " + formatDateShort(event.date)),
       '<b>' + text(shortTitle(event.title, 42)) + '</b>',
       '</button>'
     ].join("");
@@ -625,11 +625,28 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderHorizontalCalendarEvent(event) {
     var selected = event.date === state.selectedDate ? " is-selected" : "";
     return [
-      '<button type="button" class="wt-horizontal-event wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
-      '<span>' + text(formatDateShort(event.date) + " · " + (event.gate || event.kind)) + '</span>',
+      '<button type="button" class="wt-horizontal-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+      renderEventMetaLine(event, formatDateShort(event.date) + " · " + (event.modelName || event.gate || event.kind)),
       '<b>' + text(shortTitle(event.title, 36)) + '</b>',
       '</button>'
     ].join("");
+  }
+
+  function renderEventOriginBadge(event) {
+    if (!isUserEvent(event)) return "";
+    return '<em>User</em>';
+  }
+
+  function renderEventMetaLine(event, value) {
+    return '<span>' + renderEventOriginBadge(event) + '<i>' + text(value) + '</i></span>';
+  }
+
+  function eventOriginClass(event) {
+    return isUserEvent(event) ? "wt-event-user" : "wt-event-system";
+  }
+
+  function isUserEvent(event) {
+    return !!event && (event.source !== "schedule.pdf" || !!event.modelName);
   }
 
   function renderTimelineBoard(compact) {

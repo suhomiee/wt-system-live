@@ -3666,10 +3666,36 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-horizontal-event span {
   min-width: 0;
   overflow: hidden;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 5px;
   color: var(--flow-muted);
   font-size: 11px;
   line-height: 13px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-month-event span em,
+.wt-horizontal-event span em {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: rgba(255,255,255,.74);
+  color: #005062;
+  padding: 1px 5px;
+  font-style: normal;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 12px;
+  text-transform: uppercase;
+}
+
+.wt-month-event span i,
+.wt-horizontal-event span i {
+  min-width: 0;
+  overflow: hidden;
+  display: block;
+  font-style: normal;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -3687,6 +3713,29 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   text-overflow: ellipsis;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+}
+
+.wt-month-event.wt-event-user,
+.wt-horizontal-event.wt-event-user {
+  border-left-color: #005062;
+  background: #dff5f1;
+  color: #073d3c;
+}
+
+.wt-month-event.wt-event-user span,
+.wt-horizontal-event.wt-event-user span {
+  color: #0c625f;
+}
+
+.wt-month-event.wt-event-user b,
+.wt-horizontal-event.wt-event-user b {
+  color: #073d3c;
+  font-weight: 700;
+}
+
+.wt-month-event.wt-event-system,
+.wt-horizontal-event.wt-event-system {
+  background: var(--flow-card);
 }
 
 .wt-month-empty,
