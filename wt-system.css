@@ -2587,6 +2587,17 @@ textarea:focus-visible {
   font-size: 13px;
 }
 
+.wt-modal-caution {
+  margin: 2px 22px 18px;
+  border-left: 3px solid #d98b16;
+  background: #fff7e4;
+  color: #5a3a08;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
 .wt-modal-warning {
   margin-top: -14px;
   color: #8f3d34;

@@ -2597,6 +2597,17 @@ textarea:focus-visible {
   font-size: 13px;
 }
 
+.wt-modal-caution {
+  margin: 2px 22px 18px;
+  border-left: 3px solid #d98b16;
+  background: #fff7e4;
+  color: #5a3a08;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
 .wt-modal-warning {
   margin-top: -14px;
   color: #8f3d34;
@@ -5480,6 +5491,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var confirmingDelete = state.pendingDeleteEventId === event.id;
     var productDetail = eventProductDetails(event);
     var readonlyMessage = isDerivedEvent(event) ? "Auto-created from the handoff schedule. Update the original handoff to change this event." : "";
+    var scheduleWarning = productFreezeWarningForEvent(event);
     var rows = [
       ["Date", formatDateShort(event.date)],
       ["Type", event.kind || "deadline"],
@@ -5506,6 +5518,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         return '<div><small>' + text(row[0]) + '</small><b>' + text(row[1]) + '</b></div>';
       }).join(""),
       '</div>',
+      scheduleWarning ? '<p class="wt-modal-caution">' + text(scheduleWarning) + '</p>' : "",
       isUser ? '<div class="wt-modal-actions"><button type="button" data-edit-event-id="' + text(event.id) + '" data-date="' + text(event.date) + '">Edit</button><button type="button" class="danger ' + (confirmingDelete ? "is-confirming" : "") + '" data-delete-event-id="' + text(event.id) + '">' + text(confirmingDelete ? "Confirm Delete" : "Delete") + '</button></div>' : (readonlyMessage ? '<p class="wt-modal-readonly">' + text(readonlyMessage) + '</p>' : ""),
       confirmingDelete ? '<p class="wt-modal-warning">Click Confirm Delete to remove this user schedule.</p>' : "",
       '</article>',
@@ -6951,11 +6964,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function completeScheduleSave(root, payload, message) {
+    var saveWarning = productFreezeWarningForSubmission(payload);
     state.section = "calendar";
     state.view = "display";
     state.editingEventId = "";
     state.pendingDeleteEventId = "";
-    state.activeEventId = "";
+    state.activeEventId = saveWarning ? payload.rowKey : "";
     state.selectedDate = payload.targetDate || state.selectedDate;
     state.period = "month";
     state.weekStart = periodAnchor(state.selectedDate, state.period);
@@ -7342,6 +7356,41 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       item.milestoneType
     ].join(" ").toLowerCase();
     return textValue.indexOf("handoff") >= 0 && (textValue.indexOf("fpt") >= 0 || textValue.indexOf("t2") >= 0);
+  }
+
+  function productFreezeWarningForEvent(event) {
+    if (!isUserEvent(event)) return "";
+    return productFreezeWarningForSubmission({
+      targetDate: event.date,
+      season: event.season,
+      milestoneType: event.kind,
+      projectName: event.title,
+      owner: event.owner,
+      notes: event.notes,
+      gate: event.gate
+    });
+  }
+
+  function productFreezeWarningForSubmission(item) {
+    if (!item || !isT2FptHandoffSubmission(item) || !item.targetDate || !item.season || item.season === "All") return "";
+    var freeze = nextProductFreezeForSeason(item.season, item.targetDate);
+    if (!freeze) return "";
+    var gap = daysBetween(item.targetDate, freeze.date);
+    if (gap < 0 || gap >= 21) return "";
+    return "Product Freeze까지 " + gap + "일 남았습니다. Product Freeze 이전에 T2 WT를 통해 이슈사항에 대한 suggestion이 선행되어야 합니다.";
+  }
+
+  function nextProductFreezeForSeason(season, date) {
+    var seasonKey = String(season || "").toUpperCase();
+    return (EMBEDDED.milestones || []).filter(function (item) {
+      return item &&
+        item.source === "schedule.pdf" &&
+        item.kind === "product_freeze" &&
+        String(item.season || "").toUpperCase() === seasonKey &&
+        item.date >= date;
+    }).sort(function (a, b) {
+      return a.date.localeCompare(b.date);
+    })[0] || null;
   }
 
   function mapMilestoneKind(kind) {
