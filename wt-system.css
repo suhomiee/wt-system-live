@@ -122,6 +122,7 @@ textarea:focus-visible {
 }
 
 .wt-app {
+  position: relative;
   width: 100vw;
   min-width: 1240px;
   height: 100dvh;
@@ -2452,10 +2453,171 @@ textarea:focus-visible {
   color: #fff;
 }
 
+.wt-event-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+}
+
+.wt-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(12, 18, 16, .46);
+  transform: none;
+}
+
+.wt-modal-panel {
+  position: relative;
+  z-index: 1;
+  width: min(620px, 100%);
+  max-height: min(720px, calc(100dvh - 56px));
+  display: grid;
+  gap: 18px;
+  overflow: auto;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: #fbfcfb;
+  color: var(--ink);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .28);
+}
+
+.wt-modal-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 38px;
+  gap: 16px;
+  align-items: start;
+  padding: 22px 22px 0;
+}
+
+.wt-modal-header small {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.wt-modal-header h2 {
+  margin: 8px 0 0;
+  font-family: var(--font-display);
+  font-size: 28px;
+  line-height: 1.08;
+}
+
+.wt-modal-close {
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.wt-modal-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0 22px;
+  border: 1px solid var(--line);
+  background: var(--line);
+}
+
+.wt-modal-detail-grid div {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  align-content: start;
+  min-height: 74px;
+  padding: 12px;
+  background: #fff;
+}
+
+.wt-modal-detail-grid small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.wt-modal-detail-grid b {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.wt-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 0 22px 22px;
+}
+
+.wt-modal-actions button {
+  min-height: 42px;
+  border: 1px solid var(--line-strong);
+  background: #fff;
+  color: var(--ink);
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.wt-modal-actions .danger {
+  border-color: #8f3d34;
+  background: #fff4f1;
+  color: #8f3d34;
+}
+
+.wt-modal-actions .danger.is-confirming {
+  background: #8f3d34;
+  color: #fff;
+}
+
+.wt-modal-readonly,
+.wt-modal-warning {
+  margin: -4px 22px 22px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.wt-modal-warning {
+  margin-top: -14px;
+  color: #8f3d34;
+  font-weight: 800;
+}
+
 .wt-edit-form .danger {
   min-width: 132px;
   min-height: 48px;
   padding: 0 14px;
+}
+
+@media (max-width: 720px) {
+  .wt-event-modal {
+    position: fixed;
+    padding: 18px;
+  }
+
+  .wt-modal-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wt-modal-header h2 {
+    font-size: 22px;
+  }
+
+  .wt-modal-actions {
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 1240px) {

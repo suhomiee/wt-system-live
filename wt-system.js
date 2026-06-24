@@ -136,7 +136,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     season: "All",
     localSubmissions: [],
     editingEventId: "",
-    pendingDeleteEventId: ""
+    pendingDeleteEventId: "",
+    activeEventId: ""
   };
 
   function boot() {
@@ -167,15 +168,27 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var deadlineButton = event.target.closest("[data-deadline-toggle]");
       var exportButton = event.target.closest("[data-export]");
       var clearSearchButton = event.target.closest("[data-clear-search]");
-      var userEventButton = event.target.closest("[data-user-event-id]");
+      var eventButton = event.target.closest("[data-event-id]");
+      var editEventButton = event.target.closest("[data-edit-event-id]");
       var deleteEventButton = event.target.closest("[data-delete-event-id]");
+      var closeModalButton = event.target.closest("[data-close-event-modal]");
 
       if (sectionButton && root.contains(sectionButton)) {
         state.section = sectionButton.getAttribute("data-section");
         state.view = "display";
         state.editingEventId = "";
         state.pendingDeleteEventId = "";
+        state.activeEventId = "";
         render(root);
+      }
+
+      if (closeModalButton && root.contains(closeModalButton)) {
+        event.preventDefault();
+        state.activeEventId = "";
+        state.pendingDeleteEventId = "";
+        state.actionMessage = "";
+        render(root);
+        return;
       }
 
       if (deleteEventButton && root.contains(deleteEventButton)) {
@@ -194,17 +207,32 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         return;
       }
 
-      if (userEventButton && root.contains(userEventButton)) {
+      if (editEventButton && root.contains(editEventButton)) {
         event.preventDefault();
-        var editId = userEventButton.getAttribute("data-user-event-id");
+        var editId = editEventButton.getAttribute("data-edit-event-id");
         if (!findLocalSubmissionById(editId)) return;
         state.editingEventId = editId;
         state.section = "calendar";
         state.view = "edit";
-        state.selectedDate = userEventButton.getAttribute("data-date") || state.selectedDate;
+        state.selectedDate = editEventButton.getAttribute("data-date") || state.selectedDate;
         state.weekStart = periodAnchor(state.selectedDate, state.period);
         state.actionMessage = "";
         state.pendingDeleteEventId = "";
+        state.activeEventId = "";
+        render(root);
+        return;
+      }
+
+      if (eventButton && root.contains(eventButton)) {
+        event.preventDefault();
+        var eventId = eventButton.getAttribute("data-event-id");
+        var selectedEvent = findEventById(eventId);
+        if (!selectedEvent) return;
+        state.activeEventId = eventId;
+        state.selectedDate = selectedEvent.date || eventButton.getAttribute("data-date") || state.selectedDate;
+        state.weekStart = periodAnchor(state.selectedDate, state.period);
+        state.pendingDeleteEventId = "";
+        state.actionMessage = "";
         render(root);
         return;
       }
@@ -223,6 +251,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         state.view = viewButton.getAttribute("data-view");
         state.editingEventId = "";
         state.pendingDeleteEventId = "";
+        state.activeEventId = "";
         if (state.view === "edit") state.section = "calendar";
         render(root);
       }
@@ -230,6 +259,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       if (dateButton && root.contains(dateButton)) {
         state.selectedDate = dateButton.getAttribute("data-date");
         state.pendingDeleteEventId = "";
+        state.activeEventId = "";
         render(root);
       }
 
@@ -373,6 +403,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-app is-' + text(state.section) + ' is-' + text(state.view) + '">',
       renderSidebar(root),
       state.view === "edit" ? renderEditor(root) : renderShell(root),
+      renderEventModal(),
       '</div>'
     ].join("");
   }
@@ -711,8 +742,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function userEventAttributes(event) {
-    if (!isUserEvent(event)) return "";
-    return 'data-user-event-id="' + text(event.id) + '"';
+    var attrs = 'data-event-id="' + text(event.id) + '"';
+    if (isUserEvent(event)) attrs += ' data-user-event-id="' + text(event.id) + '"';
+    return attrs;
   }
 
   function prioritizedEvents(events) {
@@ -1015,7 +1047,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var confirmingDelete = state.pendingDeleteEventId === event.id;
     var actions = isUserEvent(event) ? [
       '<div class="wt-inspector-actions">',
-      '<button type="button" data-user-event-id="' + text(event.id) + '" data-date="' + text(event.date) + '">Edit</button>',
+      '<button type="button" data-edit-event-id="' + text(event.id) + '" data-date="' + text(event.date) + '">Edit</button>',
       '<button type="button" class="danger ' + (confirmingDelete ? "is-confirming" : "") + '" data-delete-event-id="' + text(event.id) + '">' + text(confirmingDelete ? "Confirm Delete" : "Delete") + '</button>',
       '</div>'
     ].join("") : "";
@@ -1028,6 +1060,45 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       event.notes ? '<small>' + text(event.notes) + '</small>' : "",
       actions,
       '</article>'
+    ].join("");
+  }
+
+  function renderEventModal() {
+    var event = state.activeEventId ? findEventById(state.activeEventId) : null;
+    if (!event || state.view === "edit") return "";
+    var isUser = isUserEvent(event);
+    var confirmingDelete = state.pendingDeleteEventId === event.id;
+    var productDetail = eventProductDetails(event);
+    var rows = [
+      ["Date", formatDateShort(event.date)],
+      ["Type", event.kind || "deadline"],
+      ["Season", event.season || "All"],
+      ["Gate", event.gate || (isUser ? "User schedule" : "WT")],
+      ["Owner", event.owner || "WT"],
+      ["Source", event.source === "schedule.pdf" ? "Schedule PDF" : "User schedule"]
+    ];
+    if (productDetail) rows.splice(4, 0, ["Product", productDetail]);
+    if (event.notes) rows.push(["Memo", event.notes]);
+    return [
+      '<section class="wt-event-modal" role="dialog" aria-modal="true" aria-label="Event detail">',
+      '<button class="wt-modal-backdrop" type="button" data-close-event-modal aria-label="Close event detail"></button>',
+      '<article class="wt-modal-panel wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + '">',
+      '<header class="wt-modal-header">',
+      '<div>',
+      '<small>' + renderEventOriginBadge(event) + text(formatDateShort(event.date) + " · " + (event.gate || event.kind || "WT")) + '</small>',
+      '<h2>' + text(event.title) + '</h2>',
+      '</div>',
+      '<button type="button" class="wt-modal-close" data-close-event-modal aria-label="Close">&times;</button>',
+      '</header>',
+      '<div class="wt-modal-detail-grid">',
+      rows.map(function (row) {
+        return '<div><small>' + text(row[0]) + '</small><b>' + text(row[1]) + '</b></div>';
+      }).join(""),
+      '</div>',
+      isUser ? '<div class="wt-modal-actions"><button type="button" data-edit-event-id="' + text(event.id) + '" data-date="' + text(event.date) + '">Edit</button><button type="button" class="danger ' + (confirmingDelete ? "is-confirming" : "") + '" data-delete-event-id="' + text(event.id) + '">' + text(confirmingDelete ? "Confirm Delete" : "Delete") + '</button></div>' : '<p class="wt-modal-readonly">System schedule milestone. User editing is unavailable.</p>',
+      confirmingDelete ? '<p class="wt-modal-warning">Click Confirm Delete to remove this user schedule.</p>' : "",
+      '</article>',
+      '</section>'
     ].join("");
   }
 
@@ -1047,6 +1118,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       event.size,
       event.sampleQuantity
     ].filter(Boolean).join(" · ");
+  }
+
+  function findEventById(id) {
+    var events = normalizedEvents();
+    for (var i = 0; i < events.length; i += 1) {
+      if (events[i].id === id) return events[i];
+    }
+    return null;
   }
 
   function renderDashboard() {
@@ -2445,6 +2524,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     state.view = "display";
     state.editingEventId = "";
     state.pendingDeleteEventId = "";
+    state.activeEventId = "";
     state.selectedDate = payload.targetDate || state.selectedDate;
     state.period = "month";
     state.weekStart = periodAnchor(state.selectedDate, state.period);
@@ -2531,6 +2611,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         state.view = "display";
         state.editingEventId = "";
         state.pendingDeleteEventId = "";
+        state.activeEventId = "";
         state.actionMessage = "Deleted from WT_Submissions.";
         render(root);
       }).catch(function (error) {
@@ -2545,6 +2626,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     state.view = "display";
     state.editingEventId = "";
     state.pendingDeleteEventId = "";
+    state.activeEventId = "";
     state.actionMessage = "Deleted locally for preview.";
     render(root);
   }
