@@ -2647,11 +2647,11 @@ textarea:focus-visible {
 /* Flow parity pass: calendar screen */
 #wt-system-root,
 .wt-root {
-  --flow-navy: #06e6b3;
-  --flow-active: #004d3e;
-  --flow-sidebar-ink: #063a30;
-  --flow-sidebar-muted: #0f5f50;
-  --flow-sidebar-line: rgba(6, 58, 48, .22);
+  --flow-navy: #005062;
+  --flow-active: #005d6d;
+  --flow-sidebar-ink: #e5fffb;
+  --flow-sidebar-muted: #a7d6d0;
+  --flow-sidebar-line: rgba(229, 255, 251, .16);
   --flow-blue: #1e2dff;
   --flow-border: #e8e8e8;
   --flow-border-dark: #9e9ea0;
