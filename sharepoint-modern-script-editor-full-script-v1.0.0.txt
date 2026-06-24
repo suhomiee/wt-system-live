@@ -1525,22 +1525,13 @@ textarea:focus-visible {
   min-width: 0;
   min-height: 28px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  gap: 6px;
   border: 0;
   background: transparent;
   color: var(--ink);
   padding: 0;
   text-align: left;
-}
-
-.wt-year-month-head-button span {
-  justify-self: end;
-  color: var(--ink);
-  font-family: var(--font-display);
-  font-size: 18px;
-  line-height: 1;
 }
 
 .wt-year-month-head-button b {
@@ -4905,8 +4896,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var visibleLimit = 2;
     return [
       '<article class="wt-year-month-tile' + selected + '">',
-      '<button type="button" class="wt-year-month-head-button" data-date="' + text(unit.start) + '" aria-label="' + text(unit.label + " " + events.length + " events") + '">',
-      '<b>' + text(monthLabel) + '</b><span>' + text(events.length) + '</span>',
+      '<button type="button" class="wt-year-month-head-button" data-date="' + text(unit.start) + '" aria-label="' + text(unit.label + " overview") + '">',
+      '<b>' + text(monthLabel) + '</b>',
       '</button>',
       '<div class="wt-year-month-events">',
       events.length ? events.slice(0, visibleLimit).map(function (event) {

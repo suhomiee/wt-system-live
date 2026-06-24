@@ -997,8 +997,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var visibleLimit = 2;
     return [
       '<article class="wt-year-month-tile' + selected + '">',
-      '<button type="button" class="wt-year-month-head-button" data-date="' + text(unit.start) + '" aria-label="' + text(unit.label + " " + events.length + " events") + '">',
-      '<b>' + text(monthLabel) + '</b><span>' + text(events.length) + '</span>',
+      '<button type="button" class="wt-year-month-head-button" data-date="' + text(unit.start) + '" aria-label="' + text(unit.label + " overview") + '">',
+      '<b>' + text(monthLabel) + '</b>',
       '</button>',
       '<div class="wt-year-month-events">',
       events.length ? events.slice(0, visibleLimit).map(function (event) {
