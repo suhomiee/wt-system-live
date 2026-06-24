@@ -1604,13 +1604,6 @@ textarea:focus-visible {
   overflow: hidden;
 }
 
-.wt-dashboard-month-panel > header > b {
-  color: var(--ink);
-  font-family: var(--font-display);
-  font-size: 30px;
-  line-height: 1;
-}
-
 .wt-dashboard-month-panel > p {
   margin: 0;
   color: var(--muted);

@@ -428,11 +428,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderCalendarControls() {
     var range = currentRange();
     var rangeEvents = eventsForCurrentRange();
+    var showEventCount = state.period !== "month";
     return [
       '<section class="wt-control-strip wt-flow-control-strip" aria-label="Calendar filters">',
       '<div class="wt-filter-row wt-flow-filter-row">',
-      '<span class="wt-event-count">' + text(rangeEvents.length) + ' Events</span>',
-      '<span class="wt-flow-divider"></span>',
+      showEventCount ? '<span class="wt-event-count">' + text(rangeEvents.length) + ' Events</span>' : "",
+      showEventCount ? '<span class="wt-flow-divider"></span>' : "",
       '<label class="wt-search wt-flow-search"><span class="wt-search-icon">' + icon("search") + '</span><input data-calendar-search type="search" value="' + text(state.search) + '" placeholder="Search"></label>',
       renderFlowFilter("Season", availableSeasons(), "season", state.season),
       '<button class="wt-deadline-toggle wt-flow-pill ' + (state.deadlineOnly ? "active" : "") + '" type="button" data-deadline-toggle>' + icon("flag") + '<span>Deadline</span></button>',
@@ -1040,12 +1041,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderDashboardMonthPanel() {
     return withCalendarState("month", state.selectedDate, function () {
       var range = currentRange();
-      var count = eventsForCurrentRange().length;
+      var monthTitle = MONTHS[fromIso(state.selectedDate).getMonth()] + " " + fromIso(state.selectedDate).getFullYear();
       return [
         '<section class="wt-dashboard-month-panel">',
         '<header>',
-        '<div><small>Monthly calendar</small><h2>Month</h2></div>',
-        '<b>' + text(count) + '</b>',
+        '<div><small>Monthly calendar</small><h2>' + text(monthTitle) + '</h2></div>',
         '</header>',
         '<p>' + text(formatRange(range)) + '</p>',
         '<div class="wt-dashboard-month-board">',
