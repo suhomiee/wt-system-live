@@ -1088,7 +1088,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var isUser = isUserEvent(event);
     var confirmingDelete = state.pendingDeleteEventId === event.id;
     var productDetail = eventProductDetails(event);
-    var readonlyMessage = isDerivedEvent(event) ? "Auto-generated from the T2 FPT handoff schedule. Edit the source handoff schedule to change this event." : "System schedule milestone. User editing is unavailable.";
+    var readonlyMessage = isDerivedEvent(event) ? "Auto-created from the handoff schedule. Update the original handoff to change this event." : "";
     var rows = [
       ["Date", formatDateShort(event.date)],
       ["Type", event.kind || "deadline"],
@@ -1115,7 +1115,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         return '<div><small>' + text(row[0]) + '</small><b>' + text(row[1]) + '</b></div>';
       }).join(""),
       '</div>',
-      isUser ? '<div class="wt-modal-actions"><button type="button" data-edit-event-id="' + text(event.id) + '" data-date="' + text(event.date) + '">Edit</button><button type="button" class="danger ' + (confirmingDelete ? "is-confirming" : "") + '" data-delete-event-id="' + text(event.id) + '">' + text(confirmingDelete ? "Confirm Delete" : "Delete") + '</button></div>' : '<p class="wt-modal-readonly">' + text(readonlyMessage) + '</p>',
+      isUser ? '<div class="wt-modal-actions"><button type="button" data-edit-event-id="' + text(event.id) + '" data-date="' + text(event.date) + '">Edit</button><button type="button" class="danger ' + (confirmingDelete ? "is-confirming" : "") + '" data-delete-event-id="' + text(event.id) + '">' + text(confirmingDelete ? "Confirm Delete" : "Delete") + '</button></div>' : (readonlyMessage ? '<p class="wt-modal-readonly">' + text(readonlyMessage) + '</p>' : ""),
       confirmingDelete ? '<p class="wt-modal-warning">Click Confirm Delete to remove this user schedule.</p>' : "",
       '</article>',
       '</section>'
