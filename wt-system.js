@@ -344,7 +344,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '</div>',
       '<nav class="wt-primary-nav" aria-label="Primary">',
       navItem("dashboard", "Dashboard"),
-      navItem("creation", "Creation Plan"),
       navItem("calendar", "Calendar"),
       copilotNavItem(root, "AI Q&A"),
       externalNavItem("nikeReports", "Nike Lab Reports", "phk"),
@@ -549,9 +548,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var weekRows = Math.ceil(cells.length / 7);
     return [
       '<section class="wt-month-calendar-board ' + (compact ? "compact" : "") + '" aria-label="Monthly calendar">',
-      '<div class="wt-month-calendar-head">',
-      WEEKDAYS.map(function (day) { return '<span>' + text(day) + '</span>'; }).join(""),
-      '</div>',
+      compact ? "" : '<div class="wt-month-calendar-head">' + WEEKDAYS.map(function (day) { return '<span>' + text(day) + '</span>'; }).join("") + '</div>',
       '<div class="wt-month-calendar-grid" style="--wt-week-rows:' + text(weekRows) + '">',
       cells.map(function (date) {
         return renderMonthCalendarCell(date, byDate[date] || [], compact);
