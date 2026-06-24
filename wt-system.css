@@ -1728,59 +1728,9 @@ textarea:focus-visible {
 .wt-game-plan-page {
   min-height: 0;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 14px;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
   background: #ffffff;
-}
-
-.wt-game-plan-head {
-  min-height: 96px;
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 20px 22px;
-  border: 1px solid var(--line);
-  background: #fbfcfb;
-}
-
-.wt-game-plan-head small,
-.wt-game-plan-stats small {
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.wt-game-plan-head h1 {
-  margin: 4px 0 0;
-  color: var(--ink);
-  font-family: var(--font-display);
-  font-size: 34px;
-  line-height: 1;
-  letter-spacing: 0;
-}
-
-.wt-game-plan-stats {
-  display: flex;
-  gap: 8px;
-  align-items: stretch;
-}
-
-.wt-game-plan-stats span {
-  min-width: 104px;
-  display: grid;
-  gap: 2px;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  background: #ffffff;
-}
-
-.wt-game-plan-stats b {
-  color: var(--ink);
-  font-family: var(--font-display);
-  font-size: 22px;
-  line-height: 1;
 }
 
 .wt-game-plan-table-wrap {
@@ -1901,25 +1851,18 @@ textarea:focus-visible {
   box-shadow: inset 0 0 0 2px var(--teal-dark);
 }
 
-.wt-game-plan-cell button {
+.wt-game-plan-event {
   width: 100%;
   min-height: 48px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
-  border: 1px solid transparent;
-  border-left: 4px solid var(--teal-dark);
+  border: 1px solid var(--line);
   background: #fbfcfb;
   color: var(--ink);
-  padding: 0 10px 0 9px;
+  padding: 0 10px;
   text-align: left;
-}
-
-.wt-game-plan-cell button:hover,
-.wt-game-plan-cell button:focus-visible {
-  border-color: var(--line-strong);
-  background: #ffffff;
 }
 
 .wt-game-plan-cell b {
@@ -1942,28 +1885,6 @@ textarea:focus-visible {
   background: #f8faf9;
   color: #a0aaa6;
   text-align: center;
-}
-
-.wt-gp-kind-product_freeze .wt-game-plan-kind,
-.wt-gp-kind-product_freeze .wt-game-plan-cell button {
-  border-left-color: var(--orange);
-}
-
-.wt-gp-kind-handoff .wt-game-plan-kind,
-.wt-gp-kind-handoff .wt-game-plan-cell button {
-  border-left-color: var(--blue);
-}
-
-.wt-gp-kind-sample_to_fpt .wt-game-plan-kind,
-.wt-gp-kind-sample_to_fpt .wt-game-plan-cell button,
-.wt-gp-kind-sample_ddd .wt-game-plan-kind,
-.wt-gp-kind-sample_ddd .wt-game-plan-cell button {
-  border-left-color: var(--green);
-}
-
-.wt-gp-kind-results_ready .wt-game-plan-kind,
-.wt-gp-kind-results_ready .wt-game-plan-cell button {
-  border-left-color: var(--red);
 }
 
 .wt-week-board.compact .wt-event {
@@ -2994,7 +2915,6 @@ textarea:focus-visible {
   .wt-source-workspace,
   .wt-ai-layout,
   .wt-creation,
-  .wt-game-plan-head,
   .wt-libraries,
   .wt-editor-layout {
     grid-template-columns: 1fr;

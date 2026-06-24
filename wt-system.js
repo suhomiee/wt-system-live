@@ -182,13 +182,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var deleteEventButton = event.target.closest("[data-delete-event-id]");
       var closeModalButton = event.target.closest("[data-close-event-modal]");
       var closeScheduleModalButton = event.target.closest("[data-close-schedule-modal]");
-      var gamePlanEventButton = event.target.closest("[data-gameplan-event-id]");
-
-      if (gamePlanEventButton && root.contains(gamePlanEventButton)) {
-        event.preventDefault();
-        locateGamePlanEvent(root, gamePlanEventButton.getAttribute("data-gameplan-event-id"));
-        return;
-      }
 
       if (sectionButton && root.contains(sectionButton)) {
         state.section = sectionButton.getAttribute("data-section");
@@ -489,7 +482,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderShell(root) {
-    var noToolbar = state.section === "dashboard";
+    var noToolbar = state.section === "dashboard" || state.section === "gameplan";
     return [
       '<main class="wt-main ' + (noToolbar ? "wt-main-no-toolbar" : "") + '" aria-label="WT System workspace">',
       noToolbar ? "" : renderToolbar(),
@@ -1330,13 +1323,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var grouped = groupGamePlanRows(rows);
     return [
       '<section class="wt-game-plan-page">',
-      '<header class="wt-game-plan-head">',
-      '<div><small>WT Product Game Plan</small><h1>Product Game Plan</h1></div>',
-      '<div class="wt-game-plan-stats">',
-      '<span><b>' + text(rows.length) + '</b><small>Rows</small></span>',
-      '<span><b>' + text((EMBEDDED.milestones || []).length) + '</b><small>Milestones</small></span>',
-      '</div>',
-      '</header>',
       '<div class="wt-game-plan-table-wrap">',
       '<table class="wt-game-plan-table" aria-label="WT Product Game Plan schedule">',
       '<thead><tr><th>Gate</th><th>Milestone</th>' + GAME_PLAN_SEASONS.map(function (season) {
@@ -1373,13 +1359,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderGamePlanCell(item, season) {
     if (!item) return '<td class="wt-game-plan-cell is-empty"><span>-</span></td>';
-    var isActive = state.activeEventId === item.id || state.selectedDate === item.date;
     return [
-      '<td class="wt-game-plan-cell ' + (isActive ? "is-selected" : "") + '">',
-      '<button type="button" data-gameplan-event-id="' + text(item.id) + '" data-date="' + text(item.date) + '" title="' + text(season + " · " + item.task + " · " + formatGamePlanDate(item.date)) + '">',
+      '<td class="wt-game-plan-cell">',
+      '<div class="wt-game-plan-event" title="' + text(season + " · " + item.task + " · " + formatGamePlanDate(item.date)) + '">',
       '<b>' + text(formatGamePlanDate(item.date)) + '</b>',
       item.week ? '<small>W' + text(item.week) + '</small>' : '<small>' + text(season) + '</small>',
-      '</button>',
+      '</div>',
       '</td>'
     ].join("");
   }
@@ -1431,25 +1416,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function formatGamePlanDate(date) {
     var d = fromIso(date);
-    return MONTHS[d.getMonth()] + " " + d.getDate() + " '" + String(d.getFullYear()).slice(2);
-  }
-
-  function locateGamePlanEvent(root, eventId) {
-    var selectedEvent = findEventById(eventId);
-    if (!selectedEvent) return;
-    state.section = "dashboard";
-    state.view = "display";
-    state.calendarView = "calendar";
-    state.period = "month";
-    state.selectedDate = selectedEvent.date;
-    state.weekStart = periodAnchor(selectedEvent.date, "month");
-    state.season = selectedEvent.season || "All";
-    state.search = "";
-    state.deadlineHighlight = false;
-    state.activeEventId = selectedEvent.id;
-    state.pendingDeleteEventId = "";
-    state.actionMessage = selectedEvent.title + " highlighted on Dashboard.";
-    render(root);
+    return [d.getFullYear(), pad(d.getMonth() + 1), pad(d.getDate())].join(".");
   }
 
   function withCalendarState(period, anchorIso, callback) {

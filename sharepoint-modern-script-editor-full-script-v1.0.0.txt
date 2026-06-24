@@ -1738,59 +1738,9 @@ textarea:focus-visible {
 .wt-game-plan-page {
   min-height: 0;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 14px;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
   background: #ffffff;
-}
-
-.wt-game-plan-head {
-  min-height: 96px;
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 20px 22px;
-  border: 1px solid var(--line);
-  background: #fbfcfb;
-}
-
-.wt-game-plan-head small,
-.wt-game-plan-stats small {
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.wt-game-plan-head h1 {
-  margin: 4px 0 0;
-  color: var(--ink);
-  font-family: var(--font-display);
-  font-size: 34px;
-  line-height: 1;
-  letter-spacing: 0;
-}
-
-.wt-game-plan-stats {
-  display: flex;
-  gap: 8px;
-  align-items: stretch;
-}
-
-.wt-game-plan-stats span {
-  min-width: 104px;
-  display: grid;
-  gap: 2px;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  background: #ffffff;
-}
-
-.wt-game-plan-stats b {
-  color: var(--ink);
-  font-family: var(--font-display);
-  font-size: 22px;
-  line-height: 1;
 }
 
 .wt-game-plan-table-wrap {
@@ -1911,25 +1861,18 @@ textarea:focus-visible {
   box-shadow: inset 0 0 0 2px var(--teal-dark);
 }
 
-.wt-game-plan-cell button {
+.wt-game-plan-event {
   width: 100%;
   min-height: 48px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
-  border: 1px solid transparent;
-  border-left: 4px solid var(--teal-dark);
+  border: 1px solid var(--line);
   background: #fbfcfb;
   color: var(--ink);
-  padding: 0 10px 0 9px;
+  padding: 0 10px;
   text-align: left;
-}
-
-.wt-game-plan-cell button:hover,
-.wt-game-plan-cell button:focus-visible {
-  border-color: var(--line-strong);
-  background: #ffffff;
 }
 
 .wt-game-plan-cell b {
@@ -1952,28 +1895,6 @@ textarea:focus-visible {
   background: #f8faf9;
   color: #a0aaa6;
   text-align: center;
-}
-
-.wt-gp-kind-product_freeze .wt-game-plan-kind,
-.wt-gp-kind-product_freeze .wt-game-plan-cell button {
-  border-left-color: var(--orange);
-}
-
-.wt-gp-kind-handoff .wt-game-plan-kind,
-.wt-gp-kind-handoff .wt-game-plan-cell button {
-  border-left-color: var(--blue);
-}
-
-.wt-gp-kind-sample_to_fpt .wt-game-plan-kind,
-.wt-gp-kind-sample_to_fpt .wt-game-plan-cell button,
-.wt-gp-kind-sample_ddd .wt-game-plan-kind,
-.wt-gp-kind-sample_ddd .wt-game-plan-cell button {
-  border-left-color: var(--green);
-}
-
-.wt-gp-kind-results_ready .wt-game-plan-kind,
-.wt-gp-kind-results_ready .wt-game-plan-cell button {
-  border-left-color: var(--red);
 }
 
 .wt-week-board.compact .wt-event {
@@ -3004,7 +2925,6 @@ textarea:focus-visible {
   .wt-source-workspace,
   .wt-ai-layout,
   .wt-creation,
-  .wt-game-plan-head,
   .wt-libraries,
   .wt-editor-layout {
     grid-template-columns: 1fr;
@@ -5067,13 +4987,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var deleteEventButton = event.target.closest("[data-delete-event-id]");
       var closeModalButton = event.target.closest("[data-close-event-modal]");
       var closeScheduleModalButton = event.target.closest("[data-close-schedule-modal]");
-      var gamePlanEventButton = event.target.closest("[data-gameplan-event-id]");
-
-      if (gamePlanEventButton && root.contains(gamePlanEventButton)) {
-        event.preventDefault();
-        locateGamePlanEvent(root, gamePlanEventButton.getAttribute("data-gameplan-event-id"));
-        return;
-      }
 
       if (sectionButton && root.contains(sectionButton)) {
         state.section = sectionButton.getAttribute("data-section");
@@ -5374,7 +5287,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderShell(root) {
-    var noToolbar = state.section === "dashboard";
+    var noToolbar = state.section === "dashboard" || state.section === "gameplan";
     return [
       '<main class="wt-main ' + (noToolbar ? "wt-main-no-toolbar" : "") + '" aria-label="WT System workspace">',
       noToolbar ? "" : renderToolbar(),
@@ -6215,13 +6128,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var grouped = groupGamePlanRows(rows);
     return [
       '<section class="wt-game-plan-page">',
-      '<header class="wt-game-plan-head">',
-      '<div><small>WT Product Game Plan</small><h1>Product Game Plan</h1></div>',
-      '<div class="wt-game-plan-stats">',
-      '<span><b>' + text(rows.length) + '</b><small>Rows</small></span>',
-      '<span><b>' + text((EMBEDDED.milestones || []).length) + '</b><small>Milestones</small></span>',
-      '</div>',
-      '</header>',
       '<div class="wt-game-plan-table-wrap">',
       '<table class="wt-game-plan-table" aria-label="WT Product Game Plan schedule">',
       '<thead><tr><th>Gate</th><th>Milestone</th>' + GAME_PLAN_SEASONS.map(function (season) {
@@ -6258,13 +6164,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderGamePlanCell(item, season) {
     if (!item) return '<td class="wt-game-plan-cell is-empty"><span>-</span></td>';
-    var isActive = state.activeEventId === item.id || state.selectedDate === item.date;
     return [
-      '<td class="wt-game-plan-cell ' + (isActive ? "is-selected" : "") + '">',
-      '<button type="button" data-gameplan-event-id="' + text(item.id) + '" data-date="' + text(item.date) + '" title="' + text(season + " · " + item.task + " · " + formatGamePlanDate(item.date)) + '">',
+      '<td class="wt-game-plan-cell">',
+      '<div class="wt-game-plan-event" title="' + text(season + " · " + item.task + " · " + formatGamePlanDate(item.date)) + '">',
       '<b>' + text(formatGamePlanDate(item.date)) + '</b>',
       item.week ? '<small>W' + text(item.week) + '</small>' : '<small>' + text(season) + '</small>',
-      '</button>',
+      '</div>',
       '</td>'
     ].join("");
   }
@@ -6316,25 +6221,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function formatGamePlanDate(date) {
     var d = fromIso(date);
-    return MONTHS[d.getMonth()] + " " + d.getDate() + " '" + String(d.getFullYear()).slice(2);
-  }
-
-  function locateGamePlanEvent(root, eventId) {
-    var selectedEvent = findEventById(eventId);
-    if (!selectedEvent) return;
-    state.section = "dashboard";
-    state.view = "display";
-    state.calendarView = "calendar";
-    state.period = "month";
-    state.selectedDate = selectedEvent.date;
-    state.weekStart = periodAnchor(selectedEvent.date, "month");
-    state.season = selectedEvent.season || "All";
-    state.search = "";
-    state.deadlineHighlight = false;
-    state.activeEventId = selectedEvent.id;
-    state.pendingDeleteEventId = "";
-    state.actionMessage = selectedEvent.title + " highlighted on Dashboard.";
-    render(root);
+    return [d.getFullYear(), pad(d.getMonth() + 1), pad(d.getDate())].join(".");
   }
 
   function withCalendarState(period, anchorIso, callback) {
