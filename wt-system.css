@@ -578,6 +578,7 @@ textarea:focus-visible {
 .wt-week-controls button,
 .wt-action-buttons button,
 .wt-deadline-toggle,
+.wt-model-highlight-toggle,
 .wt-filter-note button {
   min-height: 34px;
   border: 1px solid var(--line);
@@ -588,7 +589,8 @@ textarea:focus-visible {
 }
 
 .wt-filter-group button.active,
-.wt-deadline-toggle.active {
+.wt-deadline-toggle.active,
+.wt-model-highlight-toggle.active {
   border-color: var(--teal);
   background: rgba(33,174,176,.12);
   color: var(--teal-dark);
@@ -3403,6 +3405,18 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   color: #ffffff;
 }
 
+.wt-model-highlight-toggle.wt-flow-pill.active {
+  border-color: #005062;
+  background: #005062;
+  color: #ffffff;
+}
+
+.wt-deadline-toggle.wt-flow-pill::after,
+.wt-model-highlight-toggle.wt-flow-pill::after {
+  content: none;
+  display: none;
+}
+
 .wt-flow-actions {
   position: absolute;
   top: 44px;
@@ -4419,8 +4433,137 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   font-weight: 700;
 }
 
-.wt-month-event.wt-event-system,
-.wt-horizontal-event.wt-event-system {
+.wt-month-event.wt-highlight-deadline,
+.wt-horizontal-event.wt-highlight-deadline,
+.wt-year-event-summary.wt-highlight-deadline,
+.wt-list-row.wt-highlight-deadline,
+.wt-season-dot.wt-highlight-deadline,
+.wt-event.wt-highlight-deadline,
+.wt-timeline-bar.wt-highlight-deadline,
+.wt-gantt-chip.wt-highlight-deadline,
+.wt-inspector-event.wt-highlight-deadline,
+.wt-modal-panel.wt-highlight-deadline {
+  border-left-color: #d98b16;
+  background: #fff1bd;
+  color: #4b3108;
+  box-shadow: inset 0 0 0 1px rgba(217,139,22,.22);
+}
+
+.wt-month-event.wt-highlight-deadline span,
+.wt-horizontal-event.wt-highlight-deadline span,
+.wt-year-event-summary.wt-highlight-deadline span,
+.wt-list-row.wt-highlight-deadline span,
+.wt-season-dot.wt-highlight-deadline span,
+.wt-event.wt-highlight-deadline span,
+.wt-timeline-bar.wt-highlight-deadline span,
+.wt-gantt-chip.wt-highlight-deadline span {
+  color: #6f4707;
+}
+
+.wt-month-event.wt-highlight-deadline b,
+.wt-horizontal-event.wt-highlight-deadline b,
+.wt-year-event-summary.wt-highlight-deadline b,
+.wt-list-row.wt-highlight-deadline b,
+.wt-season-dot.wt-highlight-deadline b,
+.wt-event.wt-highlight-deadline b,
+.wt-timeline-bar.wt-highlight-deadline b,
+.wt-gantt-chip.wt-highlight-deadline b {
+  color: #3f2a08;
+  font-weight: 800;
+}
+
+.wt-month-event.wt-highlight-model-chain,
+.wt-horizontal-event.wt-highlight-model-chain,
+.wt-year-event-summary.wt-highlight-model-chain,
+.wt-list-row.wt-highlight-model-chain,
+.wt-season-dot.wt-highlight-model-chain,
+.wt-event.wt-highlight-model-chain,
+.wt-timeline-bar.wt-highlight-model-chain,
+.wt-gantt-chip.wt-highlight-model-chain,
+.wt-inspector-event.wt-highlight-model-chain,
+.wt-modal-panel.wt-highlight-model-chain {
+  border-left-color: #005062;
+  background: #c8f0e8;
+  color: #053f3e;
+  box-shadow: inset 0 0 0 1px rgba(0,80,98,.2);
+}
+
+.wt-month-event.wt-highlight-model-chain span,
+.wt-horizontal-event.wt-highlight-model-chain span,
+.wt-year-event-summary.wt-highlight-model-chain span,
+.wt-list-row.wt-highlight-model-chain span,
+.wt-season-dot.wt-highlight-model-chain span,
+.wt-event.wt-highlight-model-chain span,
+.wt-timeline-bar.wt-highlight-model-chain span,
+.wt-gantt-chip.wt-highlight-model-chain span {
+  color: #075f5b;
+}
+
+.wt-month-event.wt-highlight-model-chain b,
+.wt-horizontal-event.wt-highlight-model-chain b,
+.wt-year-event-summary.wt-highlight-model-chain b,
+.wt-list-row.wt-highlight-model-chain b,
+.wt-season-dot.wt-highlight-model-chain b,
+.wt-event.wt-highlight-model-chain b,
+.wt-timeline-bar.wt-highlight-model-chain b,
+.wt-gantt-chip.wt-highlight-model-chain b {
+  color: #043634;
+  font-weight: 800;
+}
+
+.wt-month-event.wt-event-derived.wt-highlight-model-chain,
+.wt-horizontal-event.wt-event-derived.wt-highlight-model-chain,
+.wt-year-event-summary.wt-event-derived.wt-highlight-model-chain,
+.wt-list-row.wt-event-derived.wt-highlight-model-chain,
+.wt-season-dot.wt-event-derived.wt-highlight-model-chain,
+.wt-event.wt-event-derived.wt-highlight-model-chain,
+.wt-timeline-bar.wt-event-derived.wt-highlight-model-chain,
+.wt-gantt-chip.wt-event-derived.wt-highlight-model-chain,
+.wt-inspector-event.wt-event-derived.wt-highlight-model-chain,
+.wt-modal-panel.wt-event-derived.wt-highlight-model-chain {
+  border-left-color: #d98b16;
+  background: #ffe2a8;
+  color: #5a3a08;
+  box-shadow: inset 0 0 0 1px rgba(217,139,22,.24);
+}
+
+.wt-month-event.wt-event-derived.wt-highlight-model-chain span,
+.wt-horizontal-event.wt-event-derived.wt-highlight-model-chain span,
+.wt-year-event-summary.wt-event-derived.wt-highlight-model-chain span,
+.wt-list-row.wt-event-derived.wt-highlight-model-chain span,
+.wt-season-dot.wt-event-derived.wt-highlight-model-chain span,
+.wt-event.wt-event-derived.wt-highlight-model-chain span,
+.wt-timeline-bar.wt-event-derived.wt-highlight-model-chain span,
+.wt-gantt-chip.wt-event-derived.wt-highlight-model-chain span {
+  color: #7a4c00;
+}
+
+.wt-month-event.wt-event-derived.wt-highlight-model-chain b,
+.wt-horizontal-event.wt-event-derived.wt-highlight-model-chain b,
+.wt-year-event-summary.wt-event-derived.wt-highlight-model-chain b,
+.wt-list-row.wt-event-derived.wt-highlight-model-chain b,
+.wt-season-dot.wt-event-derived.wt-highlight-model-chain b,
+.wt-event.wt-event-derived.wt-highlight-model-chain b,
+.wt-timeline-bar.wt-event-derived.wt-highlight-model-chain b,
+.wt-gantt-chip.wt-event-derived.wt-highlight-model-chain b {
+  color: #5a3a08;
+  font-weight: 800;
+}
+
+.wt-calendar-quarter .wt-horizontal-event.wt-highlight-deadline .wt-horizontal-event-date {
+  background: rgba(255,241,189,.86);
+}
+
+.wt-calendar-quarter .wt-horizontal-event.wt-highlight-model-chain .wt-horizontal-event-date {
+  background: rgba(200,240,232,.88);
+}
+
+.wt-calendar-quarter .wt-horizontal-event.wt-event-derived.wt-highlight-model-chain .wt-horizontal-event-date {
+  background: rgba(255,226,168,.88);
+}
+
+.wt-month-event.wt-event-system:not(.wt-highlight-deadline):not(.wt-highlight-model-chain),
+.wt-horizontal-event.wt-event-system:not(.wt-highlight-deadline):not(.wt-highlight-model-chain) {
   background: var(--flow-card);
 }
 

@@ -133,7 +133,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     weekStart: "",
     selectedDate: "",
     search: "",
-    deadlineOnly: false,
+    deadlineHighlight: false,
+    modelScheduleHighlight: false,
     actionMessage: "",
     season: "All",
     localSubmissions: [],
@@ -168,6 +169,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var reportButton = event.target.closest("[data-report-url]");
       var periodButton = event.target.closest("[data-period]");
       var deadlineButton = event.target.closest("[data-deadline-toggle]");
+      var modelScheduleButton = event.target.closest("[data-model-schedule-toggle]");
       var exportButton = event.target.closest("[data-export]");
       var clearSearchButton = event.target.closest("[data-clear-search]");
       var eventButton = event.target.closest("[data-event-id]");
@@ -314,8 +316,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       }
 
       if (deadlineButton && root.contains(deadlineButton)) {
-        state.deadlineOnly = !state.deadlineOnly;
-        state.actionMessage = state.deadlineOnly ? "Deadline filter is on." : "";
+        state.deadlineHighlight = !state.deadlineHighlight;
+        state.actionMessage = "";
+        render(root);
+      }
+
+      if (modelScheduleButton && root.contains(modelScheduleButton)) {
+        state.modelScheduleHighlight = !state.modelScheduleHighlight;
+        state.actionMessage = "";
         render(root);
       }
 
@@ -539,7 +547,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       showEventCount ? '<span class="wt-flow-divider"></span>' : "",
       '<label class="wt-search wt-flow-search"><span class="wt-search-icon">' + icon("search") + '</span><input data-calendar-search type="search" value="' + text(state.search) + '" placeholder="Search"></label>',
       renderFlowFilter("Season", availableSeasons(), "season", state.season),
-      '<button class="wt-deadline-toggle wt-flow-pill ' + (state.deadlineOnly ? "active" : "") + '" type="button" data-deadline-toggle>' + icon("flag") + '<span>Deadline</span></button>',
+      '<button class="wt-deadline-toggle wt-flow-pill ' + (state.deadlineHighlight ? "active" : "") + '" type="button" data-deadline-toggle>' + icon("flag") + '<span>Deadline</span></button>',
+      '<button class="wt-model-highlight-toggle wt-flow-pill ' + (state.modelScheduleHighlight ? "active" : "") + '" type="button" data-model-schedule-toggle>' + icon("model") + '<span>Model Schedule</span></button>',
       '</div>',
       '<div class="wt-action-buttons wt-flow-actions">',
       '<button type="button" data-export title="Export current range" aria-label="Export">' + icon("download") + '</button>',
@@ -607,6 +616,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       calendar: '<rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M8 2v4"></path><path d="M16 2v4"></path><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path>',
       assistant: '<path d="M12 3a7 7 0 0 0-7 7v2a7 7 0 0 0 14 0v-2a7 7 0 0 0-7-7z"></path><path d="M9 10h.01"></path><path d="M15 10h.01"></path><path d="M9.5 15c1.7 1 3.3 1 5 0"></path><path d="M4 20l2-2"></path><path d="M20 20l-2-2"></path>',
       gameplan: '<path d="M4 5h16"></path><path d="M4 10h16"></path><path d="M4 15h16"></path><path d="M4 20h16"></path><path d="M8 5v15"></path><path d="M14 5v15"></path>',
+      model: '<path d="M4 7h16"></path><path d="M7 4h10"></path><rect x="5" y="7" width="14" height="13" rx="2"></rect><path d="M9 11h6"></path><path d="M9 15h4"></path>',
       lab: '<path d="M9 3v5l-4.5 8.2A3.2 3.2 0 0 0 7.3 21h9.4a3.2 3.2 0 0 0 2.8-4.8L15 8V3"></path><path d="M8 3h8"></path><path d="M7 15h10"></path>',
       phk: '<path d="M4 4h7l2 2h7v14H4z"></path><path d="M8 11h8"></path><path d="M8 15h5"></path>',
       projector: '<rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8"></path><path d="M12 16v4"></path>',
@@ -680,7 +690,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderMonthEventPill(event) {
     var selected = event.date === state.selectedDate ? " is-selected" : "";
     return [
-      '<button type="button" class="wt-month-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+      '<button type="button" class="wt-month-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
       renderEventMetaLine(event, (event.gate || event.kind) + " · " + formatDateShort(event.date)),
       '<b>' + text(shortTitle(event.title, 42)) + '</b>',
       '</button>'
@@ -732,14 +742,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (state.period === "quarter") {
       var meta = [event.modelName || event.gate || event.kind, event.season || ""].filter(Boolean).join(" / ");
       return [
-        '<button type="button" class="wt-horizontal-event wt-horizontal-event-structured wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+        '<button type="button" class="wt-horizontal-event wt-horizontal-event-structured wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
         '<time class="wt-horizontal-event-date" datetime="' + text(event.date) + '"><span>' + text(MONTHS[fromIso(event.date).getMonth()]) + '</span><b>' + text(dayOfMonth(event.date)) + '</b></time>',
         '<span class="wt-horizontal-event-body">' + renderEventOriginBadge(event) + '<i>' + text(meta) + '</i><strong>' + text(shortTitle(event.title, 58)) + '</strong></span>',
         '</button>'
       ].join("");
     }
     return [
-      '<button type="button" class="wt-horizontal-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+      '<button type="button" class="wt-horizontal-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
       renderEventMetaLine(event, formatDateShort(event.date) + " · " + (event.modelName || event.gate || event.kind)),
       '<b>' + text(shortTitle(event.title, 36)) + '</b>',
       '</button>'
@@ -759,6 +769,21 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function eventOriginClass(event) {
     if (isDerivedEvent(event)) return "wt-event-derived";
     return isUserEvent(event) ? "wt-event-user" : "wt-event-system";
+  }
+
+  function eventHighlightClass(event) {
+    var classes = [];
+    if (state.deadlineHighlight && isDeadlineHighlightEvent(event)) classes.push("wt-highlight-deadline");
+    if (state.modelScheduleHighlight && isModelScheduleEvent(event)) classes.push("wt-highlight-model-chain");
+    return classes.join(" ");
+  }
+
+  function isDeadlineHighlightEvent(event) {
+    return !!event && (event.kind === "deadline" || event.kind === "handoff");
+  }
+
+  function isModelScheduleEvent(event) {
+    return isUserEvent(event) || isDerivedEvent(event);
   }
 
   function isDerivedEvent(event) {
@@ -831,7 +856,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderTimelineEvent(event, position, row, compact) {
     var selected = event.date === state.selectedDate ? " is-selected" : "";
     return [
-      '<button type="button" class="wt-timeline-bar ' + text(eventAccentClass(event)) + ' wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '; --wt-event-row:' + text(row) + '">',
+      '<button type="button" class="wt-timeline-bar ' + text(eventAccentClass(event)) + ' wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '; --wt-event-row:' + text(row) + '">',
       '<b>' + text(shortTitle(event.title, compact ? 34 : 54)) + '</b>',
       '<span>' + text(event.gate || event.owner || "WT") + '</span>',
       '</button>'
@@ -929,7 +954,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         var position = eventUnitPosition(event, units);
         var row = event.__laneRow || 1;
         var selected = event.date === state.selectedDate ? " is-selected" : "";
-        return '<button type="button" class="wt-gantt-chip wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '; --wt-row:' + text(row) + '"><span>' + renderEventOriginBadge(event) + text(formatDateShort(event.date) + " · " + (event.gate || event.kind)) + '</span><b>' + text(event.title) + '</b></button>';
+        return '<button type="button" class="wt-gantt-chip wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '; --wt-row:' + text(row) + '"><span>' + renderEventOriginBadge(event) + text(formatDateShort(event.date) + " · " + (event.gate || event.kind)) + '</span><b>' + text(event.title) + '</b></button>';
       }).join(""),
       '</div>',
       '</article>'
@@ -953,7 +978,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderListRow(event) {
     var selected = event.date === state.selectedDate ? " is-selected" : "";
     return [
-      '<button type="button" class="wt-list-row wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+      '<button type="button" class="wt-list-row wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
       '<time>' + text(formatDateShort(event.date)) + '</time>',
       '<b>' + text(event.title) + '</b>',
       '<span>' + text(event.season || "All") + '</span>',
@@ -993,7 +1018,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         if (compact) unitEvents = prioritizedEvents(unitEvents).slice(0, 2);
         return '<div class="wt-season-cell">' + (unitEvents.length ? unitEvents.map(function (event) {
           var selected = event.date === state.selectedDate ? " is-selected" : "";
-          return '<button type="button" class="wt-season-dot wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '"><span>' + renderEventOriginBadge(event) + text(dayOfMonth(event.date) + " · " + (event.gate || event.kind)) + '</span><b>' + text(shortTitle(event.title, compact ? 24 : 44)) + '</b></button>';
+          return '<button type="button" class="wt-season-dot wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '"><span>' + renderEventOriginBadge(event) + text(dayOfMonth(event.date) + " · " + (event.gate || event.kind)) + '</span><b>' + text(shortTitle(event.title, compact ? 24 : 44)) + '</b></button>';
         }).join("") : '<span class="wt-season-empty"></span>') + '</div>';
       }).join(""),
       '</article>'
@@ -1038,7 +1063,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderEventCard(event, compact) {
     var selected = event.date === state.selectedDate ? " is-selected" : "";
     return [
-      '<button type="button" class="wt-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+      '<button type="button" class="wt-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
       '<span>' + text(event.season || "WT") + '</span>',
       '<b>' + text(event.title) + '</b>',
       compact ? "" : '<small>' + text(event.time || event.gate || "All day") + ' · ' + text(event.owner || "WT") + '</small>',
@@ -1081,7 +1106,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '</div>'
     ].join("") : "";
     return [
-      '<article class="wt-inspector-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + '">',
+      '<article class="wt-inspector-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '">',
       '<small>' + renderEventOriginBadge(event) + text(event.gate || "WT") + ' · ' + text(event.season || "All") + '</small>',
       '<b>' + text(event.title) + '</b>',
       '<span>' + text(event.time || event.gate || "All day") + ' / ' + text(event.owner || "WT") + '</span>',
@@ -1113,7 +1138,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       '<section class="wt-event-modal" role="dialog" aria-modal="true" aria-label="Event detail">',
       '<button class="wt-modal-backdrop" type="button" data-close-event-modal aria-label="Close event detail"></button>',
-      '<article class="wt-modal-panel wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + '">',
+      '<article class="wt-modal-panel wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '">',
       '<header class="wt-modal-header">',
       '<div>',
       '<small>' + renderEventOriginBadge(event) + text(formatDateShort(event.date) + " · " + (event.gate || event.kind || "WT")) + '</small>',
@@ -1245,7 +1270,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderDashboardYearEventSummary(event) {
     var selected = event.date === state.selectedDate ? " is-selected" : "";
     return [
-      '<button type="button" class="wt-year-event-summary wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+      '<button type="button" class="wt-year-event-summary wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
       '<span>' + renderEventOriginBadge(event) + text(formatDateShort(event.date) + " · " + (event.gate || event.season || event.kind)) + '</span>',
       '<b>' + text(shortTitle(event.title, 34)) + '</b>',
       '</button>'
@@ -1388,7 +1413,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     state.weekStart = periodAnchor(selectedEvent.date, "month");
     state.season = selectedEvent.season || "All";
     state.search = "";
-    state.deadlineOnly = false;
+    state.deadlineHighlight = false;
     state.activeEventId = selectedEvent.id;
     state.pendingDeleteEventId = "";
     state.actionMessage = selectedEvent.title + " highlighted on Dashboard.";
@@ -3138,9 +3163,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function matchesFilters(event) {
     var seasonMatch = state.season === "All" || event.season === state.season || event.season === "All";
-    var deadlineMatch = !state.deadlineOnly || event.kind === "deadline" || event.kind === "handoff";
     var searchMatch = matchesSearch(event);
-    return seasonMatch && deadlineMatch && searchMatch;
+    return seasonMatch && searchMatch;
   }
 
   function matchesSearch(event) {
