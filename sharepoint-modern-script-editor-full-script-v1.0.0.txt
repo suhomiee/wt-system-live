@@ -1410,7 +1410,7 @@ textarea:focus-visible {
 }
 
 .wt-dashboard {
-  grid-template-rows: minmax(150px, .36fr) minmax(0, 1fr) auto;
+  grid-template-rows: minmax(240px, .42fr) minmax(0, 1fr) auto;
 }
 
 .wt-dashboard-hero {
@@ -1470,7 +1470,7 @@ textarea:focus-visible {
   grid-template-rows: auto minmax(0, 1fr);
   gap: 8px;
   padding: 12px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .wt-year-strip-header,
@@ -1499,6 +1499,7 @@ textarea:focus-visible {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
+  align-items: stretch;
 }
 
 .wt-year-quarter {
@@ -1506,10 +1507,11 @@ textarea:focus-visible {
   min-height: 0;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  gap: 7px;
+  gap: 8px;
   padding: 8px;
   border: 1px solid var(--line);
   background: #fbfcfb;
+  overflow: visible;
 }
 
 .wt-year-quarter header {
@@ -1540,20 +1542,21 @@ textarea:focus-visible {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
+  align-items: stretch;
 }
 
 .wt-year-month-tile {
   min-width: 0;
-  min-height: 0;
+  min-height: 136px;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 5px;
-  padding: 7px;
+  grid-template-rows: auto 1fr;
+  gap: 6px;
+  padding: 6px;
   border: 1px solid var(--line);
   background: #ffffff;
   color: var(--ink);
   text-align: left;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .wt-year-month-tile.is-selected {
@@ -1563,7 +1566,7 @@ textarea:focus-visible {
 
 .wt-year-month-head-button {
   min-width: 0;
-  min-height: 28px;
+  min-height: 22px;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: center;
@@ -1589,13 +1592,13 @@ textarea:focus-visible {
   min-height: 0;
   display: grid;
   align-content: start;
-  gap: 5px;
-  overflow: hidden;
+  gap: 4px;
+  overflow: visible;
 }
 
 .wt-year-event-summary {
   min-width: 0;
-  min-height: 34px;
+  min-height: 35px;
   display: grid;
   align-content: center;
   gap: 2px;
@@ -1603,7 +1606,7 @@ textarea:focus-visible {
   border-radius: 6px;
   background: var(--panel);
   color: var(--ink);
-  padding: 5px 7px;
+  padding: 4px 6px;
   text-align: left;
 }
 
@@ -5489,12 +5492,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderDashboardQuarterGroup(quarterIndex, units) {
-    var eventCount = units.reduce(function (total, unit) {
-      return total + filteredEventsForRange(unit.start, unit.end).length;
-    }, 0);
     return [
       '<article class="wt-year-quarter">',
-      '<header><b>Q' + text(quarterIndex + 1) + '</b><span>' + text(eventCount) + ' events</span></header>',
+      '<header><b>Q' + text(quarterIndex + 1) + '</b></header>',
       '<div class="wt-year-months">',
       units.map(renderDashboardMonthTile).join(""),
       '</div>',

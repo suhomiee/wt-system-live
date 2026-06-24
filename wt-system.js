@@ -1160,12 +1160,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderDashboardQuarterGroup(quarterIndex, units) {
-    var eventCount = units.reduce(function (total, unit) {
-      return total + filteredEventsForRange(unit.start, unit.end).length;
-    }, 0);
     return [
       '<article class="wt-year-quarter">',
-      '<header><b>Q' + text(quarterIndex + 1) + '</b><span>' + text(eventCount) + ' events</span></header>',
+      '<header><b>Q' + text(quarterIndex + 1) + '</b></header>',
       '<div class="wt-year-months">',
       units.map(renderDashboardMonthTile).join(""),
       '</div>',
