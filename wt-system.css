@@ -1365,6 +1365,22 @@ textarea:focus-visible {
   line-height: 1.14;
 }
 
+.wt-inspector-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.wt-inspector-actions button {
+  min-height: 30px;
+  border: 1px solid var(--line-strong);
+  background: #fff;
+  color: var(--ink);
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .wt-deadline-row {
   grid-template-columns: 58px minmax(0, 1fr);
 }
@@ -2411,9 +2427,35 @@ textarea:focus-visible {
   font-size: 13px;
 }
 
+.wt-form-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
 .wt-edit-form .primary {
   height: 48px;
   font-size: 16px;
+}
+
+.wt-edit-form .danger,
+.wt-inspector-actions .danger {
+  border: 1px solid #8f3d34;
+  background: #fff4f1;
+  color: #8f3d34;
+  font-weight: 800;
+}
+
+.wt-edit-form .danger.is-confirming,
+.wt-inspector-actions .danger.is-confirming {
+  background: #8f3d34;
+  color: #fff;
+}
+
+.wt-edit-form .danger {
+  min-width: 132px;
+  min-height: 48px;
+  padding: 0 14px;
 }
 
 @media (max-width: 1240px) {
@@ -3869,19 +3911,37 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-month-event.wt-event-user,
-.wt-horizontal-event.wt-event-user {
+.wt-horizontal-event.wt-event-user,
+.wt-year-event-summary.wt-event-user,
+.wt-list-row.wt-event-user,
+.wt-season-dot.wt-event-user,
+.wt-event.wt-event-user,
+.wt-timeline-bar.wt-event-user,
+.wt-gantt-chip.wt-event-user {
   border-left-color: #005062;
   background: #dff5f1;
   color: #073d3c;
 }
 
 .wt-month-event.wt-event-user span,
-.wt-horizontal-event.wt-event-user span {
+.wt-horizontal-event.wt-event-user span,
+.wt-year-event-summary.wt-event-user span,
+.wt-list-row.wt-event-user span,
+.wt-season-dot.wt-event-user span,
+.wt-event.wt-event-user span,
+.wt-timeline-bar.wt-event-user span,
+.wt-gantt-chip.wt-event-user span {
   color: #0c625f;
 }
 
 .wt-month-event.wt-event-user b,
-.wt-horizontal-event.wt-event-user b {
+.wt-horizontal-event.wt-event-user b,
+.wt-year-event-summary.wt-event-user b,
+.wt-list-row.wt-event-user b,
+.wt-season-dot.wt-event-user b,
+.wt-event.wt-event-user b,
+.wt-timeline-bar.wt-event-user b,
+.wt-gantt-chip.wt-event-user b {
   color: #073d3c;
   font-weight: 700;
 }

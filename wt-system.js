@@ -134,7 +134,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     deadlineOnly: false,
     actionMessage: "",
     season: "All",
-    localSubmissions: []
+    localSubmissions: [],
+    editingEventId: "",
+    pendingDeleteEventId: ""
   };
 
   function boot() {
@@ -165,11 +167,46 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var deadlineButton = event.target.closest("[data-deadline-toggle]");
       var exportButton = event.target.closest("[data-export]");
       var clearSearchButton = event.target.closest("[data-clear-search]");
+      var userEventButton = event.target.closest("[data-user-event-id]");
+      var deleteEventButton = event.target.closest("[data-delete-event-id]");
 
       if (sectionButton && root.contains(sectionButton)) {
         state.section = sectionButton.getAttribute("data-section");
         state.view = "display";
+        state.editingEventId = "";
+        state.pendingDeleteEventId = "";
         render(root);
+      }
+
+      if (deleteEventButton && root.contains(deleteEventButton)) {
+        event.preventDefault();
+        var deleteId = deleteEventButton.getAttribute("data-delete-event-id");
+        var deleteItem = findLocalSubmissionById(deleteId);
+        if (!deleteItem) return;
+        if (state.pendingDeleteEventId !== deleteId) {
+          state.pendingDeleteEventId = deleteId;
+          state.actionMessage = "Click Confirm Delete to remove " + (deleteItem.projectName || "this schedule") + ".";
+          render(root);
+          return;
+        }
+        state.pendingDeleteEventId = "";
+        deleteSchedule(root, deleteId);
+        return;
+      }
+
+      if (userEventButton && root.contains(userEventButton)) {
+        event.preventDefault();
+        var editId = userEventButton.getAttribute("data-user-event-id");
+        if (!findLocalSubmissionById(editId)) return;
+        state.editingEventId = editId;
+        state.section = "calendar";
+        state.view = "edit";
+        state.selectedDate = userEventButton.getAttribute("data-date") || state.selectedDate;
+        state.weekStart = periodAnchor(state.selectedDate, state.period);
+        state.actionMessage = "";
+        state.pendingDeleteEventId = "";
+        render(root);
+        return;
       }
 
       if (labViewButton && root.contains(labViewButton)) {
@@ -184,12 +221,15 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
       if (viewButton && root.contains(viewButton)) {
         state.view = viewButton.getAttribute("data-view");
+        state.editingEventId = "";
+        state.pendingDeleteEventId = "";
         if (state.view === "edit") state.section = "calendar";
         render(root);
       }
 
       if (dateButton && root.contains(dateButton)) {
         state.selectedDate = dateButton.getAttribute("data-date");
+        state.pendingDeleteEventId = "";
         render(root);
       }
 
@@ -575,7 +615,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<span>' + text(dayNameShort(date)) + '</span><b>' + text(dayOfMonth(date)) + '</b>',
       '</button>',
       '<div class="wt-month-events">',
-      events.length ? events.slice(0, limit).map(function (event) {
+      events.length ? prioritizedEvents(events).slice(0, limit).map(function (event) {
         return renderMonthEventPill(event);
       }).join("") : "",
       events.length > limit ? '<small class="wt-month-more">+' + text(events.length - limit) + ' more</small>' : "",
@@ -587,7 +627,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderMonthEventPill(event) {
     var selected = event.date === state.selectedDate ? " is-selected" : "";
     return [
-      '<button type="button" class="wt-month-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+      '<button type="button" class="wt-month-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
       renderEventMetaLine(event, (event.gate || event.kind) + " · " + formatDateShort(event.date)),
       '<b>' + text(shortTitle(event.title, 42)) + '</b>',
       '</button>'
@@ -620,11 +660,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderHorizontalCalendarColumn(unit, events, compact) {
     var limit = compact ? 4 : events.length;
+    var visibleEvents = state.period === "quarter" ? prioritizedEvents(events) : events;
     return [
       '<article class="wt-horizontal-period">',
       '<div class="wt-horizontal-period-meta"><time>' + text(formatRange(unit)) + '</time></div>',
       '<div class="wt-horizontal-period-events">',
-      events.length ? events.slice(0, limit).map(function (event) {
+      visibleEvents.length ? visibleEvents.slice(0, limit).map(function (event) {
         return renderHorizontalCalendarEvent(event);
       }).join("") : "",
       events.length > limit ? '<small class="wt-month-more">+' + text(events.length - limit) + ' more</small>' : "",
@@ -638,14 +679,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (state.period === "quarter") {
       var meta = [event.modelName || event.gate || event.kind, event.season || ""].filter(Boolean).join(" / ");
       return [
-        '<button type="button" class="wt-horizontal-event wt-horizontal-event-structured wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+        '<button type="button" class="wt-horizontal-event wt-horizontal-event-structured wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
         '<time class="wt-horizontal-event-date" datetime="' + text(event.date) + '"><span>' + text(MONTHS[fromIso(event.date).getMonth()]) + '</span><b>' + text(dayOfMonth(event.date)) + '</b></time>',
         '<span class="wt-horizontal-event-body">' + renderEventOriginBadge(event) + '<i>' + text(meta) + '</i><strong>' + text(shortTitle(event.title, 58)) + '</strong></span>',
         '</button>'
       ].join("");
     }
     return [
-      '<button type="button" class="wt-horizontal-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+      '<button type="button" class="wt-horizontal-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
       renderEventMetaLine(event, formatDateShort(event.date) + " · " + (event.modelName || event.gate || event.kind)),
       '<b>' + text(shortTitle(event.title, 36)) + '</b>',
       '</button>'
@@ -667,6 +708,24 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function isUserEvent(event) {
     return !!event && (event.source !== "schedule.pdf" || !!event.modelName);
+  }
+
+  function userEventAttributes(event) {
+    if (!isUserEvent(event)) return "";
+    return 'data-user-event-id="' + text(event.id) + '"';
+  }
+
+  function prioritizedEvents(events) {
+    return events.slice().sort(function (a, b) {
+      return eventPriority(b) - eventPriority(a) || (a.date + a.title).localeCompare(b.date + b.title);
+    });
+  }
+
+  function eventPriority(event) {
+    var score = 0;
+    if (event.date === state.selectedDate) score += 8;
+    if (isUserEvent(event)) score += 4;
+    return score;
   }
 
   function renderTimelineBoard(compact) {
@@ -711,7 +770,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderTimelineEvent(event, position, row, compact) {
     var selected = event.date === state.selectedDate ? " is-selected" : "";
     return [
-      '<button type="button" class="wt-timeline-bar ' + text(eventAccentClass(event)) + ' wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '; --wt-event-row:' + text(row) + '">',
+      '<button type="button" class="wt-timeline-bar ' + text(eventAccentClass(event)) + ' wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '; --wt-event-row:' + text(row) + '">',
       '<b>' + text(shortTitle(event.title, compact ? 34 : 54)) + '</b>',
       '<span>' + text(event.gate || event.owner || "WT") + '</span>',
       '</button>'
@@ -809,7 +868,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         var position = eventUnitPosition(event, units);
         var row = event.__laneRow || 1;
         var selected = event.date === state.selectedDate ? " is-selected" : "";
-        return '<button type="button" class="wt-gantt-chip wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '; --wt-row:' + text(row) + '"><span>' + text(formatDateShort(event.date) + " · " + (event.gate || event.kind)) + '</span><b>' + text(event.title) + '</b></button>';
+        return '<button type="button" class="wt-gantt-chip wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '; --wt-row:' + text(row) + '"><span>' + renderEventOriginBadge(event) + text(formatDateShort(event.date) + " · " + (event.gate || event.kind)) + '</span><b>' + text(event.title) + '</b></button>';
       }).join(""),
       '</div>',
       '</article>'
@@ -833,7 +892,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderListRow(event) {
     var selected = event.date === state.selectedDate ? " is-selected" : "";
     return [
-      '<button type="button" class="wt-list-row wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+      '<button type="button" class="wt-list-row wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
       '<time>' + text(formatDateShort(event.date)) + '</time>',
       '<b>' + text(event.title) + '</b>',
       '<span>' + text(event.season || "All") + '</span>',
@@ -870,10 +929,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         var unitEvents = events.filter(function (event) {
           return event.date >= unit.start && event.date <= unit.end;
         });
-        if (compact) unitEvents = unitEvents.slice(0, 2);
+        if (compact) unitEvents = prioritizedEvents(unitEvents).slice(0, 2);
         return '<div class="wt-season-cell">' + (unitEvents.length ? unitEvents.map(function (event) {
           var selected = event.date === state.selectedDate ? " is-selected" : "";
-          return '<button type="button" class="wt-season-dot wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '"><span>' + text(dayOfMonth(event.date) + " · " + (event.gate || event.kind)) + '</span><b>' + text(shortTitle(event.title, compact ? 24 : 44)) + '</b></button>';
+          return '<button type="button" class="wt-season-dot wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '"><span>' + renderEventOriginBadge(event) + text(dayOfMonth(event.date) + " · " + (event.gate || event.kind)) + '</span><b>' + text(shortTitle(event.title, compact ? 24 : 44)) + '</b></button>';
         }).join("") : '<span class="wt-season-empty"></span>') + '</div>';
       }).join(""),
       '</article>'
@@ -918,7 +977,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderEventCard(event, compact) {
     var selected = event.date === state.selectedDate ? " is-selected" : "";
     return [
-      '<button type="button" class="wt-event wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+      '<button type="button" class="wt-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
       '<span>' + text(event.season || "WT") + '</span>',
       '<b>' + text(event.title) + '</b>',
       compact ? "" : '<small>' + text(event.time || event.gate || "All day") + ' · ' + text(event.owner || "WT") + '</small>',
@@ -953,13 +1012,21 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderInspectorEvent(event) {
+    var confirmingDelete = state.pendingDeleteEventId === event.id;
+    var actions = isUserEvent(event) ? [
+      '<div class="wt-inspector-actions">',
+      '<button type="button" data-user-event-id="' + text(event.id) + '" data-date="' + text(event.date) + '">Edit</button>',
+      '<button type="button" class="danger ' + (confirmingDelete ? "is-confirming" : "") + '" data-delete-event-id="' + text(event.id) + '">' + text(confirmingDelete ? "Confirm Delete" : "Delete") + '</button>',
+      '</div>'
+    ].join("") : "";
     return [
-      '<article class="wt-inspector-event wt-kind-' + text(event.kind) + '">',
-      '<small>' + text(event.gate || "WT") + ' · ' + text(event.season || "All") + '</small>',
+      '<article class="wt-inspector-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + '">',
+      '<small>' + renderEventOriginBadge(event) + text(event.gate || "WT") + ' · ' + text(event.season || "All") + '</small>',
       '<b>' + text(event.title) + '</b>',
       '<span>' + text(event.time || event.gate || "All day") + ' / ' + text(event.owner || "WT") + '</span>',
       eventProductDetails(event) ? '<small>' + text(eventProductDetails(event)) + '</small>' : "",
       event.notes ? '<small>' + text(event.notes) + '</small>' : "",
+      actions,
       '</article>'
     ].join("");
   }
@@ -1038,7 +1105,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<b>' + text(monthLabel) + '</b>',
       '</button>',
       '<div class="wt-year-month-events">',
-      events.length ? events.slice(0, visibleLimit).map(function (event) {
+      events.length ? prioritizedEvents(events).slice(0, visibleLimit).map(function (event) {
         return renderDashboardYearEventSummary(event);
       }).join("") : '<span class="wt-year-empty">No events</span>',
       events.length > visibleLimit ? '<small class="wt-month-more">+' + text(events.length - visibleLimit) + ' more</small>' : "",
@@ -1050,8 +1117,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderDashboardYearEventSummary(event) {
     var selected = event.date === state.selectedDate ? " is-selected" : "";
     return [
-      '<button type="button" class="wt-year-event-summary wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
-      '<span>' + text(formatDateShort(event.date) + " · " + (event.gate || event.season || event.kind)) + '</span>',
+      '<button type="button" class="wt-year-event-summary wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+      '<span>' + renderEventOriginBadge(event) + text(formatDateShort(event.date) + " · " + (event.gate || event.season || event.kind)) + '</span>',
       '<b>' + text(shortTitle(event.title, 34)) + '</b>',
       '</button>'
     ].join("");
@@ -2239,10 +2306,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderEditor(root) {
+    var editing = !!state.editingEventId && !!findLocalSubmissionById(state.editingEventId);
     return [
       '<main class="wt-main wt-editor" aria-label="Schedule editor">',
       '<header class="wt-toolbar">',
-      '<div class="wt-title-block"><small>WT Operations</small><h1>Create Schedule</h1></div>',
+      '<div class="wt-title-block"><small>WT Operations</small><h1>' + text(editing ? "Edit Schedule" : "Create Schedule") + '</h1></div>',
       '<button class="wt-toolbar-create" type="button" data-view="display">Back to Calendar</button>',
       '</header>',
       '<div class="wt-editor-layout">',
@@ -2258,21 +2326,27 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderEditForm(root) {
     var listTitle = root.getAttribute("data-wt-sharepoint-list-title") || "WT_Submissions";
+    var editingItem = state.editingEventId ? findLocalSubmissionById(state.editingEventId) : null;
+    var confirmingDelete = editingItem && state.pendingDeleteEventId === state.editingEventId;
     return [
       '<aside class="wt-edit-card">',
-      '<h2>New Schedule</h2>',
+      '<h2>' + text(editingItem ? "Edit User Schedule" : "New Schedule") + '</h2>',
       '<form class="wt-edit-form">',
-      field("Title", "HO27 sample dispatch"),
-      '<label>Date<input name="targetDate" type="date" value="' + text(state.selectedDate) + '"></label>',
-      select("Type", ["deadline", "sample", "shipping", "report", "review"]),
-      seasonInput(),
-      field("Model Name", "Pegasus 42 / style code", "modelName"),
-      field("Size", "US 9 / 270mm", "size"),
-      field("Sample Qty", "8 pairs", "sampleQuantity"),
-      field("Owner", "WT Ops"),
-      '<label>Memo<textarea name="notes" rows="5" placeholder="Report file, shipment note, blocker, or extra context"></textarea></label>',
-      '<p class="wt-form-message" aria-live="polite">Target list: ' + text(listTitle) + '</p>',
-      '<button class="primary" type="submit">Save Schedule</button>',
+      editingItem ? '<input type="hidden" name="rowKey" value="' + text(editingItem.rowKey || state.editingEventId) + '">' : "",
+      field("Title", "HO27 sample dispatch", "title", editingItem ? editingItem.projectName : ""),
+      '<label>Date<input name="targetDate" type="date" value="' + text(editingItem ? editingItem.targetDate : state.selectedDate) + '"></label>',
+      select("Type", ["deadline", "sample", "shipping", "report", "review"], "type", editingItem ? editingItem.milestoneType : ""),
+      seasonInput(editingItem ? editingItem.season : ""),
+      field("Model Name", "Pegasus 42 / style code", "modelName", editingItem ? editingItem.modelName : ""),
+      field("Size", "US 9 / 270mm", "size", editingItem ? editingItem.size : ""),
+      field("Sample Qty", "8 pairs", "sampleQuantity", editingItem ? editingItem.sampleQuantity : ""),
+      field("Owner", "WT Ops", "owner", editingItem ? editingItem.owner : ""),
+      '<label>Memo<textarea name="notes" rows="5" placeholder="Report file, shipment note, blocker, or extra context">' + text(editingItem ? editingItem.notes : "") + '</textarea></label>',
+      '<p class="wt-form-message" aria-live="polite">' + text(confirmingDelete ? "Click Confirm Delete to remove this schedule." : "Target list: " + listTitle) + '</p>',
+      '<div class="wt-form-actions">',
+      '<button class="primary" type="submit">' + text(editingItem ? "Update Schedule" : "Save Schedule") + '</button>',
+      editingItem ? '<button class="danger ' + (confirmingDelete ? "is-confirming" : "") + '" type="button" data-delete-event-id="' + text(state.editingEventId) + '">' + text(confirmingDelete ? "Confirm Delete" : "Delete Schedule") + '</button>' : "",
+      '</div>',
       '</form>',
       '</aside>'
     ].join("");
@@ -2280,20 +2354,23 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function field(label, placeholder) {
     var name = arguments.length > 2 && arguments[2] ? arguments[2] : label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    return '<label>' + text(label) + '<input name="' + text(name) + '" type="text" placeholder="' + text(placeholder) + '"></label>';
+    var value = arguments.length > 3 ? arguments[3] : "";
+    return '<label>' + text(label) + '<input name="' + text(name) + '" type="text" placeholder="' + text(placeholder) + '" value="' + text(value || "") + '"></label>';
   }
 
   function select(label, options) {
     var name = arguments.length > 2 && arguments[2] ? arguments[2] : label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    var selectedValue = arguments.length > 3 ? arguments[3] : "";
     return '<label>' + text(label) + '<select name="' + text(name) + '">' + options.map(function (option) {
-      return '<option value="' + text(option) + '">' + text(option) + '</option>';
+      return '<option value="' + text(option) + '"' + (option === selectedValue ? " selected" : "") + '>' + text(option) + '</option>';
     }).join("") + '</select></label>';
   }
 
   function seasonInput() {
+    var currentValue = arguments.length > 0 && arguments[0] ? arguments[0] : "";
     var options = availableSeasons().filter(function (season) { return season !== "All"; });
     return [
-      '<label>Season<input name="season" type="text" placeholder="HO27 / SP28" list="wt-season-options"></label>',
+      '<label>Season<input name="season" type="text" placeholder="HO27 / SP28" list="wt-season-options" value="' + text(currentValue) + '"></label>',
       '<datalist id="wt-season-options">',
       options.map(function (option) { return '<option value="' + text(option) + '"></option>'; }).join(""),
       '</datalist>'
@@ -2321,9 +2398,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function submitSchedule(root, form) {
     var message = root.querySelector(".wt-form-message");
     var mode = root.getAttribute("data-wt-backend-mode") || "local";
+    var editingItem = state.editingEventId ? findLocalSubmissionById(state.editingEventId) : null;
     var payload = {
-      rowKey: "WT-" + Date.now(),
-      submittedAt: new Date().toISOString(),
+      rowKey: formValue(form, "rowKey") || (editingItem ? editingItem.rowKey : "") || "WT-" + Date.now(),
+      submittedAt: editingItem && editingItem.submittedAt ? editingItem.submittedAt : new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       projectName: formValue(form, "title"),
       targetDate: formValue(form, "targetDate"),
       milestoneType: formValue(form, "type"),
@@ -2333,11 +2412,18 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       sampleQuantity: formValue(form, "sampleQuantity"),
       source: "wt-system-ui",
       owner: formValue(form, "owner"),
-      notes: formValue(form, "notes")
+      notes: formValue(form, "notes"),
+      sharePointItemId: editingItem ? editingItem.sharePointItemId : ""
     };
 
+    if (editingItem) {
+      updateSchedule(root, payload, message);
+      return;
+    }
+
     if (mode === "sharepoint-list") {
-      submitToSharePointList(root, payload).then(function () {
+      submitToSharePointList(root, payload).then(function (item) {
+        payload.sharePointItemId = sharePointItemId(item);
         saveLocalSubmission(payload);
         completeScheduleSave(root, payload, "Saved to WT_Submissions.");
       }).catch(function (error) {
@@ -2357,6 +2443,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function completeScheduleSave(root, payload, message) {
     state.section = "calendar";
     state.view = "display";
+    state.editingEventId = "";
+    state.pendingDeleteEventId = "";
     state.selectedDate = payload.targetDate || state.selectedDate;
     state.period = "month";
     state.weekStart = periodAnchor(state.selectedDate, state.period);
@@ -2415,6 +2503,73 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     writeStoredSubmissions(merged);
   }
 
+  function updateSchedule(root, payload, message) {
+    var mode = root.getAttribute("data-wt-backend-mode") || "local";
+    var itemId = payload.sharePointItemId;
+    if (mode === "sharepoint-list" && itemId) {
+      updateSharePointListItem(root, itemId, payload).then(function () {
+        updateLocalSubmission(payload);
+        completeScheduleSave(root, payload, "Updated in WT_Submissions.");
+      }).catch(function (error) {
+        if (message) message.textContent = "SharePoint update failed: " + error.message;
+      });
+      return;
+    }
+
+    updateLocalSubmission(payload);
+    completeScheduleSave(root, payload, "Updated locally for preview.");
+  }
+
+  function deleteSchedule(root, id) {
+    var item = findLocalSubmissionById(id);
+    var mode = root.getAttribute("data-wt-backend-mode") || "local";
+    if (!item) return;
+    if (mode === "sharepoint-list" && item.sharePointItemId) {
+      deactivateSharePointListItem(root, item.sharePointItemId).then(function () {
+        deleteLocalSubmission(id);
+        state.section = "calendar";
+        state.view = "display";
+        state.editingEventId = "";
+        state.pendingDeleteEventId = "";
+        state.actionMessage = "Deleted from WT_Submissions.";
+        render(root);
+      }).catch(function (error) {
+        state.actionMessage = "SharePoint delete failed: " + error.message;
+        render(root);
+      });
+      return;
+    }
+
+    deleteLocalSubmission(id);
+    state.section = "calendar";
+    state.view = "display";
+    state.editingEventId = "";
+    state.pendingDeleteEventId = "";
+    state.actionMessage = "Deleted locally for preview.";
+    render(root);
+  }
+
+  function updateLocalSubmission(payload) {
+    var merged = dedupeSubmissions(readStoredSubmissions().concat(state.localSubmissions));
+    var replaced = false;
+    merged = merged.map(function (item, index) {
+      if (submissionId(item, index) !== payload.rowKey && item.rowKey !== payload.rowKey) return item;
+      replaced = true;
+      return payload;
+    });
+    if (!replaced) merged.push(payload);
+    state.localSubmissions = dedupeSubmissions(merged);
+    writeStoredSubmissions(state.localSubmissions);
+  }
+
+  function deleteLocalSubmission(id) {
+    var merged = dedupeSubmissions(readStoredSubmissions().concat(state.localSubmissions)).filter(function (item, index) {
+      return submissionId(item, index) !== id && item.rowKey !== id;
+    });
+    state.localSubmissions = merged;
+    writeStoredSubmissions(merged);
+  }
+
   function submitToSharePointList(root, payload) {
     var listTitle = root.getAttribute("data-wt-sharepoint-list-title") || "WT_Submissions";
     var sitePath = getSitePath();
@@ -2439,6 +2594,57 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         return response.json();
       });
     });
+  }
+
+  function updateSharePointListItem(root, itemId, payload) {
+    var listTitle = root.getAttribute("data-wt-sharepoint-list-title") || "WT_Submissions";
+    var sitePath = getSitePath();
+    return getDigest(sitePath).then(function (digest) {
+      return window.fetch(sitePath + "/_api/web/lists/getbytitle('" + encodeODataString(listTitle) + "')/items(" + encodeURIComponent(itemId) + ")", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Accept": "application/json;odata=nometadata",
+          "Content-Type": "application/json;odata=nometadata",
+          "X-RequestDigest": digest,
+          "X-HTTP-Method": "MERGE",
+          "IF-MATCH": "*"
+        },
+        body: JSON.stringify({
+          Title: payload.projectName || "WT schedule",
+          PayloadJson: JSON.stringify(payload),
+          SubmittedAt: payload.submittedAt,
+          IsActive: true
+        })
+      }).then(function (response) {
+        if (!response.ok) throw new Error("HTTP " + response.status);
+      });
+    });
+  }
+
+  function deactivateSharePointListItem(root, itemId) {
+    var listTitle = root.getAttribute("data-wt-sharepoint-list-title") || "WT_Submissions";
+    var sitePath = getSitePath();
+    return getDigest(sitePath).then(function (digest) {
+      return window.fetch(sitePath + "/_api/web/lists/getbytitle('" + encodeODataString(listTitle) + "')/items(" + encodeURIComponent(itemId) + ")", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Accept": "application/json;odata=nometadata",
+          "Content-Type": "application/json;odata=nometadata",
+          "X-RequestDigest": digest,
+          "X-HTTP-Method": "MERGE",
+          "IF-MATCH": "*"
+        },
+        body: JSON.stringify({ IsActive: false })
+      }).then(function (response) {
+        if (!response.ok) throw new Error("HTTP " + response.status);
+      });
+    });
+  }
+
+  function sharePointItemId(item) {
+    return item && (item.ID || item.Id || item.id || "");
   }
 
   function getDigest(sitePath) {
@@ -2483,7 +2689,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     loadLocalSubmissions().forEach(function (item, index) {
       if (!item || !item.targetDate) return;
       events.push({
-        id: item.rowKey || ("WT-LOCAL-" + index),
+        id: submissionId(item, index),
         date: item.targetDate,
         endDate: item.targetDate,
         title: item.projectName || "WT schedule",
@@ -2509,6 +2715,18 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function loadLocalSubmissions() {
     return dedupeSubmissions(readStoredSubmissions().concat(state.localSubmissions));
+  }
+
+  function findLocalSubmissionById(id) {
+    var submissions = loadLocalSubmissions();
+    for (var i = 0; i < submissions.length; i += 1) {
+      if (submissionId(submissions[i], i) === id || submissions[i].rowKey === id) return submissions[i];
+    }
+    return null;
+  }
+
+  function submissionId(item, index) {
+    return item && item.rowKey ? item.rowKey : "WT-LOCAL-" + index;
   }
 
   function readStoredSubmissions() {
