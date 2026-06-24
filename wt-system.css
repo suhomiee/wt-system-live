@@ -1639,6 +1639,78 @@ textarea:focus-visible {
   text-overflow: ellipsis;
 }
 
+.wt-calendar-year-overview {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border-color: var(--flow-border);
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
+}
+
+.wt-calendar-year-overview .wt-year-strip-header {
+  min-height: 28px;
+}
+
+.wt-calendar-year-overview .wt-year-strip-header h2 {
+  font-size: 22px;
+}
+
+.wt-calendar-year-overview .wt-year-quarter-grid {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.wt-calendar-year-overview .wt-year-quarter {
+  gap: 7px;
+  padding: 7px;
+  border-color: var(--flow-border);
+  background: #fbfcfb;
+  overflow: hidden;
+}
+
+.wt-calendar-year-overview .wt-year-quarter.is-focus-quarter {
+  background: #f3fbfa;
+  box-shadow: inset 0 0 0 2px rgba(0,80,98,.18);
+}
+
+.wt-calendar-year-overview .wt-year-months {
+  gap: 5px;
+  overflow: hidden;
+}
+
+.wt-calendar-year-overview .wt-year-month-tile {
+  min-height: 132px;
+  gap: 5px;
+  padding: 5px;
+  overflow: hidden;
+}
+
+.wt-calendar-year-overview .wt-year-month-head-button {
+  min-height: 20px;
+}
+
+.wt-calendar-year-overview .wt-year-month-head-button b {
+  font-size: 15px;
+}
+
+.wt-calendar-year-overview .wt-year-month-events {
+  gap: 3px;
+  overflow: hidden;
+}
+
+.wt-calendar-year-overview .wt-year-event-summary {
+  min-height: 32px;
+  padding: 4px 5px;
+}
+
+.wt-calendar-year-overview .wt-year-empty,
+.wt-calendar-year-overview .wt-month-more {
+  min-height: 0;
+  font-size: 10px;
+  line-height: 13px;
+}
+
 .wt-dashboard-month-panel {
   min-height: 0;
   display: grid;
@@ -4755,4 +4827,35 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 #wt-system-root[data-wt-fit="viewport"] .wt-calendar-layout {
   grid-template-columns: minmax(0, 1fr);
+}
+
+.wt-flow-calendar-page .wt-calendar-year-overview .wt-year-quarter-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.wt-flow-calendar-page .wt-calendar-year-overview .wt-year-months {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.wt-flow-calendar-page .wt-calendar-year-overview .wt-year-month-tile {
+  min-width: 0;
+  min-height: 124px;
+  padding: 4px;
+}
+
+.wt-flow-calendar-page .wt-calendar-year-overview .wt-year-event-summary {
+  min-height: 30px;
+  padding: 3px 4px;
+}
+
+.wt-flow-calendar-page .wt-calendar-year-overview .wt-year-event-summary span {
+  font-size: 9px;
+  line-height: 11px;
+}
+
+.wt-flow-calendar-page .wt-calendar-year-overview .wt-year-event-summary b {
+  font-size: 10px;
+  line-height: 12px;
 }

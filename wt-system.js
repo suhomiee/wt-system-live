@@ -539,7 +539,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderCalendarControls() {
     var range = currentRange();
     var rangeEvents = eventsForCurrentRange();
-    var showEventCount = state.period !== "month" && state.period !== "quarter";
+    var calendarYearOverview = state.calendarView === "calendar" && (state.period === "quarter" || state.period === "year");
+    var showEventCount = !calendarYearOverview && state.period !== "month" && state.period !== "quarter";
+    var rangeLabel = calendarYearOverview ? String(fromIso(state.selectedDate).getFullYear()) : formatRange(range);
     return [
       '<section class="wt-control-strip wt-flow-control-strip" aria-label="Calendar filters">',
       '<div class="wt-filter-row wt-flow-filter-row">',
@@ -555,7 +557,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<button type="button" data-view="edit" aria-label="Create Schedule">' + icon("plus") + '<span>Create Schedule</span></button>',
       '</div>',
       '<div class="wt-range-row wt-flow-range-row">',
-      '<div class="wt-range-title"><strong>' + text(formatRange(range)) + '</strong></div>',
+      '<div class="wt-range-title"><strong>' + text(rangeLabel) + '</strong></div>',
       '<div class="wt-flow-view-controls">',
       renderPicker("View", calendarViewLabel(state.calendarView), CALENDAR_VIEWS, "calendar-view", state.calendarView),
       renderPicker("Range", periodLabel(state.period), periodOptionsForView(), "period", state.period),
@@ -642,7 +644,39 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderCalendarViewBoard(compact) {
     if (state.period === "month") return renderMonthCalendarBoard(compact);
+    if (state.period === "quarter" || state.period === "year") return renderCalendarYearOverviewBoard(compact);
     return renderHorizontalCalendarBoard(compact);
+  }
+
+  function renderCalendarYearOverviewBoard(compact) {
+    var range = periodRange(state.selectedDate, "year");
+    var units = monthUnits(range);
+    var year = fromIso(state.selectedDate).getFullYear();
+    return [
+      '<section class="wt-calendar-year-overview wt-dashboard-year-strip wt-calendar-' + text(state.period) + ' ' + (compact ? "compact" : "") + '" aria-label="' + text(year + " calendar overview") + '">',
+      '<header class="wt-year-strip-header">',
+      '<h2>' + text(year) + '</h2>',
+      '</header>',
+      '<div class="wt-year-quarter-grid">',
+      [0, 1, 2, 3].map(function (quarterIndex) {
+        return renderCalendarYearQuarterGroup(quarterIndex, units.slice(quarterIndex * 3, quarterIndex * 3 + 3));
+      }).join(""),
+      '</div>',
+      '</section>'
+    ].join("");
+  }
+
+  function renderCalendarYearQuarterGroup(quarterIndex, units) {
+    var selectedQuarter = Math.floor(fromIso(state.selectedDate).getMonth() / 3);
+    var focusClass = state.period === "quarter" && quarterIndex === selectedQuarter ? " is-focus-quarter" : "";
+    return [
+      '<article class="wt-year-quarter wt-calendar-overview-quarter' + focusClass + '">',
+      '<header><b>Q' + text(quarterIndex + 1) + '</b></header>',
+      '<div class="wt-year-months">',
+      units.map(renderDashboardMonthTile).join(""),
+      '</div>',
+      '</article>'
+    ].join("");
   }
 
   function renderMonthCalendarBoard(compact) {
