@@ -287,6 +287,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
       if (dateButton && root.contains(dateButton)) {
         state.selectedDate = dateButton.getAttribute("data-date");
+        if (dateButton.hasAttribute("data-month-cell-date")) {
+          state.weekStart = periodAnchor(state.selectedDate, state.period);
+        }
         state.pendingDeleteEventId = "";
         state.activeEventId = "";
         render(root);
@@ -694,32 +697,36 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var range = currentRange();
     var isoMonth = range.start.slice(0, 7);
     var cells = calendarMonthCells(isoMonth);
-    var byDate = eventsByDate(eventsForCurrentRange());
+    var byDate = eventsByDate(filteredEventsForRange(cells[0], cells[cells.length - 1]));
     var weekRows = Math.ceil(cells.length / 7);
     return [
       '<section class="wt-month-calendar-board ' + (compact ? "compact" : "") + '" aria-label="Monthly calendar">',
       compact ? "" : '<div class="wt-month-calendar-head">' + WEEKDAYS.map(function (day) { return '<span>' + text(day) + '</span>'; }).join("") + '</div>',
       '<div class="wt-month-calendar-grid" style="--wt-week-rows:' + text(weekRows) + '">',
       cells.map(function (date) {
-        return renderMonthCalendarCell(date, byDate[date] || [], compact);
+        return renderMonthCalendarCell(date, byDate[date] || [], compact, isoMonth);
       }).join(""),
       '</div>',
       '</section>'
     ].join("");
   }
 
-  function renderMonthCalendarCell(date, events, compact) {
+  function renderMonthCalendarCell(date, events, compact, isoMonth) {
     if (!date) return '<article class="wt-month-cell is-empty" aria-hidden="true"></article>';
     var todayIso = toIso(new Date());
+    var day = fromIso(date).getDay();
+    var outsideMonth = date.slice(0, 7) !== isoMonth;
     var classes = [
       date === state.selectedDate ? "is-selected" : "",
       date === todayIso ? "is-today" : "",
+      outsideMonth ? "is-outside-month" : "",
+      day === 0 || day === 6 ? "is-weekend" : "",
       events.length ? "has-events" : ""
     ].filter(Boolean).join(" ");
     var limit = compact ? 2 : 4;
     return [
       '<article class="wt-month-cell ' + text(classes) + '" data-day="' + text(date) + '">',
-      '<button type="button" class="wt-month-day-button" data-date="' + text(date) + '" aria-label="' + text(formatDateShort(date)) + '">',
+      '<button type="button" class="wt-month-day-button" data-date="' + text(date) + '" data-month-cell-date aria-label="' + text(formatDateShort(date)) + '">',
       '<span>' + text(dayNameShort(date)) + '</span><b>' + text(dayOfMonth(date)) + '</b>',
       '</button>',
       '<div class="wt-month-events">',
@@ -3349,9 +3356,17 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function calendarMonthCells(isoMonth) {
-    return buildMonth(isoMonth).map(function (day) {
-      return day ? isoMonth + "-" + pad(day) : "";
-    });
+    var parts = isoMonth.split("-");
+    var year = Number(parts[0]);
+    var monthIndex = Number(parts[1]) - 1;
+    var first = new Date(year, monthIndex, 1);
+    var total = new Date(year, monthIndex + 1, 0).getDate();
+    var mondayOffset = (first.getDay() + 6) % 7;
+    var cellCount = Math.max(35, Math.ceil((mondayOffset + total) / 7) * 7);
+    var start = addDays(first, -mondayOffset);
+    var days = [];
+    for (var i = 0; i < cellCount; i += 1) days.push(toIso(addDays(start, i)));
+    return days;
   }
 
   function weekDays(startIso) {
