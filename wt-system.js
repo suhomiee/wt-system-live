@@ -1203,8 +1203,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       '<section class="wt-dashboard-year-strip">',
       '<header class="wt-year-strip-header">',
-      '<div><small>Year overview</small><h2>' + text(fromIso(state.selectedDate).getFullYear()) + '</h2></div>',
-      '<span>Quarter map</span>',
+      '<h2>' + text(fromIso(state.selectedDate).getFullYear()) + '</h2>',
       '</header>',
       '<div class="wt-year-quarter-grid">',
       [0, 1, 2, 3].map(function (quarterIndex) {
@@ -1258,14 +1257,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderDashboardMonthPanel() {
     return withCalendarState("month", state.selectedDate, function () {
-      var range = currentRange();
       var monthTitle = MONTHS[fromIso(state.selectedDate).getMonth()] + " " + fromIso(state.selectedDate).getFullYear();
       return [
         '<section class="wt-dashboard-month-panel">',
         '<header>',
-        '<div><small>Monthly calendar</small><h2>' + text(monthTitle) + '</h2></div>',
+        '<h2>' + text(monthTitle) + '</h2>',
         '</header>',
-        '<p>' + text(formatRange(range)) + '</p>',
         '<div class="wt-dashboard-month-board">',
         renderCalendarViewBoard(true),
         '</div>',
