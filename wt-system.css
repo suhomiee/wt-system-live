@@ -759,7 +759,6 @@ textarea:focus-visible {
 .wt-dashboard-hero,
 .wt-dashboard-year-strip,
 .wt-dashboard-month-panel,
-.wt-today-stack,
 .wt-lab-hero,
 .wt-lab-panel,
 .wt-plan-map,
@@ -1328,7 +1327,6 @@ textarea:focus-visible {
 }
 
 .wt-inspector h2,
-.wt-today-stack h2,
 .wt-plan-side h2,
 .wt-report-panel h2,
 .wt-edit-card h2,
@@ -1400,7 +1398,7 @@ textarea:focus-visible {
 }
 
 .wt-dashboard {
-  grid-template-rows: minmax(240px, .42fr) minmax(0, 1fr) auto;
+  grid-template-rows: minmax(330px, .48fr) minmax(0, 1fr);
 }
 
 .wt-dashboard-hero {
@@ -1537,7 +1535,7 @@ textarea:focus-visible {
 
 .wt-year-month-tile {
   min-width: 0;
-  min-height: 136px;
+  min-height: 156px;
   display: grid;
   grid-template-rows: auto 1fr;
   gap: 6px;
@@ -1658,10 +1656,6 @@ textarea:focus-visible {
   overflow: hidden;
 }
 
-.wt-dashboard-focus {
-  min-height: 0;
-}
-
 .wt-week-board.compact .wt-event {
   min-height: 58px;
 }
@@ -1672,16 +1666,6 @@ textarea:focus-visible {
 
 .wt-week-board.compact .wt-event b {
   -webkit-line-clamp: 1;
-}
-
-.wt-today-stack {
-  min-height: 0;
-  padding: 18px;
-  overflow: hidden;
-}
-
-.wt-dashboard-focus .wt-today-stack {
-  min-height: 112px;
 }
 
 .wt-lab {

@@ -1159,14 +1159,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderDashboard() {
-    var selectedEvents = filteredEventsForDate(state.selectedDate);
     return [
       '<section class="wt-dashboard">',
       renderDashboardYearStrip(),
       renderDashboardMonthPanel(),
-      '<div class="wt-dashboard-focus">',
-      '<aside class="wt-today-stack"><h2>' + text(dayNameLong(state.selectedDate)) + '</h2>' + (selectedEvents.length ? selectedEvents.map(renderInspectorEvent).join("") : '<p class="wt-muted">No events selected.</p>') + '</aside>',
-      '</div>',
       '</section>'
     ].join("");
   }
