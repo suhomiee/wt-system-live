@@ -4420,10 +4420,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<nav class="wt-primary-nav" aria-label="Primary">',
       navItem("dashboard", "Dashboard"),
       navItem("calendar", "Calendar"),
-      copilotNavItem(root, "AI Q&A"),
-      externalNavItem("nikeReports", "Nike Lab Reports", "phk"),
       externalNavItem("phkReports", "PHK WT Reports", "phk"),
+      externalNavItem("nikeReports", "Nike Lab Reports", "phk"),
       externalNavItem("nikeRows", "Product Test Database", "lab"),
+      copilotNavItem(root, "AI Q&A"),
       '</nav>',
       '</aside>'
     ].join("");
