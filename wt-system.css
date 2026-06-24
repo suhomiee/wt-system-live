@@ -3256,11 +3256,11 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   position: relative;
   width: 100%;
   height: auto;
-  min-height: 1031px;
+  min-height: 973px;
   display: grid;
-  grid-template-rows: 58px 132px minmax(0, 1fr);
+  grid-template-rows: 132px minmax(0, 1fr);
   gap: 0;
-  padding: 34px 36px 28px 48px;
+  padding: 24px 36px 28px 48px;
   background: #ffffff;
 }
 

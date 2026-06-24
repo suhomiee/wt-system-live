@@ -520,9 +520,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderCalendarWorkspace() {
     return [
       '<section class="wt-calendar-page wt-flow-calendar-page wt-period-' + text(state.period) + ' wt-view-' + text(state.calendarView) + '">',
-      '<header class="wt-flow-page-head">',
-      '<div class="wt-flow-heading"><h1>Calendar</h1></div>',
-      '</header>',
       renderCalendarControls(),
       '<div class="wt-calendar-layout wt-flow-calendar-layout">',
       renderCalendarBoard(false),
