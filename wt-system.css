@@ -4082,6 +4082,22 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   font-weight: 700;
 }
 
+.wt-calendar-quarter .wt-horizontal-event.wt-event-derived .wt-horizontal-event-date {
+  border-color: rgba(217,139,22,.24);
+}
+
+.wt-calendar-quarter .wt-horizontal-event.wt-event-derived .wt-horizontal-event-date span,
+.wt-calendar-quarter .wt-horizontal-event.wt-event-derived .wt-horizontal-event-date b,
+.wt-calendar-quarter .wt-horizontal-event.wt-event-derived .wt-horizontal-event-body strong {
+  color: #5a3a08;
+}
+
+.wt-calendar-quarter .wt-horizontal-event.wt-event-derived .wt-horizontal-event-body em,
+.wt-month-event.wt-event-derived span em,
+.wt-horizontal-event.wt-event-derived span em {
+  color: #7a4c00;
+}
+
 .wt-month-event.wt-event-user,
 .wt-horizontal-event.wt-event-user,
 .wt-year-event-summary.wt-event-user,
@@ -4115,6 +4131,42 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-timeline-bar.wt-event-user b,
 .wt-gantt-chip.wt-event-user b {
   color: #073d3c;
+  font-weight: 700;
+}
+
+.wt-month-event.wt-event-derived,
+.wt-horizontal-event.wt-event-derived,
+.wt-year-event-summary.wt-event-derived,
+.wt-list-row.wt-event-derived,
+.wt-season-dot.wt-event-derived,
+.wt-event.wt-event-derived,
+.wt-timeline-bar.wt-event-derived,
+.wt-gantt-chip.wt-event-derived {
+  border-left-color: #d98b16;
+  background: #fff0cf;
+  color: #5a3a08;
+}
+
+.wt-month-event.wt-event-derived span,
+.wt-horizontal-event.wt-event-derived span,
+.wt-year-event-summary.wt-event-derived span,
+.wt-list-row.wt-event-derived span,
+.wt-season-dot.wt-event-derived span,
+.wt-event.wt-event-derived span,
+.wt-timeline-bar.wt-event-derived span,
+.wt-gantt-chip.wt-event-derived span {
+  color: #7a4c00;
+}
+
+.wt-month-event.wt-event-derived b,
+.wt-horizontal-event.wt-event-derived b,
+.wt-year-event-summary.wt-event-derived b,
+.wt-list-row.wt-event-derived b,
+.wt-season-dot.wt-event-derived b,
+.wt-event.wt-event-derived b,
+.wt-timeline-bar.wt-event-derived b,
+.wt-gantt-chip.wt-event-derived b {
+  color: #5a3a08;
   font-weight: 700;
 }
 

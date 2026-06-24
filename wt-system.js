@@ -737,6 +737,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderEventOriginBadge(event) {
+    if (isDerivedEvent(event)) return '<em>Auto</em>';
     if (!isUserEvent(event)) return "";
     return '<em>User</em>';
   }
@@ -746,11 +747,16 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function eventOriginClass(event) {
+    if (isDerivedEvent(event)) return "wt-event-derived";
     return isUserEvent(event) ? "wt-event-user" : "wt-event-system";
   }
 
+  function isDerivedEvent(event) {
+    return !!event && event.source === "wt-system-derived";
+  }
+
   function isUserEvent(event) {
-    return !!event && (event.source !== "schedule.pdf" || !!event.modelName);
+    return !!event && !isDerivedEvent(event) && (event.source !== "schedule.pdf" || !!event.modelName);
   }
 
   function userEventAttributes(event) {
@@ -769,6 +775,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var score = 0;
     if (event.date === state.selectedDate) score += 8;
     if (isUserEvent(event)) score += 4;
+    if (isDerivedEvent(event)) score += 3;
     return score;
   }
 
@@ -1081,13 +1088,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var isUser = isUserEvent(event);
     var confirmingDelete = state.pendingDeleteEventId === event.id;
     var productDetail = eventProductDetails(event);
+    var readonlyMessage = isDerivedEvent(event) ? "Auto-generated from the T2 FPT handoff schedule. Edit the source handoff schedule to change this event." : "System schedule milestone. User editing is unavailable.";
     var rows = [
       ["Date", formatDateShort(event.date)],
       ["Type", event.kind || "deadline"],
       ["Season", event.season || "All"],
       ["Gate", event.gate || (isUser ? "User schedule" : "WT")],
       ["Owner", event.owner || "WT"],
-      ["Source", event.source === "schedule.pdf" ? "Schedule PDF" : "User schedule"]
+      ["Source", eventSourceLabel(event)]
     ];
     if (productDetail) rows.splice(4, 0, ["Product", productDetail]);
     if (event.notes) rows.push(["Memo", event.notes]);
@@ -1107,7 +1115,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         return '<div><small>' + text(row[0]) + '</small><b>' + text(row[1]) + '</b></div>';
       }).join(""),
       '</div>',
-      isUser ? '<div class="wt-modal-actions"><button type="button" data-edit-event-id="' + text(event.id) + '" data-date="' + text(event.date) + '">Edit</button><button type="button" class="danger ' + (confirmingDelete ? "is-confirming" : "") + '" data-delete-event-id="' + text(event.id) + '">' + text(confirmingDelete ? "Confirm Delete" : "Delete") + '</button></div>' : '<p class="wt-modal-readonly">System schedule milestone. User editing is unavailable.</p>',
+      isUser ? '<div class="wt-modal-actions"><button type="button" data-edit-event-id="' + text(event.id) + '" data-date="' + text(event.date) + '">Edit</button><button type="button" class="danger ' + (confirmingDelete ? "is-confirming" : "") + '" data-delete-event-id="' + text(event.id) + '">' + text(confirmingDelete ? "Confirm Delete" : "Delete") + '</button></div>' : '<p class="wt-modal-readonly">' + text(readonlyMessage) + '</p>',
       confirmingDelete ? '<p class="wt-modal-warning">Click Confirm Delete to remove this user schedule.</p>' : "",
       '</article>',
       '</section>'
@@ -1140,6 +1148,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       eventProductDetails(event),
       event.title
     ].filter(Boolean).join(" · ");
+  }
+
+  function eventSourceLabel(event) {
+    if (!event) return "WT";
+    if (event.source === "schedule.pdf") return "Schedule PDF";
+    if (isDerivedEvent(event)) return "Auto FPT workflow";
+    return "User schedule";
   }
 
   function eventProductDetails(event) {
@@ -2438,7 +2453,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       editingItem ? '<input type="hidden" name="rowKey" value="' + text(editingItem.rowKey || state.editingEventId) + '">' : "",
       field("Title", "HO27 sample dispatch", "title", editingItem ? editingItem.projectName : ""),
       '<label>Date<input name="targetDate" type="date" value="' + text(editingItem ? editingItem.targetDate : state.selectedDate) + '"></label>',
-      select("Type", ["deadline", "sample", "shipping", "report", "review"], "type", editingItem ? editingItem.milestoneType : ""),
+      select("Type", ["deadline", "sample", "shipping", "report", "review", "handoff"], "type", editingItem ? editingItem.milestoneType : ""),
       seasonInput(editingItem ? editingItem.season : ""),
       field("Model Name", "Pegasus 42 / style code", "modelName", editingItem ? editingItem.modelName : ""),
       field("Size", "US 9 / 270mm", "size", editingItem ? editingItem.size : ""),
@@ -2795,8 +2810,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     });
     loadLocalSubmissions().forEach(function (item, index) {
       if (!item || !item.targetDate) return;
+      var parentId = submissionId(item, index);
       events.push({
-        id: submissionId(item, index),
+        id: parentId,
         date: item.targetDate,
         endDate: item.targetDate,
         title: item.projectName || "WT schedule",
@@ -2810,6 +2826,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         notes: item.notes || "",
         time: "",
         source: item.source || "wt-system-ui"
+      });
+      deriveHandoffEvents(item, parentId).forEach(function (event) {
+        events.push(event);
       });
     });
 
@@ -2870,6 +2889,68 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       seen[key] = true;
       return true;
     });
+  }
+
+  function deriveHandoffEvents(item, parentId) {
+    if (!isT2FptHandoffSubmission(item)) return [];
+    var baseTitle = item.modelName || item.projectName || "WT handoff";
+    var testDate = addBusinessDaysIso(item.targetDate, 2);
+    var reportDate = nthBusinessDayFromIso(item.targetDate, 5);
+    var common = {
+      season: item.season || "All",
+      modelName: item.modelName || "",
+      size: item.size || "",
+      sampleQuantity: item.sampleQuantity || "",
+      time: "",
+      source: "wt-system-derived",
+      parentId: parentId
+    };
+    return [
+      extendEvent(common, {
+        id: parentId + "-auto-mm-test",
+        date: testDate,
+        endDate: testDate,
+        title: "M&M Test (G115 / G107 / ETC) - " + baseTitle,
+        kind: "review",
+        gate: "M&M Test",
+        owner: "T2 FPT",
+        notes: "Auto-created within 2 business days of the T2 FPT handoff."
+      }),
+      extendEvent(common, {
+        id: parentId + "-auto-wt-report",
+        date: reportDate,
+        endDate: reportDate,
+        title: "T2 FPT WT Report - " + baseTitle,
+        kind: "report",
+        gate: "WT Report",
+        owner: "T2 FPT",
+        notes: "Auto-created for the 5th business day from the T2 FPT handoff."
+      })
+    ];
+  }
+
+  function extendEvent(base, values) {
+    var result = {};
+    Object.keys(base || {}).forEach(function (key) {
+      result[key] = base[key];
+    });
+    Object.keys(values || {}).forEach(function (key) {
+      result[key] = values[key];
+    });
+    return result;
+  }
+
+  function isT2FptHandoffSubmission(item) {
+    var type = String(item.milestoneType || item.kind || "").toLowerCase();
+    if (type === "handoff") return true;
+    var textValue = [
+      item.projectName,
+      item.owner,
+      item.notes,
+      item.gate,
+      item.milestoneType
+    ].join(" ").toLowerCase();
+    return textValue.indexOf("handoff") >= 0 && (textValue.indexOf("fpt") >= 0 || textValue.indexOf("t2") >= 0);
   }
 
   function mapMilestoneKind(kind) {
@@ -3079,6 +3160,31 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function addDaysIso(date, amount) {
     return toIso(addDays(fromIso(date), amount));
+  }
+
+  function addBusinessDaysIso(date, amount) {
+    var cursor = fromIso(date);
+    var added = 0;
+    while (added < amount) {
+      cursor = addDays(cursor, 1);
+      if (isBusinessDay(cursor)) added += 1;
+    }
+    return toIso(cursor);
+  }
+
+  function nthBusinessDayFromIso(date, count) {
+    var cursor = fromIso(date);
+    var seen = 0;
+    while (seen < count) {
+      if (isBusinessDay(cursor)) seen += 1;
+      if (seen < count) cursor = addDays(cursor, 1);
+    }
+    return toIso(cursor);
+  }
+
+  function isBusinessDay(date) {
+    var day = date.getDay();
+    return day !== 0 && day !== 6;
   }
 
   function addDays(date, amount) {
