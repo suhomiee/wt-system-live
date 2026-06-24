@@ -2394,6 +2394,13 @@ textarea:focus-visible {
   align-self: start;
 }
 
+.wt-edit-card-modal {
+  border: 0;
+  background: transparent;
+  padding: 0 22px 22px;
+  overflow: visible;
+}
+
 .wt-edit-form {
   display: grid;
   gap: 12px;
@@ -2435,6 +2442,10 @@ textarea:focus-visible {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
+}
+
+.wt-edit-card-modal .wt-form-actions {
+  grid-template-columns: minmax(0, 1fr) auto auto;
 }
 
 .wt-edit-form .primary {
@@ -2598,6 +2609,14 @@ textarea:focus-visible {
   font-weight: 800;
 }
 
+.wt-schedule-panel {
+  width: min(760px, 100%);
+}
+
+.wt-schedule-panel .wt-modal-header {
+  padding-bottom: 0;
+}
+
 .wt-edit-form .danger {
   min-width: 132px;
   min-height: 48px;
@@ -2620,6 +2639,10 @@ textarea:focus-visible {
 
   .wt-modal-actions {
     flex-direction: column;
+  }
+
+  .wt-edit-card-modal .wt-form-actions {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -172,6 +172,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var editEventButton = event.target.closest("[data-edit-event-id]");
       var deleteEventButton = event.target.closest("[data-delete-event-id]");
       var closeModalButton = event.target.closest("[data-close-event-modal]");
+      var closeScheduleModalButton = event.target.closest("[data-close-schedule-modal]");
 
       if (sectionButton && root.contains(sectionButton)) {
         state.section = sectionButton.getAttribute("data-section");
@@ -185,6 +186,16 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       if (closeModalButton && root.contains(closeModalButton)) {
         event.preventDefault();
         state.activeEventId = "";
+        state.pendingDeleteEventId = "";
+        state.actionMessage = "";
+        render(root);
+        return;
+      }
+
+      if (closeScheduleModalButton && root.contains(closeScheduleModalButton)) {
+        event.preventDefault();
+        state.view = "display";
+        state.editingEventId = "";
         state.pendingDeleteEventId = "";
         state.actionMessage = "";
         render(root);
@@ -402,8 +413,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       '<div class="wt-app is-' + text(state.section) + ' is-' + text(state.view) + '">',
       renderSidebar(root),
-      state.view === "edit" ? renderEditor(root) : renderShell(root),
+      renderShell(root),
       renderEventModal(),
+      renderScheduleEditorModal(root),
       '</div>'
     ].join("");
   }
@@ -1097,6 +1109,24 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '</div>',
       isUser ? '<div class="wt-modal-actions"><button type="button" data-edit-event-id="' + text(event.id) + '" data-date="' + text(event.date) + '">Edit</button><button type="button" class="danger ' + (confirmingDelete ? "is-confirming" : "") + '" data-delete-event-id="' + text(event.id) + '">' + text(confirmingDelete ? "Confirm Delete" : "Delete") + '</button></div>' : '<p class="wt-modal-readonly">System schedule milestone. User editing is unavailable.</p>',
       confirmingDelete ? '<p class="wt-modal-warning">Click Confirm Delete to remove this user schedule.</p>' : "",
+      '</article>',
+      '</section>'
+    ].join("");
+  }
+
+  function renderScheduleEditorModal(root) {
+    if (state.view !== "edit") return "";
+    var editingItem = state.editingEventId ? findLocalSubmissionById(state.editingEventId) : null;
+    var title = editingItem ? "Edit Schedule" : "Create Schedule";
+    return [
+      '<section class="wt-event-modal wt-schedule-modal" role="dialog" aria-modal="true" aria-label="' + text(title) + '">',
+      '<button class="wt-modal-backdrop" type="button" data-close-schedule-modal aria-label="Close schedule editor"></button>',
+      '<article class="wt-modal-panel wt-schedule-panel">',
+      '<header class="wt-modal-header">',
+      '<div><small>WT_Submissions</small><h2>' + text(title) + '</h2></div>',
+      '<button type="button" class="wt-modal-close" data-close-schedule-modal aria-label="Close">&times;</button>',
+      '</header>',
+      renderEditForm(root, true),
       '</article>',
       '</section>'
     ].join("");
@@ -2401,12 +2431,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderEditForm(root) {
+    var inModal = arguments.length > 1 && arguments[1] === true;
     var listTitle = root.getAttribute("data-wt-sharepoint-list-title") || "WT_Submissions";
     var editingItem = state.editingEventId ? findLocalSubmissionById(state.editingEventId) : null;
     var confirmingDelete = editingItem && state.pendingDeleteEventId === state.editingEventId;
     return [
-      '<aside class="wt-edit-card">',
-      '<h2>' + text(editingItem ? "Edit User Schedule" : "New Schedule") + '</h2>',
+      '<aside class="wt-edit-card' + (inModal ? " wt-edit-card-modal" : "") + '">',
+      inModal ? "" : '<h2>' + text(editingItem ? "Edit User Schedule" : "New Schedule") + '</h2>',
       '<form class="wt-edit-form">',
       editingItem ? '<input type="hidden" name="rowKey" value="' + text(editingItem.rowKey || state.editingEventId) + '">' : "",
       field("Title", "HO27 sample dispatch", "title", editingItem ? editingItem.projectName : ""),
@@ -2422,6 +2453,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-form-actions">',
       '<button class="primary" type="submit">' + text(editingItem ? "Update Schedule" : "Save Schedule") + '</button>',
       editingItem ? '<button class="danger ' + (confirmingDelete ? "is-confirming" : "") + '" type="button" data-delete-event-id="' + text(state.editingEventId) + '">' + text(confirmingDelete ? "Confirm Delete" : "Delete Schedule") + '</button>' : "",
+      '<button type="button" data-close-schedule-modal>Cancel</button>',
       '</div>',
       '</form>',
       '</aside>'
