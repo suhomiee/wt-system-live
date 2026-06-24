@@ -67,6 +67,47 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   };
   var REPORT_MANIFEST = window.WT_REPORT_MANIFEST || { nikeLabReports: [], phkReports: [] };
   var SHAREPOINT_HOST_RE = /(^|\.)sharepoint\.com$/i;
+  var T2RL_COPILOT_AGENT = {
+    title: "T2RL Data Agent",
+    url: "https://taekwangcom.sharepoint.com/sites/T2RL2/_layouts/15/chat.aspx?app=SharePointPages",
+    sourceUrl: "https://taekwangcom.sharepoint.com/sites/T2RL2/SiteAssets/T2RL%20Data%20Agent%20Source.md",
+    sourcePath: "/sites/T2RL2/SiteAssets/T2RL Data Agent Source.md"
+  };
+  var T2RL_AGENT_SOURCE_TEXT = [
+    "# T2RL Data Agent Source",
+    "Primary SharePoint scope:",
+    "- Site: https://taekwangcom.sharepoint.com/sites/T2RL2",
+    "- Silo Analysis workbook: /sites/T2RL2/Archive/Raw/Silo Analysis/Silo_Analysis_DB_TableSource_20260422_211648.xlsx",
+    "- Silo Analysis page: https://taekwangcom.sharepoint.com/sites/T2RL2/SitePages/Silo_Analysis_CSP_Test_20260420_212102.aspx",
+    "- Archive library: /sites/T2RL2/Archive/Forms/AllItems.aspx",
+    "- Tester Pool page: /sites/T2RL2/SitePages/Tester-Pool.aspx",
+    "- CPET Data list: /sites/T2RL2/Lists/CPET%20Data/AllItems.aspx",
+    "Silo Analysis field map:",
+    "- Model aliases can include Guide 18, Guide18, Guide-18, and G-18.",
+    "- In the DB sheet, the model name is in the Model column.",
+    "- PeakG_Forefoot is the forefoot Peak G field.",
+    "- PeakG_Heel is the heel Peak G field.",
+    "- G107(10kgf) is a separate G107 10 kgf measurement.",
+    "Validation record:",
+    "- Source workbook: Silo_Analysis_DB_TableSource_20260422_211648.xlsx",
+    "- Source sheet: DB",
+    "- Source row: Guide 18",
+    "- Brand: Saucony",
+    "- Model: Guide 18",
+    "- Silo: Supportive",
+    "- PeakG_Forefoot: 11.7",
+    "- PeakG_Heel: 10.9",
+    "- G107(10kgf): 15.32",
+    "- M9_Shock Absorption Heel(SA): 124",
+    "- M9_Energy Return Heel(%): 61.3",
+    "- M9_Midsole Softness(AC): 38.3",
+    "- M9_Midsole Softness(HA): 23",
+    "- RunRepeat URL: https://runrepeat.com/saucony-guide-18",
+    "Landing dashboard facts:",
+    "- Silo model count: 659 models",
+    "- Tester pool: 61 testers",
+    "- Team asset data: 123,964 files"
+  ].join("\n");
 
   var state = {
     section: "dashboard",
@@ -79,6 +120,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     reportFrameError: "",
     reportFrameRequestId: 0,
     sourceIndex: {},
+    assistantKnowledge: { status: "seeded", text: T2RL_AGENT_SOURCE_TEXT, error: "" },
     assistantQuestion: "",
     assistantStatus: "idle",
     assistantAnswer: null,
@@ -334,9 +376,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderShell(root) {
+    var noToolbar = state.section === "dashboard";
     return [
-      '<main class="wt-main" aria-label="WT System workspace">',
-      renderToolbar(),
+      '<main class="wt-main ' + (noToolbar ? "wt-main-no-toolbar" : "") + '" aria-label="WT System workspace">',
+      noToolbar ? "" : renderToolbar(),
       '<div class="wt-workspace">',
       renderSection(root),
       '</div>',
@@ -903,15 +946,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderDashboard() {
-    var range = currentRange();
-    var events = eventsForCurrentRange();
     var selectedEvents = filteredEventsForDate(state.selectedDate);
     return [
       '<section class="wt-dashboard">',
-      '<div class="wt-dashboard-hero">',
-      '<div><small>Schedule command center</small><h2>' + text(formatRange(range)) + '</h2></div>',
-      '<div class="wt-now"><span data-clock>--:--</span><small>KST live board</small></div>',
-      '</div>',
       renderDashboardYearStrip(),
       renderDashboardMonthPanel(),
       '<div class="wt-dashboard-focus">',
@@ -956,13 +993,29 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderDashboardMonthTile(unit) {
     var events = filteredEventsForRange(unit.start, unit.end);
     var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " is-selected" : "";
-    var load = Math.min(100, events.length * 9);
     var monthLabel = MONTHS[fromIso(unit.start).getMonth()];
+    var visibleLimit = 2;
     return [
-      '<button type="button" class="wt-year-month-tile' + selected + '" data-date="' + text(unit.start) + '" aria-label="' + text(unit.label + " " + events.length + " events") + '">',
-      '<b>' + text(monthLabel) + '</b>',
-      '<span>' + text(events.length) + '</span>',
-      '<i style="--load:' + text(load) + '%"></i>',
+      '<article class="wt-year-month-tile' + selected + '">',
+      '<button type="button" class="wt-year-month-head-button" data-date="' + text(unit.start) + '" aria-label="' + text(unit.label + " " + events.length + " events") + '">',
+      '<b>' + text(monthLabel) + '</b><span>' + text(events.length) + '</span>',
+      '</button>',
+      '<div class="wt-year-month-events">',
+      events.length ? events.slice(0, visibleLimit).map(function (event) {
+        return renderDashboardYearEventSummary(event);
+      }).join("") : '<span class="wt-year-empty">No events</span>',
+      events.length > visibleLimit ? '<small class="wt-month-more">+' + text(events.length - visibleLimit) + ' more</small>' : "",
+      '</div>',
+      '</article>'
+    ].join("");
+  }
+
+  function renderDashboardYearEventSummary(event) {
+    var selected = event.date === state.selectedDate ? " is-selected" : "";
+    return [
+      '<button type="button" class="wt-year-event-summary wt-kind-' + text(event.kind) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+      '<span>' + text(formatDateShort(event.date) + " · " + (event.gate || event.season || event.kind)) + '</span>',
+      '<b>' + text(shortTitle(event.title, 34)) + '</b>',
       '</button>'
     ].join("");
   }
@@ -1049,14 +1102,16 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderAssistantForm(root) {
     var endpoint = configuredAssistantEndpoint(root);
+    var copilotUrl = configuredCopilotUrl(root);
     return [
       '<form class="wt-ai-form">',
       '<label>',
       '<small>Question</small>',
-      '<textarea name="question" rows="4" placeholder="Ask about schedules, product tests, reports, seasons, gates, or dates.">' + text(state.assistantQuestion) + '</textarea>',
+      '<textarea name="question" rows="4" placeholder="Ask about schedules, product tests, reports, seasons, gates, dates, or Silo Analysis metrics.">' + text(state.assistantQuestion) + '</textarea>',
       '</label>',
       '<div class="wt-ai-form-footer">',
-      '<span>' + text(endpoint ? "AI backend connected" : "Local source index") + '</span>',
+      '<span>' + text(endpoint ? "Copilot Retrieval endpoint connected" : assistantKnowledgeStatusLabel(root)) + '</span>',
+      copilotUrl ? '<a href="' + text(copilotUrl) + '" target="_blank" rel="noopener noreferrer">Open Copilot</a>' : "",
       '<button type="submit">' + text(state.assistantStatus === "loading" ? "Searching" : "Ask") + '</button>',
       '</div>',
       '</form>'
@@ -1085,6 +1140,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<header><small>' + text(answer.mode || "Local index") + '</small><b>Answer</b></header>',
       warning ? '<div class="wt-ai-warning">' + text(warning) + '</div>' : "",
       '<p>' + text(answer.answer) + '</p>',
+      answer.copilotUrl ? '<a class="wt-ai-copilot-link" href="' + text(answer.copilotUrl) + '" target="_blank" rel="noopener noreferrer">Ask the same question in Copilot</a>' : "",
       answer.matches && answer.matches.length ? '<div class="wt-ai-matches">' + answer.matches.map(renderAssistantMatch).join("") + '</div>' : "",
       '</article>'
     ].join("");
@@ -1170,33 +1226,162 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return root ? (root.getAttribute("data-wt-ai-endpoint") || "").trim() : "";
   }
 
+  function configuredCopilotUrl(root) {
+    return root ? (root.getAttribute("data-wt-copilot-url") || T2RL_COPILOT_AGENT.url).trim() : T2RL_COPILOT_AGENT.url;
+  }
+
+  function assistantKnowledgeStatusLabel(root) {
+    if (configuredAssistantEndpoint(root)) return "Copilot Retrieval endpoint connected";
+    if (state.assistantKnowledge.status === "loaded") return "SharePoint agent source loaded";
+    if (state.assistantKnowledge.status === "loading") return "Loading SharePoint agent source";
+    if (state.assistantKnowledge.status === "error") return "Seeded agent source";
+    return "Seeded agent source";
+  }
+
   function normalizeAssistantBackendAnswer(payload, root, question) {
     if (!payload || typeof payload !== "object") return answerAssistantQuestionLocally(root, question);
     return {
       mode: "AI backend",
       answer: payload.answer || payload.text || "The AI backend returned no answer text.",
+      copilotUrl: copilotQuestionUrl(root, question),
       matches: Array.isArray(payload.matches) ? payload.matches : (Array.isArray(payload.sources) ? payload.sources : [])
     };
   }
 
   function answerAssistantQuestionLocally(root, question) {
     var allMatches = assistantMatches(root, question);
+    var directAnswer = assistantDirectAnswer(root, question, allMatches);
+    if (directAnswer) return directAnswer;
     var sourceMatches = assistantIsSourceQuestion(question) ? allMatches.filter(function (match) { return match.kind === "source"; }) : [];
     var matches = (sourceMatches.length ? sourceMatches : allMatches).slice(0, 6);
     if (!matches.length) {
       return {
-        mode: "Local index",
-        answer: "I could not find a matching indexed record. The current browser index covers WT schedule milestones and source links; full PDF or Excel row-level answers require the SharePoint-hosted AI backend.",
+        mode: assistantKnowledgeStatusLabel(root),
+        answer: "I could not find a matching indexed record. The current browser index covers WT schedule milestones, the T2RL Data Agent source, and connected SharePoint source links. Row-level answers outside the seeded agent source require the SharePoint-hosted Copilot/Retrieval endpoint.",
+        copilotUrl: copilotQuestionUrl(root, question),
         matches: assistantSourceCards(root).filter(function (source) { return source.url; }).slice(0, 3).map(function (source) {
           return { type: "source", title: source.title, sourceName: source.detail, excerpt: source.status, url: source.url };
         })
       };
     }
     return {
-      mode: "Local index",
+      mode: assistantKnowledgeStatusLabel(root),
       answer: assistantAnswerSentence(matches),
+      copilotUrl: copilotQuestionUrl(root, question),
       matches: matches
     };
+  }
+
+  function assistantDirectAnswer(root, question, matches) {
+    var normalized = assistantNormalize(question);
+    var hasGuide18 = assistantQuestionMentionsGuide18(normalized);
+    var record = assistantGuide18Record(root);
+
+    if (hasGuide18 && /\bpeak\s*g\b|\bpeakg\b|피크\s*g|피크g/i.test(normalized)) {
+      return assistantKnowledgeAnswer(root, question, "Guide 18 Peak G", [
+        "Guide 18 has PeakG_Forefoot " + record.peakGForefoot + " and PeakG_Heel " + record.peakGHeel + " in the Silo Analysis DB source.",
+        "The separate G107(10kgf) value is " + record.g107 + "."
+      ].join(" "), assistantGuide18Match(record));
+    }
+
+    if (hasGuide18 && /\bg107\b|10kgf|10\s*kgf/i.test(normalized)) {
+      return assistantKnowledgeAnswer(root, question, "Guide 18 G107", "Guide 18 has G107(10kgf) " + record.g107 + " in the Silo Analysis DB source. PeakG_Forefoot is " + record.peakGForefoot + " and PeakG_Heel is " + record.peakGHeel + ".", assistantGuide18Match(record));
+    }
+
+    if (hasGuide18 && /shock|absorption|energy|return|softness|충격|에너지|소프트|경도/i.test(normalized)) {
+      return assistantKnowledgeAnswer(root, question, "Guide 18 mechanical summary", "Guide 18 is listed as Saucony / Supportive. M9_Shock Absorption Heel(SA) is " + record.shockAbsorptionHeel + ", M9_Energy Return Heel(%) is " + record.energyReturnHeel + ", M9_Midsole Softness(AC) is " + record.midsoleSoftnessAc + ", and M9_Midsole Softness(HA) is " + record.midsoleSoftnessHa + ".", assistantGuide18Match(record));
+    }
+
+    if (/(silo|product test|database|db|workbook|데이터베이스|워크북).*(where|source|path|link|어디|경로)|where.*(silo|product test|database|db|workbook)/i.test(normalized)) {
+      return assistantKnowledgeAnswer(root, question, "Silo Analysis source", "The product-test source is the Silo Analysis workbook at /sites/T2RL2/Archive/Raw/Silo Analysis/Silo_Analysis_DB_TableSource_20260422_211648.xlsx. The related SharePoint page is " + SHAREPOINT_SOURCES.nikeRows.url + ".", [assistantSourceMatch("Silo Analysis workbook", "Product Test Database", "Silo Analysis DB source for model-level measurements.", SHAREPOINT_SOURCES.nikeRows.url)]);
+    }
+
+    if (/tester.*pool|tester count|테스터/.test(normalized)) {
+      return assistantKnowledgeAnswer(root, question, "Tester Pool", "The landing project currently exposes Tester Pool as 61 testers, with the live source at /sites/T2RL2/SitePages/Tester-Pool.aspx.", [assistantSourceMatch("Tester Pool", "Landing project metric", "61 testers in the landing dashboard source.", "https://taekwangcom.sharepoint.com/sites/T2RL2/SitePages/Tester-Pool.aspx")]);
+    }
+
+    if (/asset.*data|team asset|asset count|파일.*수|자산/.test(normalized)) {
+      return assistantKnowledgeAnswer(root, question, "Team asset data", "The landing project currently exposes Team asset data as 123,964 files. Use Archive for the source file library.", [assistantSourceMatch("Archive", "Landing project metric", "123,964 team asset files in the landing dashboard source.", "https://taekwangcom.sharepoint.com/sites/T2RL2/Archive/Forms/AllItems.aspx")]);
+    }
+
+    if (/(source|sources|knowledge|copilot|agent|연결|소스|지식).*(what|which|list|뭐|무엇)|무슨.*소스/.test(normalized)) {
+      return assistantKnowledgeAnswer(root, question, "Connected knowledge sources", "The Q&A index is grounded on WT schedule milestones, the T2RL Data Agent Source.md file, Product Test Database / Silo Analysis workbook, Nike Lab Test PDF Reports, PHK WT Reports, Archive, Tester Pool, and CPET Data. SharePoint-hosted mode also tries to refresh the agent source through authenticated SharePoint REST.", assistantSourceCards(root).slice(0, 6).map(function (source) {
+        return assistantSourceMatch(source.title, source.detail, source.searchSummary || source.status, source.url);
+      }));
+    }
+
+    return null;
+  }
+
+  function assistantKnowledgeAnswer(root, question, mode, answer, matches) {
+    return {
+      mode: mode,
+      answer: answer,
+      copilotUrl: copilotQuestionUrl(root, question),
+      matches: matches
+    };
+  }
+
+  function assistantQuestionMentionsGuide18(normalizedQuestion) {
+    return /guide\s*18|guide-18|guide18|g-18|\bg18\b/.test(normalizedQuestion);
+  }
+
+  function assistantGuide18Record(root) {
+    return {
+      workbook: assistantKnowledgeField(root, "Source workbook", "Silo_Analysis_DB_TableSource_20260422_211648.xlsx"),
+      sheet: assistantKnowledgeField(root, "Source sheet", "DB"),
+      row: assistantKnowledgeField(root, "Source row", "Guide 18"),
+      brand: assistantKnowledgeField(root, "Brand", "Saucony"),
+      model: assistantKnowledgeField(root, "Model", "Guide 18"),
+      silo: assistantKnowledgeField(root, "Silo", "Supportive"),
+      peakGForefoot: assistantKnowledgeField(root, "PeakG_Forefoot", "11.7"),
+      peakGHeel: assistantKnowledgeField(root, "PeakG_Heel", "10.9"),
+      g107: assistantKnowledgeField(root, "G107\\(10kgf\\)", "15.32"),
+      shockAbsorptionHeel: assistantKnowledgeField(root, "M9_Shock Absorption Heel\\(SA\\)", "124"),
+      energyReturnHeel: assistantKnowledgeField(root, "M9_Energy Return Heel\\(%\\)", "61.3"),
+      midsoleSoftnessAc: assistantKnowledgeField(root, "M9_Midsole Softness\\(AC\\)", "38.3"),
+      midsoleSoftnessHa: assistantKnowledgeField(root, "M9_Midsole Softness\\(HA\\)", "23"),
+      runRepeatUrl: assistantKnowledgeField(root, "RunRepeat URL", "https://runrepeat.com/saucony-guide-18")
+    };
+  }
+
+  function assistantKnowledgeField(root, escapedName, fallback) {
+    var content = assistantKnowledgeText(root);
+    var pattern = new RegExp("^\\s*-\\s*" + escapedName + "\\s*:\\s*(.+?)\\s*$", "im");
+    var match = pattern.exec(content);
+    return match ? match[1] : fallback;
+  }
+
+  function assistantKnowledgeText(root) {
+    return (state.assistantKnowledge && state.assistantKnowledge.text) || T2RL_AGENT_SOURCE_TEXT;
+  }
+
+  function assistantGuide18Match(record) {
+    return {
+      kind: "knowledge",
+      type: "Silo Analysis validation record",
+      title: record.model + " / " + record.brand,
+      sourceName: record.workbook + " / " + record.sheet,
+      excerpt: "PeakG_Forefoot " + record.peakGForefoot + " / PeakG_Heel " + record.peakGHeel + " / G107(10kgf) " + record.g107 + " / Silo " + record.silo,
+      url: SHAREPOINT_SOURCES.nikeRows.url
+    };
+  }
+
+  function assistantSourceMatch(title, sourceName, excerpt, url) {
+    return {
+      kind: "source",
+      type: sourceName,
+      title: title,
+      sourceName: sourceName,
+      excerpt: excerpt,
+      url: url || ""
+    };
+  }
+
+  function copilotQuestionUrl(root, question) {
+    var base = configuredCopilotUrl(root);
+    if (!base) return "";
+    return base + (base.indexOf("?") >= 0 ? "&" : "?") + "q=" + encodeURIComponent(question || state.assistantQuestion || "");
   }
 
   function assistantAnswerSentence(matches) {
@@ -1287,6 +1472,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       });
     });
 
+    assistantKnowledgeDocuments(root).forEach(function (doc) {
+      docs.push(doc);
+    });
+
     Object.keys(SHAREPOINT_SOURCES).forEach(function (key) {
       var source = SHAREPOINT_SOURCES[key];
       var index = sourceIndexFor(root, source);
@@ -1307,6 +1496,39 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return docs;
   }
 
+  function assistantKnowledgeDocuments(root) {
+    var record = assistantGuide18Record(root);
+    return [
+      {
+        kind: "knowledge",
+        type: "Silo Analysis validation record",
+        title: "Guide 18 Peak G",
+        sourceName: record.workbook + " / " + record.sheet,
+        excerpt: "Guide 18 has PeakG_Forefoot " + record.peakGForefoot + ", PeakG_Heel " + record.peakGHeel + ", and G107(10kgf) " + record.g107 + ".",
+        searchText: [
+          "guide 18 guide18 guide-18 g-18 g18 saucony supportive peak g peakg forefoot heel g107 10kgf silo analysis",
+          record.model,
+          record.brand,
+          record.silo,
+          record.peakGForefoot,
+          record.peakGHeel,
+          record.g107,
+          assistantKnowledgeText(root)
+        ].join(" "),
+        url: SHAREPOINT_SOURCES.nikeRows.url
+      },
+      {
+        kind: "knowledge",
+        type: "T2RL Data Agent source",
+        title: "T2RL SharePoint knowledge map",
+        sourceName: "T2RL Data Agent Source.md",
+        excerpt: "T2RL2, Silo Analysis workbook, Archive, Tester Pool, CPET Data, Product Test Database, Nike Lab Reports, and PHK WT Reports.",
+        searchText: assistantKnowledgeText(root) + " copilot agent sharepoint knowledge source retrieval api archive tester pool cpet product test database",
+        url: T2RL_COPILOT_AGENT.sourceUrl
+      }
+    ];
+  }
+
   function assistantSourceCards(root) {
     return [
       {
@@ -1316,6 +1538,22 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         url: "",
         searchSummary: "Embedded creation schedule and local user-entered WT milestones.",
         searchText: "schedule calendar creation plan season gate milestone date sample handoff product freeze results ready 일정 마일스톤 시즌 날짜"
+      },
+      {
+        title: "T2RL Data Agent Source",
+        detail: state.assistantKnowledge.status === "loaded" ? "SharePoint markdown" : "Seeded markdown",
+        status: state.assistantKnowledge.status === "error" ? state.assistantKnowledge.error : assistantKnowledgeStatusLabel(root),
+        url: T2RL_COPILOT_AGENT.sourceUrl,
+        searchSummary: "Copilot-facing source map and validation records from the landing page project.",
+        searchText: "copilot agent sharepoint retrieval source markdown t2rl data agent guide 18 peak g silo analysis " + assistantKnowledgeText(root)
+      },
+      {
+        title: "M365 Copilot / SharePoint Agent",
+        detail: "Copilot handoff",
+        status: "Opens SharePoint Copilot for the same signed-in user.",
+        url: configuredCopilotUrl(root),
+        searchSummary: "Opens the SharePoint Copilot agent experience for T2RL2 knowledge sources.",
+        searchText: "m365 copilot sharepoint agent chat assistant ai q&a retrieval"
       },
       {
         title: SHAREPOINT_SOURCES.nikeRows.title,
@@ -1419,6 +1657,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function ensureActiveSourceIndexes(root) {
     if (!isSharePointHost()) return;
+    if (state.section === "assistant") {
+      ensureAssistantKnowledge(root);
+      ensureSourceIndex(root, SHAREPOINT_SOURCES.nikeRows);
+      ensureSourceIndex(root, SHAREPOINT_SOURCES.nikeReports);
+      ensureSourceIndex(root, SHAREPOINT_SOURCES.phkReports);
+    }
     if (state.section === "lab" && state.labView === "reports") {
       ensureSourceIndex(root, SHAREPOINT_SOURCES.nikeReports);
     }
@@ -1445,6 +1689,37 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     }).catch(function (error) {
       state.sourceIndex[key] = { status: "error", value: request.value, mode: request.mode, items: [], error: error.message || String(error) };
       render(root);
+      });
+  }
+
+  function ensureAssistantKnowledge(root) {
+    if (!isSharePointHost()) return;
+    if (state.assistantKnowledge.status === "loading" || state.assistantKnowledge.status === "loaded") return;
+    state.assistantKnowledge = { status: "loading", text: state.assistantKnowledge.text || T2RL_AGENT_SOURCE_TEXT, error: "" };
+    window.setTimeout(function () { render(root); }, 0);
+    fetchAssistantKnowledge(root).then(function (content) {
+      state.assistantKnowledge = { status: "loaded", text: content || T2RL_AGENT_SOURCE_TEXT, error: "" };
+      render(root);
+    }).catch(function (error) {
+      state.assistantKnowledge = {
+        status: "error",
+        text: T2RL_AGENT_SOURCE_TEXT,
+        error: "SharePoint agent source could not be loaded: " + error.message
+      };
+      render(root);
+    });
+  }
+
+  function fetchAssistantKnowledge(root) {
+    var configuredPath = root ? (root.getAttribute("data-wt-agent-source-path") || "").trim() : "";
+    var path = configuredPath || T2RL_COPILOT_AGENT.sourcePath;
+    var endpoint = getSitePath() + "/_api/web/GetFileByServerRelativePath(decodedurl='" + encodeODataString(path) + "')/$value";
+    return window.fetch(endpoint, {
+      headers: { "Accept": "text/plain" },
+      credentials: "same-origin"
+    }).then(function (response) {
+      if (!response.ok) throw new Error("SharePoint source HTTP " + response.status);
+      return response.text();
     });
   }
 

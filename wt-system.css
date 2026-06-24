@@ -1360,7 +1360,7 @@ textarea:focus-visible {
 }
 
 .wt-dashboard {
-  grid-template-rows: auto 170px minmax(0, 1fr) auto;
+  grid-template-rows: minmax(150px, .36fr) minmax(0, 1fr) auto;
 }
 
 .wt-dashboard-hero {
@@ -1496,15 +1496,14 @@ textarea:focus-visible {
   min-width: 0;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: minmax(0, 1fr) 7px;
-  align-items: center;
-  gap: 6px;
-  padding: 8px;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 5px;
+  padding: 7px;
   border: 1px solid var(--line);
   background: #ffffff;
   color: var(--ink);
   text-align: left;
+  overflow: hidden;
 }
 
 .wt-year-month-tile.is-selected {
@@ -1512,31 +1511,97 @@ textarea:focus-visible {
   box-shadow: inset 0 0 0 2px rgba(17, 17, 17, .72);
 }
 
-.wt-year-month-tile span {
-  justify-self: end;
+.wt-year-month-head-button {
+  min-width: 0;
+  min-height: 28px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
   color: var(--ink);
-  font-family: var(--font-display);
-  font-size: 24px;
-  line-height: 1;
+  padding: 0;
+  text-align: left;
 }
 
-.wt-year-month-tile b {
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+.wt-year-month-head-button span {
+  justify-self: end;
   color: var(--ink);
   font-family: var(--font-display);
   font-size: 18px;
   line-height: 1;
 }
 
-.wt-year-month-tile i {
-  grid-column: 1 / -1;
-  width: 100%;
-  height: 7px;
+.wt-year-month-head-button b {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.wt-year-month-events {
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  overflow: hidden;
+}
+
+.wt-year-event-summary {
+  min-width: 0;
+  min-height: 34px;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--ink);
+  padding: 5px 7px;
+  text-align: left;
+}
+
+.wt-year-event-summary.is-selected {
+  border-color: var(--ink);
+  background: #f7fbfb;
+}
+
+.wt-year-event-summary span {
+  min-width: 0;
+  overflow: hidden;
   display: block;
-  background: linear-gradient(90deg, var(--teal) var(--load), var(--panel) var(--load));
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-year-event-summary b {
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 13px;
+  white-space: normal;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.wt-year-empty {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .wt-dashboard-month-panel {
@@ -1666,11 +1731,28 @@ textarea:focus-visible {
   justify-content: space-between;
   gap: 12px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .wt-ai-form-footer span {
+  flex: 1 1 180px;
   color: var(--muted);
   font-size: 12px;
+}
+
+.wt-ai-form-footer a,
+.wt-ai-copilot-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  padding: 0 12px;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .wt-ai-form-footer button {
@@ -1714,6 +1796,10 @@ textarea:focus-visible {
   color: var(--ink);
   font-size: 15px;
   line-height: 1.45;
+}
+
+.wt-ai-copilot-link {
+  justify-self: start;
 }
 
 .wt-ai-empty > p {
@@ -2561,8 +2647,11 @@ textarea:focus-visible {
 /* Flow parity pass: calendar screen */
 #wt-system-root,
 .wt-root {
-  --flow-navy: #0f172a;
-  --flow-active: #263b70;
+  --flow-navy: #06e6b3;
+  --flow-active: #004d3e;
+  --flow-sidebar-ink: #063a30;
+  --flow-sidebar-muted: #0f5f50;
+  --flow-sidebar-line: rgba(6, 58, 48, .22);
   --flow-blue: #1e2dff;
   --flow-border: #e8e8e8;
   --flow-border-dark: #9e9ea0;
@@ -2591,15 +2680,15 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   gap: 0;
   padding: 0 10px;
   background: var(--flow-navy);
-  color: #e2e8f0;
-  border-right: 1px solid rgba(255,255,255,.08);
+  color: var(--flow-sidebar-ink);
+  border-right: 1px solid var(--flow-sidebar-line);
 }
 
 .wt-brand {
   min-height: 49px;
   grid-template-columns: 1fr;
   gap: 0;
-  border-bottom: 1px solid rgba(255,255,255,.08);
+  border-bottom: 1px solid var(--flow-sidebar-line);
 }
 
 .wt-brand b {
@@ -2623,7 +2712,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   gap: 10px;
   padding: 0 12px;
   border-radius: 6px;
-  color: #94a3b8;
+  color: var(--flow-sidebar-muted);
   font-size: 14px;
   font-weight: 500;
 }
@@ -2649,7 +2738,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-primary-nav button.active,
 .wt-primary-nav a.active {
   background: var(--flow-active);
-  color: #e2e8f0;
+  color: #ffffff;
 }
 
 .wt-primary-nav button.active i,
@@ -2661,6 +2750,10 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-main {
   grid-template-rows: 49px minmax(0, 1fr);
   background: #ffffff;
+}
+
+.wt-main-no-toolbar {
+  grid-template-rows: minmax(0, 1fr);
 }
 
 .wt-flow-topbar {
@@ -3754,6 +3847,10 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 #wt-system-root[data-wt-fit="viewport"] .wt-main {
   grid-template-rows: 49px minmax(0, 1fr);
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-main-no-toolbar {
+  grid-template-rows: minmax(0, 1fr);
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-toolbar {
