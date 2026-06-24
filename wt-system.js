@@ -12,6 +12,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   ];
   var WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   var SEASONS = ["All", "SP27", "SU27", "FA27", "HO27", "SP28"];
+  var GAME_PLAN_SEASONS = SEASONS.filter(function (season) { return season !== "All"; });
+  var GAME_PLAN_GATE_ORDER = ["XLT", "PR", "GGP", "SPA"];
   var CALENDAR_VIEWS = [
     { id: "timeline", label: "Timeline View" },
     { id: "gantt", label: "Gantt" },
@@ -173,6 +175,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var deleteEventButton = event.target.closest("[data-delete-event-id]");
       var closeModalButton = event.target.closest("[data-close-event-modal]");
       var closeScheduleModalButton = event.target.closest("[data-close-schedule-modal]");
+      var gamePlanEventButton = event.target.closest("[data-gameplan-event-id]");
+
+      if (gamePlanEventButton && root.contains(gamePlanEventButton)) {
+        event.preventDefault();
+        locateGamePlanEvent(root, gamePlanEventButton.getAttribute("data-gameplan-event-id"));
+        return;
+      }
 
       if (sectionButton && root.contains(sectionButton)) {
         state.section = sectionButton.getAttribute("data-section");
@@ -430,6 +439,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<nav class="wt-primary-nav" aria-label="Primary">',
       navItem("dashboard", "Dashboard"),
       navItem("calendar", "Calendar"),
+      navItem("gameplan", "WT Product Game Plan"),
       externalNavItem("phkReports", "PHK WT Reports", "phk"),
       externalNavItem("nikeReports", "Nike Lab Reports", "phk"),
       externalNavItem("nikeRows", "Product Test Database", "lab"),
@@ -495,6 +505,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (state.section === "dashboard") return "Dashboard";
     if (state.section === "creation") return "Creation Plan";
     if (state.section === "assistant") return "AI Q&A";
+    if (state.section === "gameplan") return "WT Product Game Plan";
     return "Calendar";
   }
 
@@ -502,6 +513,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (state.section === "dashboard") return renderDashboard();
     if (state.section === "creation") return renderCreationPlan();
     if (state.section === "assistant") return renderAssistantPage(root);
+    if (state.section === "gameplan") return renderGamePlan();
     return renderCalendarWorkspace(root);
   }
 
@@ -597,6 +609,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       creation: '<path d="M15 5l4 4"></path><path d="M13.5 6.5l4 4L7 21H3v-4L13.5 6.5z"></path><path d="M16 3l5 5"></path>',
       calendar: '<rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M8 2v4"></path><path d="M16 2v4"></path><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path>',
       assistant: '<path d="M12 3a7 7 0 0 0-7 7v2a7 7 0 0 0 14 0v-2a7 7 0 0 0-7-7z"></path><path d="M9 10h.01"></path><path d="M15 10h.01"></path><path d="M9.5 15c1.7 1 3.3 1 5 0"></path><path d="M4 20l2-2"></path><path d="M20 20l-2-2"></path>',
+      gameplan: '<path d="M4 5h16"></path><path d="M4 10h16"></path><path d="M4 15h16"></path><path d="M4 20h16"></path><path d="M8 5v15"></path><path d="M14 5v15"></path>',
       lab: '<path d="M9 3v5l-4.5 8.2A3.2 3.2 0 0 0 7.3 21h9.4a3.2 3.2 0 0 0 2.8-4.8L15 8V3"></path><path d="M8 3h8"></path><path d="M7 15h10"></path>',
       phk: '<path d="M4 4h7l2 2h7v14H4z"></path><path d="M8 11h8"></path><path d="M8 15h5"></path>',
       projector: '<rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8"></path><path d="M12 16v4"></path>',
@@ -1259,6 +1272,133 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         '</section>'
       ].join("");
     });
+  }
+
+  function renderGamePlan() {
+    var rows = productGamePlanRows();
+    var grouped = groupGamePlanRows(rows);
+    return [
+      '<section class="wt-game-plan-page">',
+      '<header class="wt-game-plan-head">',
+      '<div><small>WT Product Game Plan</small><h1>Product Game Plan</h1></div>',
+      '<div class="wt-game-plan-stats">',
+      '<span><b>' + text(rows.length) + '</b><small>Rows</small></span>',
+      '<span><b>' + text((EMBEDDED.milestones || []).length) + '</b><small>Milestones</small></span>',
+      '</div>',
+      '</header>',
+      '<div class="wt-game-plan-table-wrap">',
+      '<table class="wt-game-plan-table" aria-label="WT Product Game Plan schedule">',
+      '<thead><tr><th>Gate</th><th>Milestone</th>' + GAME_PLAN_SEASONS.map(function (season) {
+        return '<th>' + text(season) + '</th>';
+      }).join("") + '</tr></thead>',
+      '<tbody>',
+      GAME_PLAN_GATE_ORDER.map(function (gate) {
+        return renderGamePlanGateGroup(gate, grouped[gate] || []);
+      }).join(""),
+      '</tbody>',
+      '</table>',
+      '</div>',
+      '</section>'
+    ].join("");
+  }
+
+  function renderGamePlanGateGroup(gate, rows) {
+    if (!rows.length) return "";
+    return rows.map(function (row, index) {
+      return [
+        '<tr class="wt-game-plan-row wt-gp-kind-' + text(row.kind) + '">',
+        index === 0 ? '<th class="wt-game-plan-gate" scope="rowgroup" rowspan="' + text(rows.length) + '"><span>' + text(gate) + '</span></th>' : "",
+        '<td class="wt-game-plan-task">',
+        '<span class="wt-game-plan-kind">' + text(gamePlanKindLabel(row.kind)) + '</span>',
+        '<b>' + text(row.task) + '</b>',
+        '</td>',
+        GAME_PLAN_SEASONS.map(function (season) {
+          return renderGamePlanCell(row.cells[season], season);
+        }).join(""),
+        '</tr>'
+      ].join("");
+    }).join("");
+  }
+
+  function renderGamePlanCell(item, season) {
+    if (!item) return '<td class="wt-game-plan-cell is-empty"><span>-</span></td>';
+    var isActive = state.activeEventId === item.id || state.selectedDate === item.date;
+    return [
+      '<td class="wt-game-plan-cell ' + (isActive ? "is-selected" : "") + '">',
+      '<button type="button" data-gameplan-event-id="' + text(item.id) + '" data-date="' + text(item.date) + '" title="' + text(season + " · " + item.task + " · " + formatGamePlanDate(item.date)) + '">',
+      '<b>' + text(formatGamePlanDate(item.date)) + '</b>',
+      item.week ? '<small>W' + text(item.week) + '</small>' : '<small>' + text(season) + '</small>',
+      '</button>',
+      '</td>'
+    ].join("");
+  }
+
+  function productGamePlanRows() {
+    var rowsByKey = {};
+    (EMBEDDED.milestones || []).forEach(function (item, index) {
+      if (!item || item.source !== "schedule.pdf") return;
+      var key = [item.gate || "", item.kind || "", item.task || ""].join("|");
+      if (!rowsByKey[key]) {
+        rowsByKey[key] = {
+          gate: item.gate || "WT",
+          kind: item.kind || "deadline",
+          task: item.task || "Milestone",
+          firstDate: item.date || "9999-12-31",
+          firstIndex: index,
+          cells: {}
+        };
+      }
+      rowsByKey[key].firstDate = rowsByKey[key].firstDate < item.date ? rowsByKey[key].firstDate : item.date;
+      rowsByKey[key].cells[item.season || "All"] = item;
+    });
+    return Object.keys(rowsByKey).map(function (key) {
+      return rowsByKey[key];
+    }).sort(function (a, b) {
+      var gateSort = gateOrder(a.gate) - gateOrder(b.gate);
+      if (gateSort) return gateSort;
+      return a.firstIndex - b.firstIndex || a.firstDate.localeCompare(b.firstDate);
+    });
+  }
+
+  function groupGamePlanRows(rows) {
+    var grouped = {};
+    rows.forEach(function (row) {
+      if (!grouped[row.gate]) grouped[row.gate] = [];
+      grouped[row.gate].push(row);
+    });
+    return grouped;
+  }
+
+  function gateOrder(gate) {
+    var index = GAME_PLAN_GATE_ORDER.indexOf(gate);
+    return index >= 0 ? index : 999;
+  }
+
+  function gamePlanKindLabel(kind) {
+    return String(kind || "milestone").replace(/_/g, " ");
+  }
+
+  function formatGamePlanDate(date) {
+    var d = fromIso(date);
+    return MONTHS[d.getMonth()] + " " + d.getDate() + " '" + String(d.getFullYear()).slice(2);
+  }
+
+  function locateGamePlanEvent(root, eventId) {
+    var selectedEvent = findEventById(eventId);
+    if (!selectedEvent) return;
+    state.section = "dashboard";
+    state.view = "display";
+    state.calendarView = "calendar";
+    state.period = "month";
+    state.selectedDate = selectedEvent.date;
+    state.weekStart = periodAnchor(selectedEvent.date, "month");
+    state.season = selectedEvent.season || "All";
+    state.search = "";
+    state.deadlineOnly = false;
+    state.activeEventId = selectedEvent.id;
+    state.pendingDeleteEventId = "";
+    state.actionMessage = selectedEvent.title + " highlighted on Dashboard.";
+    render(root);
   }
 
   function withCalendarState(period, anchorIso, callback) {

@@ -495,6 +495,7 @@ textarea:focus-visible {
 .wt-calendar-page,
 .wt-dashboard,
 .wt-creation,
+.wt-game-plan-page,
 .wt-lab,
 .wt-ai-page,
 .wt-libraries,
@@ -759,6 +760,7 @@ textarea:focus-visible {
 .wt-dashboard-hero,
 .wt-dashboard-year-strip,
 .wt-dashboard-month-panel,
+.wt-game-plan-table-wrap,
 .wt-lab-hero,
 .wt-lab-panel,
 .wt-plan-map,
@@ -1654,6 +1656,247 @@ textarea:focus-visible {
 .wt-dashboard-month-board {
   min-height: 0;
   overflow: hidden;
+}
+
+.wt-game-plan-page {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 14px;
+  background: #ffffff;
+}
+
+.wt-game-plan-head {
+  min-height: 96px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  background: #fbfcfb;
+}
+
+.wt-game-plan-head small,
+.wt-game-plan-stats small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.wt-game-plan-head h1 {
+  margin: 4px 0 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.wt-game-plan-stats {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.wt-game-plan-stats span {
+  min-width: 104px;
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: #ffffff;
+}
+
+.wt-game-plan-stats b {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.wt-game-plan-table-wrap {
+  min-height: 0;
+  overflow: auto;
+}
+
+.wt-game-plan-table {
+  width: 100%;
+  min-width: 1160px;
+  border-collapse: separate;
+  border-spacing: 0;
+  color: var(--ink);
+}
+
+.wt-game-plan-table th,
+.wt-game-plan-table td {
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.wt-game-plan-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 46px;
+  background: #eef2f0;
+  color: var(--ink);
+  padding: 0 12px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.wt-game-plan-table thead th:first-child,
+.wt-game-plan-gate {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+}
+
+.wt-game-plan-table thead th:nth-child(2),
+.wt-game-plan-task {
+  position: sticky;
+  left: 96px;
+  z-index: 2;
+}
+
+.wt-game-plan-table thead th:first-child {
+  z-index: 5;
+}
+
+.wt-game-plan-table thead th:nth-child(2) {
+  z-index: 4;
+}
+
+.wt-game-plan-gate {
+  width: 96px;
+  min-width: 96px;
+  background: #f7f9f8;
+  padding: 12px;
+  vertical-align: top;
+}
+
+.wt-game-plan-gate span {
+  display: inline-grid;
+  place-items: center;
+  min-width: 52px;
+  min-height: 28px;
+  border: 1px solid var(--line-strong);
+  background: #ffffff;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.wt-game-plan-task {
+  width: 300px;
+  min-width: 300px;
+  background: #ffffff;
+  padding: 10px 12px;
+}
+
+.wt-game-plan-kind {
+  display: inline-flex;
+  max-width: 100%;
+  min-height: 22px;
+  align-items: center;
+  margin-bottom: 6px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  background: #f4f6f5;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.wt-game-plan-task b {
+  display: block;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.wt-game-plan-cell {
+  min-width: 150px;
+  height: 62px;
+  background: #ffffff;
+  padding: 6px;
+}
+
+.wt-game-plan-cell.is-selected {
+  background: #eef8f8;
+  box-shadow: inset 0 0 0 2px var(--teal-dark);
+}
+
+.wt-game-plan-cell button {
+  width: 100%;
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-left: 4px solid var(--teal-dark);
+  background: #fbfcfb;
+  color: var(--ink);
+  padding: 0 10px 0 9px;
+  text-align: left;
+}
+
+.wt-game-plan-cell button:hover,
+.wt-game-plan-cell button:focus-visible {
+  border-color: var(--line-strong);
+  background: #ffffff;
+}
+
+.wt-game-plan-cell b {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 900;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-game-plan-cell small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.wt-game-plan-cell.is-empty {
+  background: #f8faf9;
+  color: #a0aaa6;
+  text-align: center;
+}
+
+.wt-gp-kind-product_freeze .wt-game-plan-kind,
+.wt-gp-kind-product_freeze .wt-game-plan-cell button {
+  border-left-color: var(--orange);
+}
+
+.wt-gp-kind-handoff .wt-game-plan-kind,
+.wt-gp-kind-handoff .wt-game-plan-cell button {
+  border-left-color: var(--blue);
+}
+
+.wt-gp-kind-sample_to_fpt .wt-game-plan-kind,
+.wt-gp-kind-sample_to_fpt .wt-game-plan-cell button,
+.wt-gp-kind-sample_ddd .wt-game-plan-kind,
+.wt-gp-kind-sample_ddd .wt-game-plan-cell button {
+  border-left-color: var(--green);
+}
+
+.wt-gp-kind-results_ready .wt-game-plan-kind,
+.wt-gp-kind-results_ready .wt-game-plan-cell button {
+  border-left-color: var(--red);
 }
 
 .wt-week-board.compact .wt-event {
@@ -2663,6 +2906,7 @@ textarea:focus-visible {
   .wt-calendar-page,
   .wt-dashboard,
   .wt-creation,
+  .wt-game-plan-page,
   .wt-lab,
   .wt-ai-page,
   .wt-libraries,
@@ -2679,6 +2923,7 @@ textarea:focus-visible {
   .wt-source-workspace,
   .wt-ai-layout,
   .wt-creation,
+  .wt-game-plan-head,
   .wt-libraries,
   .wt-editor-layout {
     grid-template-columns: 1fr;
