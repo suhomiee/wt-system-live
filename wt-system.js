@@ -413,7 +413,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (root.getAttribute("data-wt-standalone") !== "true") return;
     var designWidth = 1920;
     var designHeight = 1080;
-    var scale = window.innerWidth / designWidth;
+    var scale = Math.min(window.innerWidth / designWidth, window.innerHeight / designHeight);
     root.setAttribute("data-wt-fit", "viewport");
     root.style.setProperty("--wt-fit-scale", String(scale));
     root.style.setProperty("--wt-fit-width", designWidth + "px");

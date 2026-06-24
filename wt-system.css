@@ -3019,7 +3019,7 @@ textarea:focus-visible {
   height: 100dvh;
   min-height: 0;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: hidden;
   background: var(--canvas);
 }
 
@@ -3033,6 +3033,92 @@ textarea:focus-visible {
   overflow: hidden;
   transform: scale(var(--wt-fit-scale, 1));
   transform-origin: top left;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-workspace {
+  overflow: hidden;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-dashboard {
+  grid-template-rows: minmax(285px, .4fr) minmax(0, 1fr);
+  gap: 10px;
+  padding: 12px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-dashboard-year-strip {
+  gap: 5px;
+  padding: 7px 9px 9px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-strip-header {
+  min-height: 22px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-strip-header h2 {
+  font-size: 20px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-quarter-grid {
+  gap: 7px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-quarter {
+  gap: 5px;
+  padding: 6px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-quarter header b {
+  font-size: 15px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-months {
+  gap: 4px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-month-tile {
+  min-height: 0;
+  gap: 4px;
+  padding: 5px;
+  overflow: hidden;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-month-head-button {
+  min-height: 18px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-month-head-button b {
+  font-size: 14px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-month-events {
+  gap: 3px;
+  overflow: hidden;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-event-summary {
+  min-height: 28px;
+  padding: 3px 5px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-event-summary span {
+  font-size: 9px;
+  line-height: 11px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-event-summary b {
+  font-size: 10px;
+  line-height: 12px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-empty,
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-month-more {
+  font-size: 9px;
+  line-height: 11px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-dashboard-month-panel {
+  gap: 5px;
+  padding: 8px 10px 10px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-sidebar {
