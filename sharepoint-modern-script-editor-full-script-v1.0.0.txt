@@ -4874,6 +4874,98 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   line-height: 12px;
 }
 
+.wt-app {
+  --wt-sidebar-width: 256px;
+  transition: grid-template-columns .24s cubic-bezier(.2,.72,.2,1);
+}
+
+.wt-sidebar {
+  width: var(--wt-sidebar-width);
+  max-width: var(--wt-sidebar-width);
+  transform: translateX(0);
+  opacity: 1;
+  visibility: visible;
+  overflow: hidden;
+  transition:
+    transform .24s cubic-bezier(.2,.72,.2,1),
+    opacity .18s ease,
+    visibility 0s linear 0s;
+  will-change: transform, opacity;
+}
+
+.wt-sidebar-toggle {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--wt-sidebar-width) - 18px);
+  z-index: 80;
+  width: 36px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(10, 53, 63, .22);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #003a46;
+  box-shadow: 0 14px 28px rgba(7, 31, 35, .18);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition:
+    left .24s cubic-bezier(.2,.72,.2,1),
+    background-color .16s ease,
+    border-color .16s ease,
+    color .16s ease,
+    box-shadow .16s ease;
+}
+
+.wt-sidebar-toggle .wt-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.wt-sidebar-toggle:hover,
+.wt-sidebar-toggle:focus-visible {
+  background: #f5fbfa;
+  border-color: rgba(0, 58, 70, .42);
+  box-shadow: 0 18px 36px rgba(7, 31, 35, .24);
+  outline: none;
+}
+
+.wt-app.is-sidebar-collapsed {
+  grid-template-columns: 0 minmax(0, 1fr);
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-sidebar-collapsed {
+  grid-template-columns: 0 minmax(0, 1fr);
+}
+
+.wt-app.is-sidebar-collapsed .wt-sidebar {
+  transform: translateX(calc(-1 * var(--wt-sidebar-width)));
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    transform .24s cubic-bezier(.2,.72,.2,1),
+    opacity .18s ease,
+    visibility 0s linear .24s;
+}
+
+.wt-app.is-sidebar-collapsed .wt-sidebar-toggle {
+  left: 0;
+  border-left-color: transparent;
+  border-radius: 0 999px 999px 0;
+  background: #003a46;
+  color: #ffffff;
+  box-shadow: 0 16px 34px rgba(0, 38, 46, .25);
+}
+
+.wt-app.is-sidebar-collapsed .wt-sidebar-toggle:hover,
+.wt-app.is-sidebar-collapsed .wt-sidebar-toggle:focus-visible {
+  background: #004f5d;
+  border-color: rgba(255,255,255,.28);
+  border-left-color: transparent;
+}
+
 </style>
 <div
   id="wt-system-root"
@@ -5032,6 +5124,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     search: "",
     deadlineHighlight: false,
     modelScheduleHighlight: false,
+    sidebarCollapsed: false,
     actionMessage: "",
     season: "All",
     localSubmissions: [],
@@ -5073,6 +5166,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var deleteEventButton = event.target.closest("[data-delete-event-id]");
       var closeModalButton = event.target.closest("[data-close-event-modal]");
       var closeScheduleModalButton = event.target.closest("[data-close-schedule-modal]");
+      var sidebarToggleButton = event.target.closest("[data-sidebar-toggle]");
+
+      if (sidebarToggleButton && root.contains(sidebarToggleButton)) {
+        event.preventDefault();
+        state.sidebarCollapsed = !state.sidebarCollapsed;
+        render(root);
+        return;
+      }
 
       if (sectionButton && root.contains(sectionButton)) {
         state.section = sectionButton.getAttribute("data-section");
@@ -5313,7 +5414,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderApp(root) {
     return [
-      '<div class="wt-app is-' + text(state.section) + ' is-' + text(state.view) + '">',
+      '<div class="wt-app is-' + text(state.section) + ' is-' + text(state.view) + (state.sidebarCollapsed ? " is-sidebar-collapsed" : "") + '">',
+      renderSidebarToggle(),
       renderSidebar(root),
       renderShell(root),
       renderEventModal(),
@@ -5322,9 +5424,18 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     ].join("");
   }
 
+  function renderSidebarToggle() {
+    var label = state.sidebarCollapsed ? "Show menu" : "Hide menu";
+    return [
+      '<button type="button" class="wt-sidebar-toggle" data-sidebar-toggle aria-label="' + text(label) + '" title="' + text(label) + '" aria-expanded="' + text(!state.sidebarCollapsed) + '">',
+      icon(state.sidebarCollapsed ? "chevron-right" : "chevron-left"),
+      '</button>'
+    ].join("");
+  }
+
   function renderSidebar(root) {
     return [
-      '<aside class="wt-sidebar" aria-label="WT System navigation">',
+      '<aside class="wt-sidebar" aria-label="WT System navigation"' + (state.sidebarCollapsed ? ' aria-hidden="true" inert' : "") + '>',
       '<div class="wt-brand">',
       '<div><b>FPT WT Management System</b></div>',
       '</div>',

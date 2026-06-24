@@ -141,6 +141,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     search: "",
     deadlineHighlight: false,
     modelScheduleHighlight: false,
+    sidebarCollapsed: false,
     actionMessage: "",
     season: "All",
     localSubmissions: [],
@@ -182,6 +183,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var deleteEventButton = event.target.closest("[data-delete-event-id]");
       var closeModalButton = event.target.closest("[data-close-event-modal]");
       var closeScheduleModalButton = event.target.closest("[data-close-schedule-modal]");
+      var sidebarToggleButton = event.target.closest("[data-sidebar-toggle]");
+
+      if (sidebarToggleButton && root.contains(sidebarToggleButton)) {
+        event.preventDefault();
+        state.sidebarCollapsed = !state.sidebarCollapsed;
+        render(root);
+        return;
+      }
 
       if (sectionButton && root.contains(sectionButton)) {
         state.section = sectionButton.getAttribute("data-section");
@@ -422,7 +431,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderApp(root) {
     return [
-      '<div class="wt-app is-' + text(state.section) + ' is-' + text(state.view) + '">',
+      '<div class="wt-app is-' + text(state.section) + ' is-' + text(state.view) + (state.sidebarCollapsed ? " is-sidebar-collapsed" : "") + '">',
+      renderSidebarToggle(),
       renderSidebar(root),
       renderShell(root),
       renderEventModal(),
@@ -431,9 +441,18 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     ].join("");
   }
 
+  function renderSidebarToggle() {
+    var label = state.sidebarCollapsed ? "Show menu" : "Hide menu";
+    return [
+      '<button type="button" class="wt-sidebar-toggle" data-sidebar-toggle aria-label="' + text(label) + '" title="' + text(label) + '" aria-expanded="' + text(!state.sidebarCollapsed) + '">',
+      icon(state.sidebarCollapsed ? "chevron-right" : "chevron-left"),
+      '</button>'
+    ].join("");
+  }
+
   function renderSidebar(root) {
     return [
-      '<aside class="wt-sidebar" aria-label="WT System navigation">',
+      '<aside class="wt-sidebar" aria-label="WT System navigation"' + (state.sidebarCollapsed ? ' aria-hidden="true" inert' : "") + '>',
       '<div class="wt-brand">',
       '<div><b>FPT WT Management System</b></div>',
       '</div>',
