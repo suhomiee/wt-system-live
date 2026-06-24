@@ -3523,11 +3523,6 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   font-weight: 400;
 }
 
-.wt-flow-actions button[data-export] {
-  width: 36px;
-  padding: 0;
-}
-
 .wt-flow-actions button[data-view] {
   min-width: 164px;
   border-color: transparent;
@@ -3536,8 +3531,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   font-weight: 700;
 }
 
-.wt-flow-actions button[data-view] .wt-icon,
-.wt-flow-actions button[data-export] .wt-icon {
+.wt-flow-actions button[data-view] .wt-icon {
   width: 16px;
   height: 16px;
 }
@@ -5057,7 +5051,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var periodButton = event.target.closest("[data-period]");
       var deadlineButton = event.target.closest("[data-deadline-toggle]");
       var modelScheduleButton = event.target.closest("[data-model-schedule-toggle]");
-      var exportButton = event.target.closest("[data-export]");
       var clearSearchButton = event.target.closest("[data-clear-search]");
       var eventButton = event.target.closest("[data-event-id]");
       var editEventButton = event.target.closest("[data-edit-event-id]");
@@ -5212,10 +5205,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         state.modelScheduleHighlight = !state.modelScheduleHighlight;
         state.actionMessage = "";
         render(root);
-      }
-
-      if (exportButton && root.contains(exportButton)) {
-        exportCurrentRange(root);
       }
 
       if (clearSearchButton && root.contains(clearSearchButton)) {
@@ -5440,7 +5429,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<button class="wt-model-highlight-toggle wt-flow-pill ' + (state.modelScheduleHighlight ? "active" : "") + '" type="button" data-model-schedule-toggle>' + icon("model") + '<span>Model Schedule</span></button>',
       '</div>',
       '<div class="wt-action-buttons wt-flow-actions">',
-      '<button type="button" data-export title="Export current range" aria-label="Export">' + icon("download") + '</button>',
       '<button type="button" data-view="edit" aria-label="Create Schedule">' + icon("plus") + '<span>Create Schedule</span></button>',
       '</div>',
       '<div class="wt-range-row wt-flow-range-row">',
@@ -5512,7 +5500,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       libraries: '<path d="M4 19.5V5.75A2.75 2.75 0 0 1 6.75 3H20v16H6.75A2.75 2.75 0 0 0 4 21.75"></path><path d="M8 7h8"></path><path d="M8 11h6"></path>',
       search: '<circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path>',
       flag: '<path d="M5 21V4"></path><path d="M5 4h12l-1.5 4L17 12H5"></path>',
-      download: '<path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M4 21h16"></path>',
       plus: '<path d="M12 5v14"></path><path d="M5 12h14"></path>',
       "chevron-left": '<path d="M15 18l-6-6 6-6"></path>',
       "chevron-right": '<path d="M9 18l6-6-6-6"></path>'
@@ -7653,46 +7640,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     state.weekStart = periodAnchor(state.selectedDate, state.period);
     state.actionMessage = message;
     render(root);
-  }
-
-  function exportCurrentRange(root) {
-    var range = currentRange();
-    var rows = eventsForCurrentRange().map(function (event) {
-      return [
-        event.date,
-        event.endDate || event.date,
-        event.title,
-        event.kind,
-        event.season || "",
-        event.gate || "",
-        event.owner || "",
-        event.modelName || "",
-        event.size || "",
-        event.sampleQuantity || "",
-        event.notes || "",
-        event.source || ""
-      ];
-    });
-    var csv = [
-      ["startDate", "endDate", "title", "type", "season", "gate", "owner", "modelName", "size", "sampleQuantity", "notes", "source"],
-    ].concat(rows).map(function (row) {
-      return row.map(csvCell).join(",");
-    }).join("\n");
-    var blob = new window.Blob([csv], { type: "text/csv;charset=utf-8" });
-    var link = document.createElement("a");
-    link.href = window.URL.createObjectURL(blob);
-    link.download = "wt-calendar-" + range.start + "-" + range.end + ".csv";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(link.href);
-    state.actionMessage = "Exported " + rows.length + " events for " + formatRange(range) + ".";
-    render(root);
-  }
-
-  function csvCell(value) {
-    var stringValue = String(value == null ? "" : value);
-    return '"' + stringValue.replace(/"/g, '""') + '"';
   }
 
   function formValue(form, name) {

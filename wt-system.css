@@ -3513,11 +3513,6 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   font-weight: 400;
 }
 
-.wt-flow-actions button[data-export] {
-  width: 36px;
-  padding: 0;
-}
-
 .wt-flow-actions button[data-view] {
   min-width: 164px;
   border-color: transparent;
@@ -3526,8 +3521,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   font-weight: 700;
 }
 
-.wt-flow-actions button[data-view] .wt-icon,
-.wt-flow-actions button[data-export] .wt-icon {
+.wt-flow-actions button[data-view] .wt-icon {
   width: 16px;
   height: 16px;
 }
