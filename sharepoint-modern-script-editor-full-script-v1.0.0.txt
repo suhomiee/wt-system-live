@@ -3718,6 +3718,136 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   -webkit-line-clamp: 2;
 }
 
+.wt-calendar-quarter .wt-horizontal-calendar-head span {
+  justify-content: flex-start;
+  padding: 0 14px;
+}
+
+.wt-calendar-quarter .wt-horizontal-calendar-head b {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.wt-calendar-quarter .wt-horizontal-period {
+  grid-template-rows: 36px minmax(0, 1fr);
+}
+
+.wt-calendar-quarter .wt-horizontal-period-meta {
+  padding: 0 14px;
+}
+
+.wt-calendar-quarter .wt-horizontal-period-events {
+  gap: 10px;
+  padding: 14px 12px;
+}
+
+.wt-calendar-quarter .wt-horizontal-event-structured {
+  min-height: 82px;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-content: stretch;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border-left-width: 5px;
+}
+
+.wt-calendar-quarter .wt-horizontal-event-date {
+  width: 44px;
+  min-height: 58px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+  border: 1px solid rgba(31,39,37,.13);
+  border-radius: 7px;
+  background: rgba(255,255,255,.72);
+}
+
+.wt-calendar-quarter .wt-horizontal-event-date span {
+  min-width: 0;
+  display: block;
+  overflow: hidden;
+  color: #6d7771;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 12px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-calendar-quarter .wt-horizontal-event-date b {
+  min-width: 0;
+  color: #1f2725;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: .95;
+}
+
+.wt-calendar-quarter .wt-horizontal-event-body {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  overflow: hidden;
+  color: var(--flow-muted);
+  font-size: 12px;
+  line-height: 14px;
+  white-space: normal;
+}
+
+.wt-calendar-quarter .wt-horizontal-event-body em {
+  justify-self: start;
+  border-radius: 999px;
+  background: rgba(255,255,255,.78);
+  color: #005062;
+  padding: 1px 6px;
+  font-style: normal;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 12px;
+  text-transform: uppercase;
+}
+
+.wt-calendar-quarter .wt-horizontal-event-body i {
+  min-width: 0;
+  overflow: hidden;
+  display: block;
+  color: inherit;
+  font-style: normal;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-calendar-quarter .wt-horizontal-event-body strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--flow-ink);
+  display: -webkit-box;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.wt-calendar-quarter .wt-horizontal-event.wt-event-user .wt-horizontal-event-date {
+  border-color: rgba(0,80,98,.16);
+}
+
+.wt-calendar-quarter .wt-horizontal-event.wt-event-user .wt-horizontal-event-date span,
+.wt-calendar-quarter .wt-horizontal-event.wt-event-user .wt-horizontal-event-date b,
+.wt-calendar-quarter .wt-horizontal-event.wt-event-user .wt-horizontal-event-body strong {
+  color: #073d3c;
+}
+
+.wt-calendar-quarter .wt-horizontal-event.wt-event-user .wt-horizontal-event-body strong {
+  font-weight: 700;
+}
+
 .wt-month-event.wt-event-user,
 .wt-horizontal-event.wt-event-user {
   border-left-color: #005062;
@@ -4010,7 +4140,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   var SHAREPOINT_HOST_RE = /(^|\.)sharepoint\.com$/i;
   var T2RL_COPILOT_AGENT = {
     title: "T2RL Data Agent",
-    url: "https://taekwangcom.sharepoint.com/sites/T2RL2/_layouts/15/chat.aspx?app=SharePointPages",
+    url: "https://taekwangcom.sharepoint.com/sites/T2RLDesignTest20260420/_layouts/15/chat.aspx?app=SharePointPages",
     sourceUrl: "https://taekwangcom.sharepoint.com/sites/T2RL2/SiteAssets/T2RL%20Data%20Agent%20Source.md",
     sourcePath: "/sites/T2RL2/SiteAssets/T2RL Data Agent Source.md"
   };
@@ -4271,13 +4401,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderApp(root) {
     return [
       '<div class="wt-app is-' + text(state.section) + ' is-' + text(state.view) + '">',
-      renderSidebar(),
+      renderSidebar(root),
       state.view === "edit" ? renderEditor(root) : renderShell(root),
       '</div>'
     ].join("");
   }
 
-  function renderSidebar() {
+  function renderSidebar(root) {
     return [
       '<aside class="wt-sidebar" aria-label="WT System navigation">',
       '<div class="wt-brand">',
@@ -4287,7 +4417,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       navItem("dashboard", "Dashboard"),
       navItem("creation", "Creation Plan"),
       navItem("calendar", "Calendar"),
-      navItem("assistant", "AI Q&A"),
+      copilotNavItem(root, "AI Q&A"),
       externalNavItem("nikeReports", "Nike Lab Reports", "phk"),
       externalNavItem("phkReports", "PHK WT Reports", "phk"),
       externalNavItem("nikeRows", "Product Test Database", "lab"),
@@ -4302,6 +4432,16 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       icon(section),
       '<span>' + text(label) + '</span>',
       '</button>'
+    ].join("");
+  }
+
+  function copilotNavItem(root, label) {
+    var href = configuredCopilotUrl(root);
+    return [
+      '<a href="' + text(href) + '" target="_blank" rel="noopener noreferrer" data-external-source="copilot" data-copilot-direct title="' + text(label) + '">',
+      icon("assistant"),
+      '<span>' + text(label) + '</span>',
+      '</a>'
     ].join("");
   }
 
@@ -4369,7 +4509,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderCalendarControls() {
     var range = currentRange();
     var rangeEvents = eventsForCurrentRange();
-    var showEventCount = state.period !== "month";
+    var showEventCount = state.period !== "month" && state.period !== "quarter";
     return [
       '<section class="wt-control-strip wt-flow-control-strip" aria-label="Calendar filters">',
       '<div class="wt-filter-row wt-flow-filter-row">',
@@ -4530,12 +4670,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var range = currentRange();
     var units = state.period === "year" || state.period === "quarter" || state.period === "multi-month" || state.period === "season" ? monthUnits(range) : weekUnits(range);
     var events = eventsForCurrentRange();
+    var showUnitCounts = state.period !== "quarter";
     return [
       '<section class="wt-horizontal-calendar-board wt-calendar-' + text(state.period) + ' ' + (compact ? "compact" : "") + '" aria-label="Horizontal calendar">',
       '<div class="wt-horizontal-calendar-head" style="--wt-cols:' + text(units.length) + '">',
       units.map(function (unit) {
         var count = filteredEventsForRange(unit.start, unit.end).length;
-        return '<span class="' + (unitHasToday(unit) ? "today" : "") + '"><b>' + text(unit.label) + '</b><small>' + text(count + " events") + '</small></span>';
+        return '<span class="' + (unitHasToday(unit) ? "today" : "") + '"><b>' + text(unit.label) + '</b>' + (showUnitCounts ? '<small>' + text(count + " events") + '</small>' : "") + '</span>';
       }).join(""),
       '</div>',
       '<div class="wt-horizontal-calendar-grid" style="--wt-cols:' + text(units.length) + '">',
@@ -4566,6 +4707,15 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderHorizontalCalendarEvent(event) {
     var selected = event.date === state.selectedDate ? " is-selected" : "";
+    if (state.period === "quarter") {
+      var meta = [event.modelName || event.gate || event.kind, event.season || ""].filter(Boolean).join(" / ");
+      return [
+        '<button type="button" class="wt-horizontal-event wt-horizontal-event-structured wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+        '<time class="wt-horizontal-event-date" datetime="' + text(event.date) + '"><span>' + text(MONTHS[fromIso(event.date).getMonth()]) + '</span><b>' + text(dayOfMonth(event.date)) + '</b></time>',
+        '<span class="wt-horizontal-event-body">' + renderEventOriginBadge(event) + '<i>' + text(meta) + '</i><strong>' + text(shortTitle(event.title, 58)) + '</strong></span>',
+        '</button>'
+      ].join("");
+    }
     return [
       '<button type="button" class="wt-horizontal-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
       renderEventMetaLine(event, formatDateShort(event.date) + " · " + (event.modelName || event.gate || event.kind)),

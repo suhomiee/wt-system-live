@@ -69,7 +69,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   var SHAREPOINT_HOST_RE = /(^|\.)sharepoint\.com$/i;
   var T2RL_COPILOT_AGENT = {
     title: "T2RL Data Agent",
-    url: "https://taekwangcom.sharepoint.com/sites/T2RL2/_layouts/15/chat.aspx?app=SharePointPages",
+    url: "https://taekwangcom.sharepoint.com/sites/T2RLDesignTest20260420/_layouts/15/chat.aspx?app=SharePointPages",
     sourceUrl: "https://taekwangcom.sharepoint.com/sites/T2RL2/SiteAssets/T2RL%20Data%20Agent%20Source.md",
     sourcePath: "/sites/T2RL2/SiteAssets/T2RL Data Agent Source.md"
   };
@@ -330,13 +330,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderApp(root) {
     return [
       '<div class="wt-app is-' + text(state.section) + ' is-' + text(state.view) + '">',
-      renderSidebar(),
+      renderSidebar(root),
       state.view === "edit" ? renderEditor(root) : renderShell(root),
       '</div>'
     ].join("");
   }
 
-  function renderSidebar() {
+  function renderSidebar(root) {
     return [
       '<aside class="wt-sidebar" aria-label="WT System navigation">',
       '<div class="wt-brand">',
@@ -346,7 +346,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       navItem("dashboard", "Dashboard"),
       navItem("creation", "Creation Plan"),
       navItem("calendar", "Calendar"),
-      navItem("assistant", "AI Q&A"),
+      copilotNavItem(root, "AI Q&A"),
       externalNavItem("nikeReports", "Nike Lab Reports", "phk"),
       externalNavItem("phkReports", "PHK WT Reports", "phk"),
       externalNavItem("nikeRows", "Product Test Database", "lab"),
@@ -361,6 +361,16 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       icon(section),
       '<span>' + text(label) + '</span>',
       '</button>'
+    ].join("");
+  }
+
+  function copilotNavItem(root, label) {
+    var href = configuredCopilotUrl(root);
+    return [
+      '<a href="' + text(href) + '" target="_blank" rel="noopener noreferrer" data-external-source="copilot" data-copilot-direct title="' + text(label) + '">',
+      icon("assistant"),
+      '<span>' + text(label) + '</span>',
+      '</a>'
     ].join("");
   }
 
@@ -428,7 +438,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderCalendarControls() {
     var range = currentRange();
     var rangeEvents = eventsForCurrentRange();
-    var showEventCount = state.period !== "month";
+    var showEventCount = state.period !== "month" && state.period !== "quarter";
     return [
       '<section class="wt-control-strip wt-flow-control-strip" aria-label="Calendar filters">',
       '<div class="wt-filter-row wt-flow-filter-row">',
@@ -589,12 +599,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var range = currentRange();
     var units = state.period === "year" || state.period === "quarter" || state.period === "multi-month" || state.period === "season" ? monthUnits(range) : weekUnits(range);
     var events = eventsForCurrentRange();
+    var showUnitCounts = state.period !== "quarter";
     return [
       '<section class="wt-horizontal-calendar-board wt-calendar-' + text(state.period) + ' ' + (compact ? "compact" : "") + '" aria-label="Horizontal calendar">',
       '<div class="wt-horizontal-calendar-head" style="--wt-cols:' + text(units.length) + '">',
       units.map(function (unit) {
         var count = filteredEventsForRange(unit.start, unit.end).length;
-        return '<span class="' + (unitHasToday(unit) ? "today" : "") + '"><b>' + text(unit.label) + '</b><small>' + text(count + " events") + '</small></span>';
+        return '<span class="' + (unitHasToday(unit) ? "today" : "") + '"><b>' + text(unit.label) + '</b>' + (showUnitCounts ? '<small>' + text(count + " events") + '</small>' : "") + '</span>';
       }).join(""),
       '</div>',
       '<div class="wt-horizontal-calendar-grid" style="--wt-cols:' + text(units.length) + '">',
@@ -625,6 +636,15 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderHorizontalCalendarEvent(event) {
     var selected = event.date === state.selectedDate ? " is-selected" : "";
+    if (state.period === "quarter") {
+      var meta = [event.modelName || event.gate || event.kind, event.season || ""].filter(Boolean).join(" / ");
+      return [
+        '<button type="button" class="wt-horizontal-event wt-horizontal-event-structured wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+        '<time class="wt-horizontal-event-date" datetime="' + text(event.date) + '"><span>' + text(MONTHS[fromIso(event.date).getMonth()]) + '</span><b>' + text(dayOfMonth(event.date)) + '</b></time>',
+        '<span class="wt-horizontal-event-body">' + renderEventOriginBadge(event) + '<i>' + text(meta) + '</i><strong>' + text(shortTitle(event.title, 58)) + '</strong></span>',
+        '</button>'
+      ].join("");
+    }
     return [
       '<button type="button" class="wt-horizontal-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + selected + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
       renderEventMetaLine(event, formatDateShort(event.date) + " · " + (event.modelName || event.gate || event.kind)),
