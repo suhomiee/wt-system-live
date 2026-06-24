@@ -342,6 +342,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-brand">',
       '<div><b>FPT WT Management System</b></div>',
       '</div>',
+      '<button type="button" class="wt-sidebar-create" data-view="edit">' + icon("plus") + '<span>Create Schedule</span></button>',
       '<nav class="wt-primary-nav" aria-label="Primary">',
       navItem("dashboard", "Dashboard"),
       navItem("calendar", "Calendar"),
@@ -449,7 +450,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '</div>',
       '<div class="wt-action-buttons wt-flow-actions">',
       '<button type="button" data-export title="Export current range" aria-label="Export">' + icon("download") + '</button>',
-      '<button type="button" data-view="edit">' + icon("plus") + '<span>Create</span></button>',
+      '<button type="button" data-view="edit" aria-label="Create Schedule">' + icon("plus") + '<span>Create Schedule</span></button>',
       '</div>',
       '<div class="wt-range-row wt-flow-range-row">',
       '<div class="wt-range-title"><strong>' + text(formatRange(range)) + '</strong></div>',
@@ -2240,8 +2241,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       '<main class="wt-main wt-editor" aria-label="Schedule editor">',
       '<header class="wt-toolbar">',
-      '<div class="wt-title-block"><small>WT Operations</small><h1>Create Deadline</h1></div>',
-      '<button class="wt-toolbar-create" type="button" data-view="display">Projector</button>',
+      '<div class="wt-title-block"><small>WT Operations</small><h1>Create Schedule</h1></div>',
+      '<button class="wt-toolbar-create" type="button" data-view="display">Back to Calendar</button>',
       '</header>',
       '<div class="wt-editor-layout">',
       '<section class="wt-editor-calendar">',
@@ -2258,7 +2259,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var listTitle = root.getAttribute("data-wt-sharepoint-list-title") || "WT_Submissions";
     return [
       '<aside class="wt-edit-card">',
-      '<h2>Schedule Input</h2>',
+      '<h2>New Schedule</h2>',
       '<form class="wt-edit-form">',
       field("Title", "HO27 sample dispatch"),
       '<label>Date<input name="targetDate" type="date" value="' + text(state.selectedDate) + '"></label>',
@@ -2337,7 +2338,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (mode === "sharepoint-list") {
       submitToSharePointList(root, payload).then(function () {
         saveLocalSubmission(payload);
-        if (message) message.textContent = "Saved to WT_Submissions.";
+        completeScheduleSave(root, payload, "Saved to WT_Submissions.");
       }).catch(function (error) {
         if (message) message.textContent = "SharePoint save failed: " + error.message;
       });
@@ -2346,12 +2347,20 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
     try {
       saveLocalSubmission(payload);
-      if (message) message.textContent = "Saved locally for preview.";
-      state.selectedDate = payload.targetDate || state.selectedDate;
-      render(root);
+      completeScheduleSave(root, payload, "Saved locally for preview.");
     } catch (error) {
       if (message) message.textContent = "Local save failed: " + error.message;
     }
+  }
+
+  function completeScheduleSave(root, payload, message) {
+    state.section = "calendar";
+    state.view = "display";
+    state.selectedDate = payload.targetDate || state.selectedDate;
+    state.period = "month";
+    state.weekStart = periodAnchor(state.selectedDate, state.period);
+    state.actionMessage = message;
+    render(root);
   }
 
   function exportCurrentRange(root) {
