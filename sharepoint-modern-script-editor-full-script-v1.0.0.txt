@@ -2657,8 +2657,8 @@ textarea:focus-visible {
 /* Flow parity pass: calendar screen */
 #wt-system-root,
 .wt-root {
-  --flow-navy: #005062;
-  --flow-active: #005d6d;
+  --flow-navy: #003a46;
+  --flow-active: #005062;
   --flow-sidebar-ink: #e5fffb;
   --flow-sidebar-muted: #a7d6d0;
   --flow-sidebar-line: rgba(229, 255, 251, .16);
