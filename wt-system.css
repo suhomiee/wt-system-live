@@ -2732,6 +2732,10 @@ textarea:focus-visible {
   font-size: 13px;
 }
 
+.wt-form-message:empty {
+  display: none;
+}
+
 .wt-form-actions {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

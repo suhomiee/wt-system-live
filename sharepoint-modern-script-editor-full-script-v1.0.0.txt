@@ -2742,6 +2742,10 @@ textarea:focus-visible {
   font-size: 13px;
 }
 
+.wt-form-message:empty {
+  display: none;
+}
+
 .wt-form-actions {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -4912,6 +4916,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     { id: "year", label: "Year" },
     { id: "season", label: "Season" }
   ];
+  var SCHEDULE_TYPE_OPTIONS = [
+    { value: "T2 FPT Sample Handoff", kind: "handoff" },
+    { value: "T2 FPT WT Report", kind: "report" },
+    { value: "LTWT P/T Sample Actual", kind: "sample" }
+  ];
+  var SCHEDULE_SIZE_OPTIONS = ["W5.5", "W7", "M9", "M10"];
 
   var EMBEDDED = window.WT_SYSTEM_EMBEDDED || { milestones: [], holidays: [] };
   var SHAREPOINT_SOURCES = {
@@ -6038,7 +6048,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       ["Type", event.kind || "deadline"],
       ["Season", event.season || "All"],
       ["Gate", event.gate || (isUser ? "User schedule" : "WT")],
-      ["Owner", event.owner || "WT"],
+      [isUser ? "PCC Developer (English Name)" : "Owner", event.owner || "WT"],
       ["Source", eventSourceLabel(event)]
     ];
     if (productDetail) rows.splice(4, 0, ["Product", productDetail]);
@@ -6105,8 +6115,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function eventProductDetails(event) {
     return [
       event.modelName,
-      event.size,
-      event.sampleQuantity
+      event.size
     ].filter(Boolean).join(" · ");
   }
 
@@ -7512,7 +7521,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderEditForm(root) {
     var inModal = arguments.length > 1 && arguments[1] === true;
-    var listTitle = root.getAttribute("data-wt-sharepoint-list-title") || "WT_Submissions";
     var editingItem = state.editingEventId ? findLocalSubmissionById(state.editingEventId) : null;
     var confirmingDelete = editingItem && state.pendingDeleteEventId === state.editingEventId;
     return [
@@ -7520,16 +7528,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       inModal ? "" : '<h2>' + text(editingItem ? "Edit User Schedule" : "New Schedule") + '</h2>',
       '<form class="wt-edit-form">',
       editingItem ? '<input type="hidden" name="rowKey" value="' + text(editingItem.rowKey || state.editingEventId) + '">' : "",
-      field("Title", "HO27 sample dispatch", "title", editingItem ? editingItem.projectName : ""),
       '<label>Date<input name="targetDate" type="date" value="' + text(editingItem ? editingItem.targetDate : state.selectedDate) + '"></label>',
-      select("Type", ["deadline", "sample", "shipping", "report", "review", "handoff"], "type", editingItem ? editingItem.milestoneType : ""),
-      seasonInput(editingItem ? editingItem.season : ""),
+      select("Type", SCHEDULE_TYPE_OPTIONS, "type", normalizeScheduleTypeValue(editingItem ? editingItem.milestoneType : "")),
+      select("Season", scheduleSeasonOptions(editingItem ? editingItem.season : ""), "season", scheduleSeasonValue(editingItem ? editingItem.season : "")),
       field("Model Name", "Pegasus 42 / style code", "modelName", editingItem ? editingItem.modelName : ""),
-      field("Size", "US 9 / 270mm", "size", editingItem ? editingItem.size : ""),
-      field("Sample Qty", "8 pairs", "sampleQuantity", editingItem ? editingItem.sampleQuantity : ""),
-      field("Owner", "WT Ops", "owner", editingItem ? editingItem.owner : ""),
+      select("Size", SCHEDULE_SIZE_OPTIONS, "size", scheduleSizeValue(editingItem ? editingItem.size : "")),
+      field("PCC Developer (English Name)", "Leo Park", "owner", editingItem ? editingItem.owner : ""),
       '<label>Memo<textarea name="notes" rows="5" placeholder="Report file, shipment note, blocker, or extra context">' + text(editingItem ? editingItem.notes : "") + '</textarea></label>',
-      '<p class="wt-form-message" aria-live="polite">' + text(confirmingDelete ? "Click Confirm Delete to remove this schedule." : "Target list: " + listTitle) + '</p>',
+      '<p class="wt-form-message" aria-live="polite">' + text(confirmingDelete ? "Click Confirm Delete to remove this schedule." : "") + '</p>',
       '<div class="wt-form-actions">',
       '<button class="primary" type="submit">' + text(editingItem ? "Update Schedule" : "Save Schedule") + '</button>',
       editingItem ? '<button class="danger ' + (confirmingDelete ? "is-confirming" : "") + '" type="button" data-delete-event-id="' + text(state.editingEventId) + '">' + text(confirmingDelete ? "Confirm Delete" : "Delete Schedule") + '</button>' : "",
@@ -7550,19 +7556,55 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var name = arguments.length > 2 && arguments[2] ? arguments[2] : label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     var selectedValue = arguments.length > 3 ? arguments[3] : "";
     return '<label>' + text(label) + '<select name="' + text(name) + '">' + options.map(function (option) {
-      return '<option value="' + text(option) + '"' + (option === selectedValue ? " selected" : "") + '>' + text(option) + '</option>';
+      var value = typeof option === "object" ? option.value : option;
+      var labelText = typeof option === "object" ? (option.label || option.value) : option;
+      return '<option value="' + text(value) + '"' + (value === selectedValue ? " selected" : "") + '>' + text(labelText) + '</option>';
     }).join("") + '</select></label>';
   }
 
-  function seasonInput() {
-    var currentValue = arguments.length > 0 && arguments[0] ? arguments[0] : "";
+  function scheduleSeasonOptions(currentValue) {
     var options = availableSeasons().filter(function (season) { return season !== "All"; });
-    return [
-      '<label>Season<input name="season" type="text" placeholder="HO27 / SP28" list="wt-season-options" value="' + text(currentValue) + '"></label>',
-      '<datalist id="wt-season-options">',
-      options.map(function (option) { return '<option value="' + text(option) + '"></option>'; }).join(""),
-      '</datalist>'
-    ].join("");
+    if (currentValue && currentValue !== "All" && options.indexOf(currentValue) < 0) options = [currentValue].concat(options);
+    return options;
+  }
+
+  function scheduleSeasonValue(currentValue) {
+    var options = scheduleSeasonOptions(currentValue);
+    if (currentValue && currentValue !== "All") return currentValue;
+    if (state.season && state.season !== "All" && options.indexOf(state.season) >= 0) return state.season;
+    return options[0] || "";
+  }
+
+  function scheduleSizeValue(currentValue) {
+    return SCHEDULE_SIZE_OPTIONS.indexOf(currentValue) >= 0 ? currentValue : SCHEDULE_SIZE_OPTIONS[0];
+  }
+
+  function normalizeScheduleTypeValue(value) {
+    var stringValue = String(value || "").toLowerCase();
+    var scheduleKind = scheduleTypeKind(stringValue);
+    for (var i = 0; i < SCHEDULE_TYPE_OPTIONS.length; i += 1) {
+      if (stringValue === SCHEDULE_TYPE_OPTIONS[i].value.toLowerCase() || scheduleKind === SCHEDULE_TYPE_OPTIONS[i].kind) {
+        return SCHEDULE_TYPE_OPTIONS[i].value;
+      }
+    }
+    return SCHEDULE_TYPE_OPTIONS[0].value;
+  }
+
+  function scheduleTypeKind(value) {
+    var stringValue = String(value || "").toLowerCase();
+    for (var i = 0; i < SCHEDULE_TYPE_OPTIONS.length; i += 1) {
+      if (stringValue === SCHEDULE_TYPE_OPTIONS[i].value.toLowerCase() || stringValue === SCHEDULE_TYPE_OPTIONS[i].kind) {
+        return SCHEDULE_TYPE_OPTIONS[i].kind;
+      }
+    }
+    if (stringValue.indexOf("handoff") >= 0) return "handoff";
+    if (stringValue.indexOf("report") >= 0) return "report";
+    if (stringValue.indexOf("sample") >= 0) return "sample";
+    return "";
+  }
+
+  function scheduleTitleForPayload(milestoneType, modelName) {
+    return normalizeScheduleTypeValue(milestoneType) + (modelName ? " - " + modelName : "");
   }
 
   function renderMiniMonth(isoMonth) {
@@ -7587,17 +7629,19 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var message = root.querySelector(".wt-form-message");
     var mode = root.getAttribute("data-wt-backend-mode") || "local";
     var editingItem = state.editingEventId ? findLocalSubmissionById(state.editingEventId) : null;
+    var milestoneType = normalizeScheduleTypeValue(formValue(form, "type"));
+    var modelName = formValue(form, "modelName");
     var payload = {
       rowKey: formValue(form, "rowKey") || (editingItem ? editingItem.rowKey : "") || "WT-" + Date.now(),
       submittedAt: editingItem && editingItem.submittedAt ? editingItem.submittedAt : new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      projectName: formValue(form, "title"),
+      projectName: scheduleTitleForPayload(milestoneType, modelName),
       targetDate: formValue(form, "targetDate"),
-      milestoneType: formValue(form, "type"),
+      milestoneType: milestoneType,
       season: formValue(form, "season"),
-      modelName: formValue(form, "modelName"),
-      size: formValue(form, "size"),
-      sampleQuantity: formValue(form, "sampleQuantity"),
+      modelName: modelName,
+      size: scheduleSizeValue(formValue(form, "size")),
+      sampleQuantity: "",
       source: "wt-system-ui",
       owner: formValue(form, "owner"),
       notes: formValue(form, "notes"),
@@ -7972,7 +8016,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function isT2FptHandoffSubmission(item) {
     var type = String(item.milestoneType || item.kind || "").toLowerCase();
-    if (type === "handoff") return true;
+    if (type === "handoff" || scheduleTypeKind(type) === "handoff") return true;
     var textValue = [
       item.projectName,
       item.owner,
@@ -8019,6 +8063,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function mapMilestoneKind(kind) {
+    var scheduleKind = scheduleTypeKind(kind);
+    if (scheduleKind) return scheduleKind;
     if (["deadline", "sample", "shipping", "report", "review", "handoff", "creation"].indexOf(kind) >= 0) return kind;
     if (kind === "sample_to_fpt" || kind === "sample_ddd") return "sample";
     if (kind === "handoff") return "handoff";
