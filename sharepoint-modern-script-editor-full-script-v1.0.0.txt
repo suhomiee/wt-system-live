@@ -2650,9 +2650,9 @@ textarea:focus-visible {
 .wt-root {
   --flow-navy: #003a46;
   --flow-active: #005062;
-  --flow-sidebar-ink: #e5fffb;
-  --flow-sidebar-muted: #a7d6d0;
-  --flow-sidebar-line: rgba(229, 255, 251, .16);
+  --flow-sidebar-ink: #ffffff;
+  --flow-sidebar-muted: rgba(255,255,255,.9);
+  --flow-sidebar-line: rgba(255,255,255,.2);
   --flow-blue: #1e2dff;
   --flow-border: #e8e8e8;
   --flow-border-dark: #9e9ea0;
