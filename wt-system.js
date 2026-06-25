@@ -64,9 +64,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       url: "https://taekwangcom.sharepoint.com/:f:/s/T2RL2/IgBl9gmylH3wTpjAobY83-rwARqXBo4nsmOv41iT7f_ZGLk?e=1FKUUQ"
     },
     nikeBMethodResult: {
-      title: "nike b-method result",
+      title: "NIKE B-Method Result",
       eyebrow: "SharePoint page",
-      label: "nike b-method result",
+      label: "NIKE B-Method Result",
       caption: "Silo Analysis CSP test result page",
       status: "SharePoint page",
       sourceType: "page",
@@ -497,7 +497,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       navItem("gameplan", "WT Product Game Plan"),
       externalNavItem("phkReports", "PHK WT Reports", "phk"),
       externalNavItem("nikeReports", "Nike Lab Reports", "phk"),
-      externalNavItem("nikeBMethodResult", "nike b-method result", "lab"),
+      externalNavItem("nikeBMethodResult", "NIKE B-Method Result", "lab"),
       externalNavItem("nikeRows", "Product Test Database", "lab"),
       copilotNavItem(root, "AI Q&A"),
       '</nav>',
