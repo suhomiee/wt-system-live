@@ -787,67 +787,20 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var isoMonth = range.start.slice(0, 7);
     var cells = calendarMonthCells(isoMonth);
     var byDate = eventsByDate(filteredEventsForRange(cells[0], cells[cells.length - 1]));
-    var linkedScheduleSpans = linkedScheduleSpansByDate(cells);
     var weekRows = Math.ceil(cells.length / 7);
     return [
       '<section class="wt-month-calendar-board ' + (compact ? "compact" : "") + '" aria-label="Monthly calendar">',
       compact ? "" : '<div class="wt-month-calendar-head">' + WEEKDAYS.map(function (day) { return '<span>' + text(day) + '</span>'; }).join("") + '</div>',
       '<div class="wt-month-calendar-grid" style="--wt-week-rows:' + text(weekRows) + '">',
       cells.map(function (date) {
-        return renderMonthCalendarCell(date, byDate[date] || [], compact, isoMonth, linkedScheduleSpans[date] || "");
+        return renderMonthCalendarCell(date, byDate[date] || [], compact, isoMonth);
       }).join(""),
       '</div>',
       '</section>'
     ].join("");
   }
 
-  function linkedScheduleSpansByDate(cells) {
-    var cellIndexByDate = {};
-    var linkedDates = {};
-    var spans = {};
-    cells.forEach(function (date, index) {
-      if (date) cellIndexByDate[date] = index;
-    });
-    linkedHandoffReportChains().forEach(function (chain) {
-      var cursor = fromIso(chain.start);
-      var end = chain.end;
-      while (toIso(cursor) <= end) {
-        var date = toIso(cursor);
-        linkedDates[date] = true;
-        if (date === end) break;
-        cursor = addDays(cursor, 1);
-      }
-    });
-    Object.keys(cellIndexByDate).forEach(function (date) {
-      if (!linkedDates[date]) return;
-      var index = cellIndexByDate[date];
-      var column = index % 7;
-      var classes = ["wt-linked-schedule-span"];
-      if (!linkedDates[addDaysIso(date, -1)]) classes.push("wt-linked-schedule-start");
-      if (!linkedDates[addDaysIso(date, 1)]) classes.push("wt-linked-schedule-end");
-      if (column === 0) classes.push("wt-linked-schedule-row-start");
-      if (column === 6) classes.push("wt-linked-schedule-row-end");
-      spans[date] = classes.join(" ");
-    });
-    return spans;
-  }
-
-  function linkedHandoffReportChains() {
-    var events = normalizedEvents().filter(matchesFilters);
-    var byId = {};
-    events.forEach(function (event) {
-      if (event.id) byId[event.id] = event;
-    });
-    return events.filter(function (event) {
-      return isDerivedEvent(event) && event.parentId && event.kind === "report" && event.gate === "WT Report";
-    }).map(function (event) {
-      var parent = byId[event.parentId];
-      if (!parent || !parent.date || parent.date > event.date) return null;
-      return { start: parent.date, end: event.date };
-    }).filter(Boolean);
-  }
-
-  function renderMonthCalendarCell(date, events, compact, isoMonth, linkedScheduleClass) {
+  function renderMonthCalendarCell(date, events, compact, isoMonth) {
     if (!date) return '<article class="wt-month-cell is-empty" aria-hidden="true"></article>';
     var todayIso = toIso(new Date());
     var day = fromIso(date).getDay();
@@ -857,8 +810,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       date === todayIso ? "is-today" : "",
       outsideMonth ? "is-outside-month" : "",
       day === 0 || day === 6 ? "is-weekend" : "",
-      events.length ? "has-events" : "",
-      linkedScheduleClass || ""
+      events.length ? "has-events" : ""
     ].filter(Boolean).join(" ");
     var limit = compact ? 2 : 4;
     return [

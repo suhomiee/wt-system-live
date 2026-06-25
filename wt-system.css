@@ -4786,7 +4786,6 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-month-cell {
-  position: relative;
   min-width: 0;
   min-height: 0;
   display: grid;
@@ -4795,7 +4794,6 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   border-bottom: 1px solid var(--flow-border);
   background: #ffffff;
   overflow: hidden;
-  isolation: isolate;
 }
 
 .wt-month-cell:nth-child(7n) {
@@ -4834,36 +4832,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
     #f7fbfb;
 }
 
-.wt-month-cell.wt-linked-schedule-span::before {
-  content: "";
-  position: absolute;
-  inset: 5px -1px 5px -1px;
-  z-index: 0;
-  pointer-events: none;
-  border-top: 2px solid rgba(0,80,98,.62);
-  border-bottom: 2px solid rgba(0,80,98,.62);
-  background: rgba(0,80,98,.035);
-}
-
-.wt-month-cell.wt-linked-schedule-start::before,
-.wt-month-cell.wt-linked-schedule-row-start::before {
-  left: 5px;
-  border-left: 2px solid rgba(0,80,98,.62);
-  border-top-left-radius: 10px;
-  border-bottom-left-radius: 10px;
-}
-
-.wt-month-cell.wt-linked-schedule-end::before,
-.wt-month-cell.wt-linked-schedule-row-end::before {
-  right: 5px;
-  border-right: 2px solid rgba(0,80,98,.62);
-  border-top-right-radius: 10px;
-  border-bottom-right-radius: 10px;
-}
-
 .wt-month-day-button {
-  position: relative;
-  z-index: 1;
   min-width: 0;
   height: 35px;
   display: flex;
@@ -4915,8 +4884,6 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-month-events {
-  position: relative;
-  z-index: 1;
   min-height: 0;
   display: grid;
   align-content: start;
