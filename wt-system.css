@@ -2234,12 +2234,12 @@ textarea:focus-visible {
   position: sticky;
   top: 0;
   z-index: 2;
-  height: 46px;
+  height: 52px;
   background: #eef2f0;
   color: var(--ink);
-  padding: 0 12px;
+  padding: 0 14px;
   text-align: left;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 900;
   text-transform: uppercase;
 }
@@ -2278,11 +2278,11 @@ textarea:focus-visible {
   display: inline-grid;
   place-items: center;
   min-width: 52px;
-  min-height: 28px;
+  min-height: 32px;
   border: 1px solid var(--line-strong);
   background: #ffffff;
   color: var(--ink);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 900;
 }
 
@@ -2290,20 +2290,20 @@ textarea:focus-visible {
   width: 300px;
   min-width: 300px;
   background: #ffffff;
-  padding: 10px 12px;
+  padding: 14px;
 }
 
 .wt-game-plan-kind {
   display: inline-flex;
   max-width: 100%;
-  min-height: 22px;
+  min-height: 24px;
   align-items: center;
-  margin-bottom: 6px;
-  padding: 0 8px;
+  margin-bottom: 8px;
+  padding: 0 9px;
   border: 1px solid var(--line);
   background: #f4f6f5;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 900;
   text-transform: uppercase;
   white-space: nowrap;
@@ -2312,16 +2312,16 @@ textarea:focus-visible {
 .wt-game-plan-task b {
   display: block;
   color: var(--ink);
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 800;
-  line-height: 1.25;
+  line-height: 1.28;
 }
 
 .wt-game-plan-cell {
   min-width: 150px;
-  height: 68px;
+  height: 86px;
   background: #ffffff;
-  padding: 6px;
+  padding: 10px 8px;
 }
 
 .wt-game-plan-cell.is-selected {
@@ -2331,22 +2331,22 @@ textarea:focus-visible {
 
 .wt-game-plan-event {
   width: 100%;
-  min-height: 54px;
+  min-height: 66px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   border: 1px solid var(--line);
   background: #fbfcfb;
   color: var(--ink);
-  padding: 0 10px;
+  padding: 0 12px;
   text-align: left;
 }
 
 .wt-game-plan-cell b {
   min-width: 0;
   overflow: hidden;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 900;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -2354,7 +2354,7 @@ textarea:focus-visible {
 
 .wt-game-plan-cell small {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
   white-space: nowrap;
 }
