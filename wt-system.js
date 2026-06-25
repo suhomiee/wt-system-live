@@ -787,20 +787,67 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var isoMonth = range.start.slice(0, 7);
     var cells = calendarMonthCells(isoMonth);
     var byDate = eventsByDate(filteredEventsForRange(cells[0], cells[cells.length - 1]));
+    var linkedScheduleSpans = linkedScheduleSpansByDate(cells);
     var weekRows = Math.ceil(cells.length / 7);
     return [
       '<section class="wt-month-calendar-board ' + (compact ? "compact" : "") + '" aria-label="Monthly calendar">',
       compact ? "" : '<div class="wt-month-calendar-head">' + WEEKDAYS.map(function (day) { return '<span>' + text(day) + '</span>'; }).join("") + '</div>',
       '<div class="wt-month-calendar-grid" style="--wt-week-rows:' + text(weekRows) + '">',
       cells.map(function (date) {
-        return renderMonthCalendarCell(date, byDate[date] || [], compact, isoMonth);
+        return renderMonthCalendarCell(date, byDate[date] || [], compact, isoMonth, linkedScheduleSpans[date] || "");
       }).join(""),
       '</div>',
       '</section>'
     ].join("");
   }
 
-  function renderMonthCalendarCell(date, events, compact, isoMonth) {
+  function linkedScheduleSpansByDate(cells) {
+    var cellIndexByDate = {};
+    var linkedDates = {};
+    var spans = {};
+    cells.forEach(function (date, index) {
+      if (date) cellIndexByDate[date] = index;
+    });
+    linkedHandoffReportChains().forEach(function (chain) {
+      var cursor = fromIso(chain.start);
+      var end = chain.end;
+      while (toIso(cursor) <= end) {
+        var date = toIso(cursor);
+        linkedDates[date] = true;
+        if (date === end) break;
+        cursor = addDays(cursor, 1);
+      }
+    });
+    Object.keys(cellIndexByDate).forEach(function (date) {
+      if (!linkedDates[date]) return;
+      var index = cellIndexByDate[date];
+      var column = index % 7;
+      var classes = ["wt-linked-schedule-span"];
+      if (!linkedDates[addDaysIso(date, -1)]) classes.push("wt-linked-schedule-start");
+      if (!linkedDates[addDaysIso(date, 1)]) classes.push("wt-linked-schedule-end");
+      if (column === 0) classes.push("wt-linked-schedule-row-start");
+      if (column === 6) classes.push("wt-linked-schedule-row-end");
+      spans[date] = classes.join(" ");
+    });
+    return spans;
+  }
+
+  function linkedHandoffReportChains() {
+    var events = normalizedEvents().filter(matchesFilters);
+    var byId = {};
+    events.forEach(function (event) {
+      if (event.id) byId[event.id] = event;
+    });
+    return events.filter(function (event) {
+      return isDerivedEvent(event) && event.parentId && event.kind === "report" && event.gate === "WT Report";
+    }).map(function (event) {
+      var parent = byId[event.parentId];
+      if (!parent || !parent.date || parent.date > event.date) return null;
+      return { start: parent.date, end: event.date };
+    }).filter(Boolean);
+  }
+
+  function renderMonthCalendarCell(date, events, compact, isoMonth, linkedScheduleClass) {
     if (!date) return '<article class="wt-month-cell is-empty" aria-hidden="true"></article>';
     var todayIso = toIso(new Date());
     var day = fromIso(date).getDay();
@@ -810,7 +857,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       date === todayIso ? "is-today" : "",
       outsideMonth ? "is-outside-month" : "",
       day === 0 || day === 6 ? "is-weekend" : "",
-      events.length ? "has-events" : ""
+      events.length ? "has-events" : "",
+      linkedScheduleClass || ""
     ].filter(Boolean).join(" ");
     var limit = compact ? 2 : 4;
     return [
@@ -832,7 +880,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var selected = event.date === state.selectedDate ? " is-selected" : "";
     return [
       '<button type="button" class="wt-month-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
-      renderEventMetaLine(event, (event.gate || event.kind) + " · " + formatDateShort(event.date)),
+      renderEventMetaLine(event, (event.gate || event.kind) + " · " + formatDateShort(event.date), { hideOrigin: true }),
       '<b>' + text(shortTitle(event.title, 42)) + '</b>',
       '</button>'
     ].join("");
@@ -885,26 +933,25 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       return [
         '<button type="button" class="wt-horizontal-event wt-horizontal-event-structured wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
         '<time class="wt-horizontal-event-date" datetime="' + text(event.date) + '"><span>' + text(MONTHS[fromIso(event.date).getMonth()]) + '</span><b>' + text(dayOfMonth(event.date)) + '</b></time>',
-        '<span class="wt-horizontal-event-body">' + renderEventOriginBadge(event) + '<i>' + text(meta) + '</i><strong>' + text(shortTitle(event.title, 58)) + '</strong></span>',
+        '<span class="wt-horizontal-event-body"><i>' + text(meta) + '</i><strong>' + text(shortTitle(event.title, 58)) + '</strong></span>',
         '</button>'
       ].join("");
     }
     return [
       '<button type="button" class="wt-horizontal-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
-      renderEventMetaLine(event, formatDateShort(event.date) + " · " + (event.modelName || event.gate || event.kind)),
+      renderEventMetaLine(event, formatDateShort(event.date) + " · " + (event.modelName || event.gate || event.kind), { hideOrigin: true }),
       '<b>' + text(shortTitle(event.title, 36)) + '</b>',
       '</button>'
     ].join("");
   }
 
   function renderEventOriginBadge(event) {
-    if (isDerivedEvent(event)) return '<em>Auto</em>';
-    if (!isUserEvent(event)) return "";
-    return '<em>User</em>';
+    return "";
   }
 
-  function renderEventMetaLine(event, value) {
-    return '<span>' + renderEventOriginBadge(event) + '<i>' + text(value) + '</i></span>';
+  function renderEventMetaLine(event, value, options) {
+    var origin = options && options.hideOrigin ? "" : renderEventOriginBadge(event);
+    return '<span>' + origin + '<i>' + text(value) + '</i></span>';
   }
 
   function eventOriginClass(event) {
@@ -1112,7 +1159,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         var position = eventUnitPosition(event, units);
         var row = event.__laneRow || 1;
         var selected = event.date === state.selectedDate ? " is-selected" : "";
-        return '<button type="button" class="wt-gantt-chip wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '; --wt-row:' + text(row) + '"><span>' + renderEventOriginBadge(event) + text(formatDateShort(event.date) + " · " + (event.gate || event.kind)) + '</span><b>' + text(event.title) + '</b></button>';
+        return '<button type="button" class="wt-gantt-chip wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '; --wt-row:' + text(row) + '"><span>' + text(formatDateShort(event.date) + " · " + (event.gate || event.kind)) + '</span><b>' + text(event.title) + '</b></button>';
       }).join(""),
       '</div>',
       '</article>'
@@ -1176,7 +1223,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         if (compact) unitEvents = prioritizedEvents(unitEvents).slice(0, 2);
         return '<div class="wt-season-cell">' + (unitEvents.length ? unitEvents.map(function (event) {
           var selected = event.date === state.selectedDate ? " is-selected" : "";
-          return '<button type="button" class="wt-season-dot wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '"><span>' + renderEventOriginBadge(event) + text(dayOfMonth(event.date) + " · " + (event.gate || event.kind)) + '</span><b>' + text(shortTitle(event.title, compact ? 24 : 44)) + '</b></button>';
+          return '<button type="button" class="wt-season-dot wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '"><span>' + text(dayOfMonth(event.date) + " · " + (event.gate || event.kind)) + '</span><b>' + text(shortTitle(event.title, compact ? 24 : 44)) + '</b></button>';
         }).join("") : '<span class="wt-season-empty"></span>') + '</div>';
       }).join(""),
       '</article>'
@@ -1265,7 +1312,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     ].join("") : "";
     return [
       '<article class="wt-inspector-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '">',
-      '<small>' + renderEventOriginBadge(event) + text(event.gate || "WT") + ' · ' + text(event.season || "All") + '</small>',
+      '<small>' + text(event.gate || "WT") + ' · ' + text(event.season || "All") + '</small>',
       '<b>' + text(event.title) + '</b>',
       '<span>' + text(event.time || event.gate || "All day") + ' / ' + text(event.owner || "WT") + '</span>',
       eventProductDetails(event) ? '<small>' + text(eventProductDetails(event)) + '</small>' : "",
@@ -1281,13 +1328,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var isUser = isUserEvent(event);
     var confirmingDelete = state.pendingDeleteEventId === event.id;
     var productDetail = eventProductDetails(event);
-    var readonlyMessage = isDerivedEvent(event) ? "Auto-created from the handoff schedule. Update the original handoff to change this event." : "";
+    var readonlyMessage = isDerivedEvent(event) ? "Linked from the handoff schedule. Update the original handoff to change this event." : "";
     var scheduleWarning = productFreezeWarningForEvent(event);
     var rows = [
       ["Date", formatDateShort(event.date)],
       ["Type", event.kind || "deadline"],
       ["Season", event.season || "All"],
-      ["Gate", event.planGate || event.gate || (isUser ? "User schedule" : "WT")],
+      ["Gate", event.planGate || event.gate || (isUser ? "Registered schedule" : "WT")],
       [isUser ? "PCC Developer (English Name)" : "Owner", event.owner || "WT"],
       ["Source", eventSourceLabel(event)]
     ];
@@ -1299,7 +1346,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<article class="wt-modal-panel wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '">',
       '<header class="wt-modal-header">',
       '<div>',
-      '<small>' + renderEventOriginBadge(event) + text(formatDateShort(event.date) + " · " + (event.gate || event.kind || "WT")) + '</small>',
+      '<small>' + text(formatDateShort(event.date) + " · " + (event.gate || event.kind || "WT")) + '</small>',
       '<h2>' + text(event.title) + '</h2>',
       '</div>',
       '<button type="button" class="wt-modal-close" data-close-event-modal aria-label="Close">&times;</button>',
@@ -1348,8 +1395,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function eventSourceLabel(event) {
     if (!event) return "WT";
     if (event.source === "schedule.pdf") return "Schedule PDF";
-    if (isDerivedEvent(event)) return "Auto FPT workflow";
-    return "User schedule";
+    if (isDerivedEvent(event)) return "FPT workflow";
+    return "Registered schedule";
   }
 
   function eventProductDetails(event) {
@@ -1428,7 +1475,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var selected = event.date === state.selectedDate ? " is-selected" : "";
     return [
       '<button type="button" class="wt-year-event-summary wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
-      '<span>' + renderEventOriginBadge(event) + text(formatDateShort(event.date) + " · " + (event.gate || event.season || event.kind)) + '</span>',
+      '<span>' + text(formatDateShort(event.date) + " · " + (event.gate || event.season || event.kind)) + '</span>',
       '<b>' + text(shortTitle(event.title, 34)) + '</b>',
       '</button>'
     ].join("");
@@ -1529,7 +1576,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         date: item.targetDate,
         title: normalizeScheduleTypeValue(item.milestoneType || item.kind || "") + " - " + (item.modelName || item.projectName || "WT schedule"),
         kind: mapMilestoneKind(item.milestoneType || item.kind || "deadline"),
-        gate: "User",
+        gate: "Schedule",
         season: item.season || "All",
         sourceType: "user"
       });
@@ -1593,7 +1640,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderManagerTimelineChip(event) {
     var sourceType = event.sourceType || "system";
-    var sourceLabel = sourceType === "user" ? "User" : sourceType === "derived" ? (event.gate || "Workflow") : (event.gate || "Plan");
+    var sourceLabel = sourceType === "user" ? "Schedule" : sourceType === "derived" ? (event.gate || "Workflow") : (event.gate || "Plan");
     return [
       '<button type="button" role="listitem" class="wt-manager-timeline-chip wt-kind-' + text(event.kind || "deadline") + ' is-' + text(sourceType) + '" data-event-id="' + text(event.id || "") + '" data-date="' + text(event.date || state.selectedDate) + '" title="' + text(formatGamePlanDate(event.date) + " · " + sourceLabel + " · " + event.title) + '">',
       '<span>' + text(formatGamePlanDate(event.date)) + '</span>',
@@ -2922,7 +2969,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     });
     return [
       '<aside class="wt-edit-card' + (inModal ? " wt-edit-card-modal" : "") + '">',
-      inModal ? "" : '<h2>' + text(editingItem ? "Edit User Schedule" : "New Schedule") + '</h2>',
+      inModal ? "" : '<h2>' + text(editingItem ? "Edit Schedule" : "New Schedule") + '</h2>',
       '<form class="wt-edit-form">',
       editingItem ? '<input type="hidden" name="rowKey" value="' + text(editingItem.rowKey || state.editingEventId) + '">' : "",
       '<div class="wt-schedule-primary-fields">',
@@ -3049,7 +3096,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         date: item.targetDate,
         title: normalizeScheduleTypeValue(item.milestoneType),
         kind: scheduleTypeKind(item.milestoneType) || "sample",
-        label: [item.gate || "Gate", "User input"].filter(Boolean).join(" · "),
+        label: item.gate || "Gate",
         previewType: "handoff"
       });
     }
@@ -3059,7 +3106,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
           date: event.date,
           title: event.gate === "M&M Test" ? "M&M Test (G115 / G107 / ETC)" : "T2 FPT WT Report",
           kind: event.kind,
-          label: event.gate === "M&M Test" ? "Auto · 2 business days" : "Auto · 5th business day",
+          label: event.gate === "M&M Test" ? "2 business days" : "5th business day",
           previewType: event.gate === "M&M Test" ? "test" : "report"
         });
       });
@@ -3540,7 +3587,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         kind: "review",
         gate: "M&M Test",
         owner: "T2 FPT",
-        notes: "Auto-created within 2 business days of the T2 FPT handoff."
+        notes: "Linked within 2 business days of the T2 FPT handoff."
       }),
       extendEvent(common, {
         id: parentId + "-auto-wt-report",
@@ -3550,7 +3597,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         kind: "report",
         gate: "WT Report",
         owner: "T2 FPT",
-        notes: "Auto-created for the 5th business day from the T2 FPT handoff."
+        notes: "Linked for the 5th business day from the T2 FPT handoff."
       })
     ];
   }
