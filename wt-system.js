@@ -1440,14 +1440,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderScheduleManager(root) {
-    var todayIso = currentDateIso(root);
     var submissions = managerSubmissions();
-    var upcomingCount = submissions.filter(function (item) { return (item.targetDate || "") >= todayIso; }).length;
-    var autoCount = submissions.reduce(function (sum, item, index) {
-      return sum + deriveHandoffEvents(item, submissionId(item, index)).length;
-    }, 0);
-    var modelCount = unique(submissions.map(function (item) { return item.modelName; }).filter(Boolean)).length;
-    var planCount = managerPlanMilestoneCount(submissions);
     return [
       '<section class="wt-manager-page">',
       '<header class="wt-manager-head">',
@@ -1457,13 +1450,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '</div>',
       '<button type="button" class="wt-manager-create" data-view="edit">' + icon("plus") + '<span>Create Schedule</span></button>',
       '</header>',
-      '<div class="wt-manager-stats">',
-      renderManagerStat("User schedules", submissions.length),
-      renderManagerStat("Upcoming", upcomingCount),
-      renderManagerStat("Auto linked", autoCount),
-      renderManagerStat("Models", modelCount),
-      renderManagerStat("Plan milestones", planCount),
-      '</div>',
       '<div class="wt-action-message wt-manager-message">' + text(state.actionMessage || "") + '</div>',
       submissions.length ? renderManagerProjects(submissions) : renderManagerEmptyState(),
       '</section>'
@@ -1474,10 +1460,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return loadLocalSubmissions().slice().sort(function (a, b) {
       return ((a.targetDate || "") + (a.projectName || "")).localeCompare((b.targetDate || "") + (b.projectName || ""));
     });
-  }
-
-  function renderManagerStat(label, value) {
-    return '<div><small>' + text(label) + '</small><b>' + text(value) + '</b></div>';
   }
 
   function renderManagerProjects(submissions) {
@@ -1587,15 +1569,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       if (gateSort) return gateSort;
       return (a.title || "").localeCompare(b.title || "");
     });
-  }
-
-  function managerPlanMilestoneCount(submissions) {
-    var seasons = unique((submissions || []).map(function (item) { return item.season; }).filter(function (season) {
-      return season && season !== "All";
-    }));
-    return seasons.reduce(function (sum, season) {
-      return sum + managerSeasonMilestones(season).length;
-    }, 0);
   }
 
   function managerTimelineSourceOrder(sourceType) {

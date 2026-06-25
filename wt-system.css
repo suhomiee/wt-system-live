@@ -534,7 +534,7 @@ textarea:focus-visible {
 }
 
 .wt-manager-page {
-  grid-template-rows: auto auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   overflow: hidden;
 }
 
@@ -587,38 +587,8 @@ textarea:focus-visible {
   height: 16px;
 }
 
-.wt-manager-stats {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.wt-manager-stats div {
-  min-width: 0;
-  min-height: 58px;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-}
-
-.wt-manager-stats small {
-  display: block;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 850;
-  text-transform: uppercase;
-}
-
-.wt-manager-stats b {
-  display: block;
-  margin-top: 4px;
-  font-family: var(--font-display);
-  font-size: 24px;
-  line-height: 1;
-}
-
 .wt-manager-message {
-  min-height: 34px;
+  min-height: 30px;
 }
 
 .wt-manager-message:empty {
@@ -630,12 +600,12 @@ textarea:focus-visible {
 .wt-manager-projects {
   min-height: 0;
   display: grid;
-  gap: 10px;
+  gap: 8px;
   overflow: auto;
 }
 
 .wt-manager-project-row {
-  min-height: 190px;
+  min-height: 138px;
   display: grid;
   grid-template-columns: minmax(280px, .32fr) minmax(0, 1fr);
   border: 1px solid var(--line);
@@ -645,9 +615,9 @@ textarea:focus-visible {
 .wt-manager-project-info {
   min-width: 0;
   display: grid;
-  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
-  gap: 8px;
-  padding: 14px;
+  grid-template-rows: auto auto auto auto;
+  gap: 4px;
+  padding: 8px;
   border-right: 1px solid var(--line);
 }
 
@@ -661,7 +631,7 @@ textarea:focus-visible {
 
 .wt-manager-project-topline time {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 850;
 }
 
@@ -670,37 +640,37 @@ textarea:focus-visible {
   margin: 0;
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 16px;
   line-height: 1.12;
   overflow-wrap: anywhere;
 }
 
 .wt-manager-project-info > b {
   color: #0a5961;
-  font-size: 13px;
+  font-size: 11px;
   line-height: 1.25;
 }
 
 .wt-manager-meta-grid {
   min-width: 0;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
   align-content: start;
 }
 
 .wt-manager-meta-grid span {
   min-width: 0;
   display: grid;
-  gap: 2px;
-  padding: 8px;
+  gap: 1px;
+  padding: 4px;
   border: 1px solid var(--line);
   background: #f8faf9;
 }
 
 .wt-manager-meta-grid small {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 8px;
   font-weight: 850;
   text-transform: uppercase;
 }
@@ -708,17 +678,29 @@ textarea:focus-visible {
 .wt-manager-meta-grid strong {
   min-width: 0;
   color: var(--ink);
-  font-size: 12px;
+  font-size: 9.5px;
   line-height: 1.25;
   overflow-wrap: anywhere;
+}
+
+.wt-manager-project-info .wt-manager-action {
+  min-height: 24px;
+  padding: 0 7px;
+  font-size: 11px;
+}
+
+.wt-manager-project-info .wt-manager-action .wt-icon {
+  width: 12px;
+  height: 12px;
 }
 
 .wt-manager-timeline-panel {
   min-width: 0;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 10px;
-  padding: 14px;
+  grid-template-rows: auto auto;
+  align-content: start;
+  gap: 7px;
+  padding: 10px;
   overflow: hidden;
 }
 
@@ -733,48 +715,51 @@ textarea:focus-visible {
 .wt-manager-timeline-head b {
   min-width: 0;
   color: var(--ink);
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.2;
 }
 
 .wt-manager-timeline-head small {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 850;
   text-transform: uppercase;
 }
 
 .wt-manager-timeline {
   min-width: 0;
-  min-height: 0;
+  min-height: 66px;
   display: flex;
-  gap: 8px;
-  align-items: stretch;
+  gap: 6px;
+  align-items: flex-start;
   overflow-x: auto;
   overflow-y: hidden;
-  padding-bottom: 8px;
+  padding-bottom: 6px;
 }
 
 .wt-manager-timeline-chip {
   --manager-chip-accent: var(--line-strong);
-  width: 148px;
-  min-width: 148px;
-  min-height: 112px;
+  width: 132px;
+  min-width: 132px;
+  height: 58px;
+  min-height: 58px;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 6px;
+  gap: 2px;
   align-content: start;
   border: 1px solid var(--line);
-  border-top: 4px solid var(--manager-chip-accent);
+  border-left: 4px solid var(--manager-chip-accent);
+  border-top: 1px solid var(--line);
   background: #fff;
   color: var(--ink);
-  padding: 9px;
+  padding: 5px 6px;
   text-align: left;
+  overflow: hidden;
 }
 
 .wt-manager-timeline-chip span,
 .wt-manager-timeline-chip small {
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 850;
   line-height: 1.15;
 }
@@ -785,14 +770,21 @@ textarea:focus-visible {
 
 .wt-manager-timeline-chip b {
   min-width: 0;
+  display: -webkit-box;
   color: inherit;
-  font-size: 12px;
-  line-height: 1.2;
+  font-size: 10px;
+  line-height: 1.15;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow-wrap: anywhere;
+  overflow: hidden;
 }
 
 .wt-manager-timeline-chip small {
   color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .wt-manager-timeline-chip.is-user {
@@ -3425,10 +3417,6 @@ textarea:focus-visible {
     grid-template-columns: 116px repeat(var(--wt-cols), 122px);
   }
 
-  .wt-manager-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .wt-manager-project-row {
     grid-template-columns: 1fr;
   }
@@ -3639,20 +3627,16 @@ textarea:focus-visible {
   padding: 10px 14px;
 }
 
-#wt-system-root[data-wt-fit="viewport"] .wt-app.is-manager .wt-manager-stats div {
-  min-height: 52px;
-  padding: 8px 10px;
-}
-
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-manager .wt-manager-project-row {
-  min-height: 178px;
+  min-height: 130px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-manager .wt-manager-timeline-chip {
-  width: 138px;
-  min-width: 138px;
-  min-height: 102px;
-  padding: 8px;
+  width: 126px;
+  min-width: 126px;
+  height: 56px;
+  min-height: 56px;
+  padding: 5px 6px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-filter-row {
