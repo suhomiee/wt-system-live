@@ -2171,10 +2171,16 @@ textarea:focus-visible {
 
 .wt-calendar-year-overview .wt-year-month-head-button {
   min-height: 20px;
+  cursor: pointer;
 }
 
 .wt-calendar-year-overview .wt-year-month-head-button b {
   font-size: 16px;
+}
+
+.wt-calendar-year-overview .wt-year-month-head-button:hover b,
+.wt-calendar-year-overview .wt-year-month-head-button:focus-visible b {
+  color: #005062;
 }
 
 .wt-calendar-year-overview .wt-year-month-events {
@@ -2185,6 +2191,10 @@ textarea:focus-visible {
 .wt-calendar-year-overview .wt-year-event-summary {
   min-height: 40px;
   padding: 4px 6px;
+}
+
+.wt-calendar-quarter .wt-year-event-summary {
+  cursor: default;
 }
 
 .wt-calendar-year-overview .wt-year-empty,
@@ -4984,7 +4994,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-calendar-quarter .wt-horizontal-calendar-head span {
   justify-content: flex-start;
-  padding: 0 14px;
+  padding: 0;
 }
 
 .wt-calendar-quarter .wt-horizontal-calendar-head b {
@@ -4993,12 +5003,52 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   font-weight: 600;
 }
 
+.wt-quarter-month-jump {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 0 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wt-quarter-month-jump:hover b,
+.wt-quarter-month-jump:focus-visible b {
+  color: #005062;
+}
+
 .wt-calendar-quarter .wt-horizontal-period {
   grid-template-rows: 36px minmax(0, 1fr);
 }
 
 .wt-calendar-quarter .wt-horizontal-period-meta {
+  padding: 0;
+}
+
+.wt-horizontal-period-meta-button {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
   padding: 0 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wt-horizontal-period-meta-button:hover time,
+.wt-horizontal-period-meta-button:focus-visible time {
+  color: #005062;
 }
 
 .wt-calendar-quarter .wt-horizontal-period-events {
@@ -5868,6 +5918,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var labViewButton = event.target.closest("[data-lab-view]");
       var reportButton = event.target.closest("[data-report-url]");
       var periodButton = event.target.closest("[data-period]");
+      var quarterMonthButton = event.target.closest("[data-quarter-month]");
       var deadlineButton = event.target.closest("[data-deadline-toggle]");
       var modelScheduleButton = event.target.closest("[data-model-schedule-toggle]");
       var clearSearchButton = event.target.closest("[data-clear-search]");
@@ -5977,6 +6028,20 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         state.selectedDate = selectedEvent.date || eventButton.getAttribute("data-date") || state.selectedDate;
         state.weekStart = periodAnchor(state.selectedDate, state.period);
         state.pendingDeleteEventId = "";
+        state.actionMessage = "";
+        render(root);
+        return;
+      }
+
+      if (quarterMonthButton && root.contains(quarterMonthButton)) {
+        event.preventDefault();
+        var quarterMonthDate = quarterMonthButton.getAttribute("data-quarter-month");
+        if (!isIsoDate(quarterMonthDate)) return;
+        state.period = "month";
+        state.selectedDate = quarterMonthDate;
+        state.weekStart = periodAnchor(quarterMonthDate, "month");
+        state.pendingDeleteEventId = "";
+        state.activeEventId = "";
         state.actionMessage = "";
         render(root);
         return;
@@ -6522,13 +6587,16 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderHorizontalCalendarBoard(compact) {
     var range = currentRange();
     var units = state.period === "year" || state.period === "quarter" || state.period === "multi-month" || state.period === "season" ? monthUnits(range) : weekUnits(range);
-    var events = eventsForCurrentRange();
+    var events = state.period === "quarter" ? quarterSummaryEvents(eventsForCurrentRange()) : eventsForCurrentRange();
     var showUnitCounts = state.period !== "quarter";
     return [
       '<section class="wt-horizontal-calendar-board wt-calendar-' + text(state.period) + ' ' + (compact ? "compact" : "") + '" aria-label="Horizontal calendar">',
       '<div class="wt-horizontal-calendar-head" style="--wt-cols:' + text(units.length) + '">',
       units.map(function (unit) {
         var count = filteredEventsForRange(unit.start, unit.end).length;
+        if (state.period === "quarter") {
+          return '<span class="' + (unitHasToday(unit) ? "today" : "") + '"><button type="button" class="wt-quarter-month-jump" data-quarter-month="' + text(unit.start) + '" aria-label="' + text("Open " + unit.label + " monthly calendar") + '"><b>' + text(unit.label) + '</b></button></span>';
+        }
         return '<span class="' + (unitHasToday(unit) ? "today" : "") + '"><b>' + text(unit.label) + '</b>' + (showUnitCounts ? '<small>' + text(count + " events") + '</small>' : "") + '</span>';
       }).join(""),
       '</div>',
@@ -6545,18 +6613,49 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderHorizontalCalendarColumn(unit, events, compact) {
     var limit = compact ? 4 : events.length;
-    var visibleEvents = state.period === "quarter" ? prioritizedEvents(events) : events;
+    var visibleEvents = state.period === "quarter" ? quarterSummaryEvents(events) : events;
+    var periodMeta = state.period === "quarter"
+      ? '<button type="button" class="wt-horizontal-period-meta-button" data-quarter-month="' + text(unit.start) + '"><time datetime="' + text(unit.start) + '">' + text(formatRange(unit)) + '</time></button>'
+      : '<time>' + text(formatRange(unit)) + '</time>';
     return [
       '<article class="wt-horizontal-period">',
-      '<div class="wt-horizontal-period-meta"><time>' + text(formatRange(unit)) + '</time></div>',
+      '<div class="wt-horizontal-period-meta">' + periodMeta + '</div>',
       '<div class="wt-horizontal-period-events">',
       visibleEvents.length ? visibleEvents.slice(0, limit).map(function (event) {
         return renderHorizontalCalendarEvent(event);
       }).join("") : "",
-      events.length > limit ? '<small class="wt-month-more">+' + text(events.length - limit) + ' more</small>' : "",
+      visibleEvents.length > limit ? '<small class="wt-month-more">+' + text(visibleEvents.length - limit) + ' more</small>' : "",
       '</div>',
       '</article>'
     ].join("");
+  }
+
+  function quarterSummaryEvents(events) {
+    return events.filter(isQuarterSummaryEvent).sort(function (a, b) {
+      var prioritySort = quarterSummaryPriority(b) - quarterSummaryPriority(a);
+      if (prioritySort) return prioritySort;
+      return (a.date + a.title).localeCompare(b.date + b.title);
+    });
+  }
+
+  function isQuarterSummaryEvent(event) {
+    return isUserEvent(event) || isBomDddEvent(event) || isLtwtProductFreezeEvent(event);
+  }
+
+  function quarterSummaryPriority(event) {
+    if (isUserEvent(event)) return 3;
+    if (isLtwtProductFreezeEvent(event)) return 2;
+    if (isBomDddEvent(event)) return 1;
+    return 0;
+  }
+
+  function isBomDddEvent(event) {
+    return String(event && event.title || "").toLowerCase().indexOf("bom ddd") >= 0;
+  }
+
+  function isLtwtProductFreezeEvent(event) {
+    var value = String(event && event.title || "").toLowerCase();
+    return value.indexOf("ltwt") >= 0 && value.indexOf("product freeze") >= 0;
   }
 
   function renderHorizontalCalendarEvent(event) {
@@ -6564,10 +6663,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (state.period === "quarter") {
       var meta = [event.modelName || event.gate || event.kind, event.season || ""].filter(Boolean).join(" / ");
       return [
-        '<button type="button" class="wt-horizontal-event wt-horizontal-event-structured wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+        '<article class="wt-horizontal-event wt-horizontal-event-structured wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
         '<time class="wt-horizontal-event-date" datetime="' + text(event.date) + '"><span>' + text(MONTHS[fromIso(event.date).getMonth()]) + '</span><b>' + text(dayOfMonth(event.date)) + '</b></time>',
         '<span class="wt-horizontal-event-body"><i>' + text(meta) + '</i><strong>' + text(shortTitle(event.title, 58)) + '</strong></span>',
-        '</button>'
+        '</article>'
       ].join("");
     }
     return [
@@ -7085,31 +7184,46 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderDashboardMonthTile(unit) {
+    var isQuarterOverview = state.calendarView === "calendar" && state.period === "quarter";
     var events = filteredEventsForRange(unit.start, unit.end);
+    var visibleEvents = isQuarterOverview ? quarterSummaryEvents(events) : prioritizedEvents(events);
     var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " is-selected" : "";
     var monthLabel = MONTHS[fromIso(unit.start).getMonth()];
     var visibleLimit = 6;
+    var monthAction = isQuarterOverview ? 'data-quarter-month="' + text(unit.start) + '"' : 'data-date="' + text(unit.start) + '"';
+    var monthAriaLabel = isQuarterOverview ? "Open " + unit.label + " monthly calendar" : unit.label + " overview";
     return [
       '<article class="wt-year-month-tile' + selected + '">',
-      '<button type="button" class="wt-year-month-head-button" data-date="' + text(unit.start) + '" aria-label="' + text(unit.label + " overview") + '">',
+      '<button type="button" class="wt-year-month-head-button" ' + monthAction + ' aria-label="' + text(monthAriaLabel) + '">',
       '<b>' + text(monthLabel) + '</b>',
       '</button>',
       '<div class="wt-year-month-events">',
-      events.length ? prioritizedEvents(events).slice(0, visibleLimit).map(function (event) {
-        return renderDashboardYearEventSummary(event);
+      visibleEvents.length ? visibleEvents.slice(0, visibleLimit).map(function (event) {
+        return renderDashboardYearEventSummary(event, { staticEvent: isQuarterOverview });
       }).join("") : '<span class="wt-year-empty">No events</span>',
-      events.length > visibleLimit ? '<small class="wt-month-more">+' + text(events.length - visibleLimit) + ' more</small>' : "",
+      visibleEvents.length > visibleLimit ? '<small class="wt-month-more">+' + text(visibleEvents.length - visibleLimit) + ' more</small>' : "",
       '</div>',
       '</article>'
     ].join("");
   }
 
-  function renderDashboardYearEventSummary(event) {
-    var selected = event.date === state.selectedDate ? " is-selected" : "";
+  function renderDashboardYearEventSummary(event, options) {
+    var staticEvent = options && options.staticEvent;
+    var selected = !staticEvent && event.date === state.selectedDate ? " is-selected" : "";
+    var content = [
+      '<span>' + text(formatDateShort(event.date) + " · " + (event.gate || event.season || event.kind)) + '</span>',
+      '<b>' + text(shortTitle(event.title, 34)) + '</b>'
+    ].join("");
+    if (staticEvent) {
+      return [
+        '<article class="wt-year-event-summary wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+        content,
+        '</article>'
+      ].join("");
+    }
     return [
       '<button type="button" class="wt-year-event-summary wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
-      '<span>' + text(formatDateShort(event.date) + " · " + (event.gate || event.season || event.kind)) + '</span>',
-      '<b>' + text(shortTitle(event.title, 34)) + '</b>',
+      content,
       '</button>'
     ].join("");
   }

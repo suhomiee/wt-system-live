@@ -2161,10 +2161,16 @@ textarea:focus-visible {
 
 .wt-calendar-year-overview .wt-year-month-head-button {
   min-height: 20px;
+  cursor: pointer;
 }
 
 .wt-calendar-year-overview .wt-year-month-head-button b {
   font-size: 16px;
+}
+
+.wt-calendar-year-overview .wt-year-month-head-button:hover b,
+.wt-calendar-year-overview .wt-year-month-head-button:focus-visible b {
+  color: #005062;
 }
 
 .wt-calendar-year-overview .wt-year-month-events {
@@ -2175,6 +2181,10 @@ textarea:focus-visible {
 .wt-calendar-year-overview .wt-year-event-summary {
   min-height: 40px;
   padding: 4px 6px;
+}
+
+.wt-calendar-quarter .wt-year-event-summary {
+  cursor: default;
 }
 
 .wt-calendar-year-overview .wt-year-empty,
@@ -4974,7 +4984,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-calendar-quarter .wt-horizontal-calendar-head span {
   justify-content: flex-start;
-  padding: 0 14px;
+  padding: 0;
 }
 
 .wt-calendar-quarter .wt-horizontal-calendar-head b {
@@ -4983,12 +4993,52 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   font-weight: 600;
 }
 
+.wt-quarter-month-jump {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 0 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wt-quarter-month-jump:hover b,
+.wt-quarter-month-jump:focus-visible b {
+  color: #005062;
+}
+
 .wt-calendar-quarter .wt-horizontal-period {
   grid-template-rows: 36px minmax(0, 1fr);
 }
 
 .wt-calendar-quarter .wt-horizontal-period-meta {
+  padding: 0;
+}
+
+.wt-horizontal-period-meta-button {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
   padding: 0 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wt-horizontal-period-meta-button:hover time,
+.wt-horizontal-period-meta-button:focus-visible time {
+  color: #005062;
 }
 
 .wt-calendar-quarter .wt-horizontal-period-events {
