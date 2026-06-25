@@ -617,8 +617,8 @@ textarea:focus-visible {
 .wt-manager-project-info {
   min-width: 0;
   display: grid;
-  grid-template-rows: auto auto auto auto;
-  gap: 10px;
+  grid-template-rows: auto auto auto auto auto auto;
+  gap: 8px;
   padding: 16px;
   border-right: 1px solid var(--line);
 }
@@ -642,9 +642,37 @@ textarea:focus-visible {
   margin: 0;
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: 24px;
+  font-size: 28px;
   line-height: 1.1;
   overflow-wrap: anywhere;
+}
+
+.wt-manager-project-owner {
+  min-width: 0;
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--muted);
+  line-height: 1.2;
+}
+
+.wt-manager-project-owner span {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.wt-manager-project-owner strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #0a5961;
+  font-size: 17px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .wt-manager-project-info > b {
