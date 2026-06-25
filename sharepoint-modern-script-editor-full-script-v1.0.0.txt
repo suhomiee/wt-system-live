@@ -1885,7 +1885,7 @@ textarea:focus-visible {
 }
 
 .wt-dashboard {
-  grid-template-rows: minmax(330px, .48fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) minmax(300px, .46fr);
 }
 
 .wt-dashboard-hero {
@@ -3673,7 +3673,7 @@ textarea:focus-visible {
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-dashboard {
-  grid-template-rows: minmax(372px, .48fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) minmax(300px, .46fr);
   gap: 12px;
   padding: 12px;
 }
@@ -7052,8 +7052,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderDashboard() {
     return [
       '<section class="wt-dashboard">',
-      renderDashboardYearStrip(),
       renderDashboardMonthPanel(),
+      renderDashboardYearStrip(),
       '</section>'
     ].join("");
   }

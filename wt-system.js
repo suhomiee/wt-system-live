@@ -1370,8 +1370,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderDashboard() {
     return [
       '<section class="wt-dashboard">',
-      renderDashboardYearStrip(),
       renderDashboardMonthPanel(),
+      renderDashboardYearStrip(),
       '</section>'
     ].join("");
   }
