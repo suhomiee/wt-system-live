@@ -4922,20 +4922,23 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   --wt-sidebar-width: 256px;
   position: fixed;
   top: 50%;
-  left: calc(var(--wt-sidebar-edge, var(--wt-sidebar-width)) - 22px);
+  left: calc(var(--wt-sidebar-edge, var(--wt-sidebar-width)) - 16px);
   z-index: 120;
-  width: 44px;
-  height: 76px;
+  width: 32px;
+  height: 52px;
   display: grid;
   place-items: center;
   padding: 0;
-  border: 1px solid rgba(10, 53, 63, .22);
+  border: 1px solid rgba(10, 53, 63, .18);
   border-radius: 999px;
-  background: #ffffff;
+  background: rgba(255, 255, 255, .88);
   color: #003a46;
-  box-shadow: 0 14px 28px rgba(7, 31, 35, .18);
+  box-shadow: 0 8px 18px rgba(7, 31, 35, .13);
   cursor: pointer;
   transform: translateY(-50%);
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition:
     left .24s cubic-bezier(.2,.72,.2,1),
     background-color .16s ease,
@@ -4945,16 +4948,20 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-sidebar-toggle .wt-icon {
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
 }
 
 .wt-sidebar-toggle:hover,
 .wt-sidebar-toggle:focus-visible {
-  background: #f5fbfa;
-  border-color: rgba(0, 58, 70, .42);
-  box-shadow: 0 18px 36px rgba(7, 31, 35, .24);
+  background: #ffffff;
+  border-color: rgba(0, 58, 70, .34);
+  box-shadow: 0 10px 22px rgba(7, 31, 35, .18);
   outline: none;
+}
+
+.wt-sidebar-toggle:active {
+  transform: translateY(-50%);
 }
 
 .wt-app.is-sidebar-collapsed {
@@ -4980,9 +4987,9 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   left: 0;
   border-left-color: transparent;
   border-radius: 0 999px 999px 0;
-  background: #003a46;
+  background: rgba(0, 58, 70, .92);
   color: #ffffff;
-  box-shadow: 0 16px 34px rgba(0, 38, 46, .25);
+  box-shadow: 0 10px 22px rgba(0, 38, 46, .18);
 }
 
 #wt-system-root.is-sidebar-collapsed .wt-sidebar-toggle,
@@ -4990,9 +4997,9 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   left: 0;
   border-left-color: transparent;
   border-radius: 0 999px 999px 0;
-  background: #003a46;
+  background: rgba(0, 58, 70, .92);
   color: #ffffff;
-  box-shadow: 0 16px 34px rgba(0, 38, 46, .25);
+  box-shadow: 0 10px 22px rgba(0, 38, 46, .18);
 }
 
 .wt-app.is-sidebar-collapsed .wt-sidebar-toggle:hover,
