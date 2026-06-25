@@ -1481,9 +1481,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var type = normalizeScheduleTypeValue(item.milestoneType || item.kind || "");
     var model = item.modelName || item.projectName || "Untitled schedule";
     var owner = item.owner || "-";
-    var planEvents = managerSeasonMilestones(season);
     var timelineEvents = managerTimelineEvents(item, id);
-    var linkedCount = 1 + autoEvents.length;
     return [
       '<article class="wt-manager-project-row">',
       '<section class="wt-manager-project-info" aria-label="' + text(model + " schedule details") + '">',
@@ -1507,7 +1505,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<section class="wt-manager-timeline-panel" aria-label="' + text(season + " product game plan timeline") + '">',
       '<div class="wt-manager-timeline-head">',
       '<b>' + text(season === "All" ? "No season selected" : season + " Product Game Plan") + '</b>',
-      '<small>' + text(planEvents.length + " plan · " + linkedCount + " linked") + '</small>',
       '</div>',
       timelineEvents.length ? renderManagerTimeline(timelineEvents) : '<p class="wt-manager-no-plan">No linked product game plan milestones.</p>',
       '</section>',
