@@ -1712,7 +1712,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         index === 0 ? '<th class="wt-game-plan-gate" scope="rowgroup" rowspan="' + text(rows.length) + '"><span>' + text(gate) + '</span></th>' : "",
         '<td class="wt-game-plan-task">',
         '<span class="wt-game-plan-kind">' + text(gamePlanKindLabel(row.kind)) + '</span>',
-        '<b>' + text(row.task) + '</b>',
+        '<span class="wt-game-plan-task-name">' + text(row.task) + '</span>',
         '</td>',
         GAME_PLAN_SEASONS.map(function (season) {
           return renderGamePlanCell(row.cells[season], season);
@@ -1727,7 +1727,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       '<td class="wt-game-plan-cell">',
       '<div class="wt-game-plan-event" title="' + text(season + " · " + item.task + " · " + formatGamePlanDate(item.date)) + '">',
-      '<b>' + text(formatGamePlanDate(item.date)) + '</b>',
+      '<span class="wt-game-plan-date">' + text(formatGamePlanDate(item.date)) + '</span>',
       '<small>' + text(season) + '</small>',
       '</div>',
       '</td>'

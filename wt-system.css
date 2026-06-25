@@ -2245,7 +2245,7 @@ textarea:focus-visible {
   padding: 0 14px;
   text-align: left;
   font-size: 14px;
-  font-weight: 900;
+  font-weight: 400;
   text-transform: uppercase;
 }
 
@@ -2288,7 +2288,7 @@ textarea:focus-visible {
   background: #ffffff;
   color: var(--ink);
   font-size: 14px;
-  font-weight: 900;
+  font-weight: 400;
 }
 
 .wt-game-plan-task {
@@ -2309,16 +2309,16 @@ textarea:focus-visible {
   background: #f4f6f5;
   color: var(--muted);
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 400;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
-.wt-game-plan-task b {
+.wt-game-plan-task-name {
   display: block;
   color: var(--ink);
   font-size: 17px;
-  font-weight: 800;
+  font-weight: 400;
   line-height: 1.28;
 }
 
@@ -2348,11 +2348,11 @@ textarea:focus-visible {
   text-align: left;
 }
 
-.wt-game-plan-cell b {
+.wt-game-plan-date {
   min-width: 0;
   overflow: hidden;
   font-size: 17px;
-  font-weight: 900;
+  font-weight: 400;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -2360,7 +2360,7 @@ textarea:focus-visible {
 .wt-game-plan-cell small {
   color: var(--muted);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 400;
   white-space: nowrap;
 }
 
