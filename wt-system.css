@@ -1988,7 +1988,7 @@ textarea:focus-visible {
 
 .wt-year-month-tile {
   min-width: 0;
-  min-height: 156px;
+  min-height: 166px;
   display: grid;
   grid-template-rows: auto 1fr;
   gap: 6px;
@@ -2039,7 +2039,7 @@ textarea:focus-visible {
 
 .wt-year-event-summary {
   min-width: 0;
-  min-height: 35px;
+  min-height: 42px;
   display: grid;
   align-content: center;
   gap: 2px;
@@ -2061,8 +2061,8 @@ textarea:focus-visible {
   overflow: hidden;
   display: block;
   color: var(--muted);
-  font-size: 10px;
-  line-height: 12px;
+  font-size: 12px;
+  line-height: 14px;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -2072,9 +2072,9 @@ textarea:focus-visible {
   overflow: hidden;
   display: -webkit-box;
   color: var(--ink);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
-  line-height: 13px;
+  line-height: 16px;
   white-space: normal;
   text-overflow: ellipsis;
   -webkit-box-orient: vertical;
@@ -2084,7 +2084,7 @@ textarea:focus-visible {
 .wt-year-empty {
   overflow: hidden;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -2130,7 +2130,7 @@ textarea:focus-visible {
 }
 
 .wt-calendar-year-overview .wt-year-month-tile {
-  min-height: 132px;
+  min-height: 152px;
   gap: 5px;
   padding: 5px;
   overflow: hidden;
@@ -2141,7 +2141,7 @@ textarea:focus-visible {
 }
 
 .wt-calendar-year-overview .wt-year-month-head-button b {
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .wt-calendar-year-overview .wt-year-month-events {
@@ -2150,14 +2150,14 @@ textarea:focus-visible {
 }
 
 .wt-calendar-year-overview .wt-year-event-summary {
-  min-height: 32px;
-  padding: 4px 5px;
+  min-height: 40px;
+  padding: 4px 6px;
 }
 
 .wt-calendar-year-overview .wt-year-empty,
 .wt-calendar-year-overview .wt-month-more {
   min-height: 0;
-  font-size: 10px;
+  font-size: 11px;
   line-height: 13px;
 }
 
@@ -2211,7 +2211,7 @@ textarea:focus-visible {
   color: var(--ink);
   padding: 0 12px;
   text-align: left;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 900;
   text-transform: uppercase;
 }
@@ -2275,7 +2275,7 @@ textarea:focus-visible {
   border: 1px solid var(--line);
   background: #f4f6f5;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 900;
   text-transform: uppercase;
   white-space: nowrap;
@@ -2284,14 +2284,14 @@ textarea:focus-visible {
 .wt-game-plan-task b {
   display: block;
   color: var(--ink);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 800;
   line-height: 1.25;
 }
 
 .wt-game-plan-cell {
   min-width: 150px;
-  height: 62px;
+  height: 68px;
   background: #ffffff;
   padding: 6px;
 }
@@ -2303,7 +2303,7 @@ textarea:focus-visible {
 
 .wt-game-plan-event {
   width: 100%;
-  min-height: 48px;
+  min-height: 54px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -2318,7 +2318,7 @@ textarea:focus-visible {
 .wt-game-plan-cell b {
   min-width: 0;
   overflow: hidden;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 900;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -2326,7 +2326,7 @@ textarea:focus-visible {
 
 .wt-game-plan-cell small {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -3640,85 +3640,85 @@ textarea:focus-visible {
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-dashboard {
-  grid-template-rows: minmax(285px, .4fr) minmax(0, 1fr);
-  gap: 10px;
+  grid-template-rows: minmax(372px, .48fr) minmax(0, 1fr);
+  gap: 12px;
   padding: 12px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-dashboard-year-strip {
-  gap: 5px;
-  padding: 7px 9px 9px;
+  gap: 7px;
+  padding: 9px 10px 10px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-strip-header {
-  min-height: 22px;
+  min-height: 26px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-strip-header h2 {
-  font-size: 20px;
+  font-size: 26px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-quarter-grid {
-  gap: 7px;
+  gap: 8px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-quarter {
-  gap: 5px;
-  padding: 6px;
+  gap: 6px;
+  padding: 7px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-quarter header b {
-  font-size: 15px;
+  font-size: 18px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-months {
-  gap: 4px;
+  gap: 5px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-month-tile {
   min-height: 0;
-  gap: 4px;
-  padding: 5px;
+  gap: 5px;
+  padding: 6px;
   overflow: hidden;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-month-head-button {
-  min-height: 18px;
+  min-height: 22px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-month-head-button b {
-  font-size: 14px;
+  font-size: 17px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-month-events {
-  gap: 3px;
+  gap: 4px;
   overflow: hidden;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-event-summary {
-  min-height: 28px;
-  padding: 3px 5px;
+  min-height: 39px;
+  padding: 4px 6px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-event-summary span {
-  font-size: 9px;
-  line-height: 11px;
+  font-size: 12px;
+  line-height: 14px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-event-summary b {
-  font-size: 10px;
-  line-height: 12px;
+  font-size: 13px;
+  line-height: 16px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-year-empty,
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-month-more {
-  font-size: 9px;
-  line-height: 11px;
+  font-size: 12px;
+  line-height: 14px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-dashboard-month-panel {
-  gap: 5px;
-  padding: 8px 10px 10px;
+  gap: 7px;
+  padding: 10px 12px 12px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-sidebar {
@@ -4541,7 +4541,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   min-width: 0;
   overflow: hidden;
   color: var(--flow-ink);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   line-height: 18.2px;
   display: -webkit-box;
@@ -4556,8 +4556,8 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   overflow: hidden;
   display: block;
   color: var(--flow-muted);
-  font-size: 11px;
-  line-height: 13px;
+  font-size: 12px;
+  line-height: 14px;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -4666,7 +4666,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   overflow: hidden;
   color: var(--flow-muted);
   font-size: 12px;
-  line-height: 14px;
+  line-height: 15px;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -4675,7 +4675,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   min-width: 0;
   overflow: hidden;
   color: var(--flow-ink);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   line-height: 16px;
   display: -webkit-box;
@@ -4893,7 +4893,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-month-event {
-  min-height: 42px;
+  min-height: 46px;
 }
 
 .wt-month-event span,
@@ -4904,8 +4904,8 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   align-items: center;
   gap: 5px;
   color: var(--flow-muted);
-  font-size: 11px;
-  line-height: 13px;
+  font-size: 12px;
+  line-height: 15px;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -4918,9 +4918,9 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   color: #005062;
   padding: 1px 5px;
   font-style: normal;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 800;
-  line-height: 12px;
+  line-height: 13px;
   text-transform: uppercase;
 }
 
@@ -4939,9 +4939,9 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   min-width: 0;
   overflow: hidden;
   color: var(--flow-ink);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
-  line-height: 15px;
+  line-height: 18px;
   display: -webkit-box;
   white-space: normal;
   text-overflow: ellipsis;
@@ -5413,21 +5413,21 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-calendar-year .wt-horizontal-event b {
-  font-size: 12px;
-  line-height: 15px;
+  font-size: 13px;
+  line-height: 16px;
 }
 
 .wt-month-calendar-board.compact .wt-month-calendar-grid {
-  grid-template-rows: repeat(var(--wt-week-rows, 5), minmax(86px, 1fr));
+  grid-template-rows: repeat(var(--wt-week-rows, 5), minmax(96px, 1fr));
 }
 
 .wt-month-calendar-board.compact .wt-month-cell {
-  grid-template-rows: 30px minmax(0, 1fr);
+  grid-template-rows: 32px minmax(0, 1fr);
 }
 
 .wt-month-calendar-board.compact .wt-month-day-button {
-  height: 30px;
-  padding: 4px 7px 0;
+  height: 32px;
+  padding: 5px 8px 0;
 }
 
 .wt-month-calendar-board.compact {
@@ -5436,12 +5436,12 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-month-calendar-board.compact .wt-month-event,
 .wt-horizontal-calendar-board.compact .wt-horizontal-event {
-  min-height: 36px;
-  padding: 4px 7px;
+  min-height: 42px;
+  padding: 5px 8px;
 }
 
 .wt-dashboard-month-panel .wt-month-calendar-board.compact .wt-month-calendar-grid {
-  grid-template-rows: repeat(var(--wt-week-rows, 5), minmax(92px, 1fr));
+  grid-template-rows: repeat(var(--wt-week-rows, 5), minmax(104px, 1fr));
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app {
@@ -5503,23 +5503,23 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-flow-calendar-page .wt-calendar-year-overview .wt-year-month-tile {
   min-width: 0;
-  min-height: 124px;
-  padding: 4px;
+  min-height: 148px;
+  padding: 5px;
 }
 
 .wt-flow-calendar-page .wt-calendar-year-overview .wt-year-event-summary {
-  min-height: 30px;
-  padding: 3px 4px;
+  min-height: 39px;
+  padding: 4px 6px;
 }
 
 .wt-flow-calendar-page .wt-calendar-year-overview .wt-year-event-summary span {
-  font-size: 9px;
-  line-height: 11px;
+  font-size: 12px;
+  line-height: 14px;
 }
 
 .wt-flow-calendar-page .wt-calendar-year-overview .wt-year-event-summary b {
-  font-size: 10px;
-  line-height: 12px;
+  font-size: 13px;
+  line-height: 16px;
 }
 
 .wt-app {
