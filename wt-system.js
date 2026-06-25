@@ -387,14 +387,25 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
     root.addEventListener("input", function (event) {
       var searchInput = event.target.closest("[data-calendar-search]");
-      if (!searchInput || !root.contains(searchInput)) return;
-      state.search = searchInput.value;
-      render(root);
-      var nextInput = root.querySelector("[data-calendar-search]");
-      if (nextInput) {
-        nextInput.focus();
-        nextInput.setSelectionRange(state.search.length, state.search.length);
+      var scheduleInput = event.target.closest(".wt-edit-form");
+      if (scheduleInput && root.contains(scheduleInput)) {
+        refreshScheduleLogicPreview(scheduleInput);
       }
+      if (searchInput && root.contains(searchInput)) {
+        state.search = searchInput.value;
+        render(root);
+        var nextInput = root.querySelector("[data-calendar-search]");
+        if (nextInput) {
+          nextInput.focus();
+          nextInput.setSelectionRange(state.search.length, state.search.length);
+        }
+      }
+    });
+
+    root.addEventListener("change", function (event) {
+      var scheduleForm = event.target.closest(".wt-edit-form");
+      if (!scheduleForm || !root.contains(scheduleForm)) return;
+      refreshScheduleLogicPreview(scheduleForm);
     });
 
     root.addEventListener("submit", function (event) {
@@ -2898,17 +2909,32 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var inModal = arguments.length > 1 && arguments[1] === true;
     var editingItem = state.editingEventId ? findLocalSubmissionById(state.editingEventId) : null;
     var confirmingDelete = editingItem && state.pendingDeleteEventId === state.editingEventId;
+    var draft = scheduleDraftFromValues({
+      rowKey: editingItem ? (editingItem.rowKey || state.editingEventId) : "",
+      targetDate: editingItem ? editingItem.targetDate : state.selectedDate,
+      milestoneType: normalizeScheduleTypeValue(editingItem ? editingItem.milestoneType : ""),
+      season: scheduleSeasonValue(editingItem ? editingItem.season : ""),
+      modelName: editingItem ? editingItem.modelName : "",
+      size: scheduleSizeValue(editingItem ? editingItem.size : ""),
+      owner: editingItem ? editingItem.owner : "",
+      notes: editingItem ? editingItem.notes : "",
+      submittedAt: editingItem ? editingItem.submittedAt : "",
+      sharePointItemId: editingItem ? editingItem.sharePointItemId : ""
+    });
     return [
       '<aside class="wt-edit-card' + (inModal ? " wt-edit-card-modal" : "") + '">',
       inModal ? "" : '<h2>' + text(editingItem ? "Edit User Schedule" : "New Schedule") + '</h2>',
       '<form class="wt-edit-form">',
       editingItem ? '<input type="hidden" name="rowKey" value="' + text(editingItem.rowKey || state.editingEventId) + '">' : "",
-      '<label>Date<input name="targetDate" type="date" value="' + text(editingItem ? editingItem.targetDate : state.selectedDate) + '"></label>',
-      select("Type", SCHEDULE_TYPE_OPTIONS, "type", normalizeScheduleTypeValue(editingItem ? editingItem.milestoneType : "")),
-      select("Season", scheduleSeasonOptions(editingItem ? editingItem.season : ""), "season", scheduleSeasonValue(editingItem ? editingItem.season : "")),
+      '<div class="wt-schedule-primary-fields">',
+      select("Season", scheduleSeasonOptions(draft.season), "season", draft.season, " required data-schedule-priority=\"season\""),
+      '<label>Date<input name="targetDate" type="date" value="' + text(draft.targetDate) + '" required data-schedule-priority="date"></label>',
+      select("Type", SCHEDULE_TYPE_OPTIONS, "type", draft.milestoneType, " required data-schedule-priority=\"type\""),
+      '</div>',
       field("Model Name", "Pegasus 42 / style code", "modelName", editingItem ? editingItem.modelName : ""),
       select("Size", SCHEDULE_SIZE_OPTIONS, "size", scheduleSizeValue(editingItem ? editingItem.size : "")),
       field("PCC Developer (English Name)", "Leo Park", "owner", editingItem ? editingItem.owner : ""),
+      renderScheduleLogicPreview(draft),
       '<label>Memo<textarea name="notes" rows="5" placeholder="Report file, shipment note, blocker, or extra context">' + text(editingItem ? editingItem.notes : "") + '</textarea></label>',
       '<p class="wt-form-message" aria-live="polite">' + text(confirmingDelete ? "Click Confirm Delete to remove this schedule." : "") + '</p>',
       '<div class="wt-form-actions">',
@@ -2930,11 +2956,134 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function select(label, options) {
     var name = arguments.length > 2 && arguments[2] ? arguments[2] : label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     var selectedValue = arguments.length > 3 ? arguments[3] : "";
-    return '<label>' + text(label) + '<select name="' + text(name) + '">' + options.map(function (option) {
+    var attributes = arguments.length > 4 ? arguments[4] : "";
+    return '<label>' + text(label) + '<select name="' + text(name) + '"' + attributes + '>' + options.map(function (option) {
       var value = typeof option === "object" ? option.value : option;
       var labelText = typeof option === "object" ? (option.label || option.value) : option;
       return '<option value="' + text(value) + '"' + (value === selectedValue ? " selected" : "") + '>' + text(labelText) + '</option>';
     }).join("") + '</select></label>';
+  }
+
+  function scheduleDraftFromForm(form, editingItem) {
+    return scheduleDraftFromValues({
+      rowKey: formValue(form, "rowKey") || (editingItem ? editingItem.rowKey : ""),
+      submittedAt: editingItem && editingItem.submittedAt ? editingItem.submittedAt : "",
+      sharePointItemId: editingItem ? editingItem.sharePointItemId : "",
+      targetDate: formValue(form, "targetDate"),
+      milestoneType: formValue(form, "type"),
+      season: formValue(form, "season"),
+      modelName: formValue(form, "modelName"),
+      size: formValue(form, "size"),
+      owner: formValue(form, "owner"),
+      notes: formValue(form, "notes")
+    });
+  }
+
+  function scheduleDraftFromValues(values) {
+    var milestoneType = normalizeScheduleTypeValue(values.milestoneType);
+    var modelName = values.modelName || "";
+    return {
+      rowKey: values.rowKey || "",
+      submittedAt: values.submittedAt || "",
+      updatedAt: values.updatedAt || "",
+      projectName: scheduleTitleForPayload(milestoneType, modelName),
+      targetDate: values.targetDate || "",
+      milestoneType: milestoneType,
+      season: values.season || "",
+      modelName: modelName,
+      size: scheduleSizeValue(values.size || ""),
+      sampleQuantity: "",
+      source: "wt-system-ui",
+      owner: values.owner || "",
+      notes: values.notes || "",
+      sharePointItemId: values.sharePointItemId || ""
+    };
+  }
+
+  function refreshScheduleLogicPreview(form) {
+    var preview = form.querySelector("[data-schedule-logic-preview]");
+    if (!preview) return;
+    var wrapper = document.createElement("div");
+    wrapper.innerHTML = renderScheduleLogicPreview(scheduleDraftFromForm(form, null));
+    preview.replaceWith(wrapper.firstElementChild);
+  }
+
+  function renderScheduleLogicPreview(item) {
+    var context = productFreezeTimingContext(item);
+    var previewEvents = scheduleLogicPreviewEvents(item, context);
+    var gateLabel = context.freeze ? [item.season, context.freeze.gate].filter(Boolean).join(" · ") : (item.season || "Season");
+    var statusText = context.isTight
+      ? "Sample handoff 일정이 너무 타이트하거나 늦습니다. Product Freeze 이전에 T2 WT를 통해 이슈사항에 대한 suggestion이 선행되어야 합니다."
+      : (context.freeze ? "Product Freeze 기준 일정 여유가 확인되었습니다." : "선택한 시즌의 Product Freeze 일정을 찾을 수 없습니다.");
+    return [
+      '<section class="wt-schedule-logic-preview ' + (context.isTight ? "is-tight" : "") + '" data-schedule-logic-preview>',
+      '<header>',
+      '<small>Schedule logic preview</small>',
+      '<b>' + text(gateLabel + (context.freeze ? " Product Freeze" : "")) + '</b>',
+      '</header>',
+      '<div class="wt-schedule-logic-track" role="list">',
+      previewEvents.length ? previewEvents.map(function (event) {
+        return renderScheduleLogicChip(event, context);
+      }).join("") : '<p class="wt-schedule-logic-empty">Select a season and date to preview the schedule logic.</p>',
+      '</div>',
+      '<p class="wt-schedule-logic-message">' + text(statusText) + '</p>',
+      '</section>'
+    ].join("");
+  }
+
+  function scheduleLogicPreviewEvents(item, context) {
+    if (!item || !isIsoDate(item.targetDate)) return [];
+    var events = [{
+      date: item.targetDate,
+      title: normalizeScheduleTypeValue(item.milestoneType),
+      kind: scheduleTypeKind(item.milestoneType) || "sample",
+      label: "User input",
+      previewType: "handoff"
+    }];
+    if (isT2FptHandoffSubmission(item)) {
+      deriveHandoffEvents(item, item.rowKey || "preview").forEach(function (event) {
+        events.push({
+          date: event.date,
+          title: event.gate === "M&M Test" ? "M&M Test (G115 / G107 / ETC)" : "T2 FPT WT Report",
+          kind: event.kind,
+          label: event.gate === "M&M Test" ? "Auto · 2 business days" : "Auto · 5th business day",
+          previewType: event.gate === "M&M Test" ? "test" : "report"
+        });
+      });
+    }
+    if (context.freeze) {
+      events.push({
+        date: context.freeze.date,
+        title: context.freeze.task || "Product Freeze",
+        kind: "deadline",
+        label: [context.freeze.gate, context.freeze.week ? "W" + context.freeze.week : ""].filter(Boolean).join(" · "),
+        previewType: "freeze"
+      });
+    }
+    return events.sort(function (a, b) {
+      var dateSort = (a.date || "").localeCompare(b.date || "");
+      if (dateSort) return dateSort;
+      return scheduleLogicPreviewOrder(a.previewType) - scheduleLogicPreviewOrder(b.previewType);
+    });
+  }
+
+  function scheduleLogicPreviewOrder(type) {
+    if (type === "freeze") return 0;
+    if (type === "handoff") return 1;
+    if (type === "test") return 2;
+    if (type === "report") return 3;
+    return 4;
+  }
+
+  function renderScheduleLogicChip(event, context) {
+    var tightClass = event.previewType === "handoff" && context.isTight ? " is-tight" : "";
+    return [
+      '<article class="wt-schedule-logic-chip is-' + text(event.previewType) + tightClass + '" role="listitem">',
+      '<span>' + text(formatGamePlanDate(event.date)) + '</span>',
+      '<b>' + text(event.title) + '</b>',
+      '<small>' + text(event.label || "") + '</small>',
+      '</article>'
+    ].join("");
   }
 
   function scheduleSeasonOptions(currentValue) {
@@ -3004,24 +3153,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var message = root.querySelector(".wt-form-message");
     var mode = root.getAttribute("data-wt-backend-mode") || "local";
     var editingItem = state.editingEventId ? findLocalSubmissionById(state.editingEventId) : null;
-    var milestoneType = normalizeScheduleTypeValue(formValue(form, "type"));
-    var modelName = formValue(form, "modelName");
-    var payload = {
-      rowKey: formValue(form, "rowKey") || (editingItem ? editingItem.rowKey : "") || "WT-" + Date.now(),
-      submittedAt: editingItem && editingItem.submittedAt ? editingItem.submittedAt : new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      projectName: scheduleTitleForPayload(milestoneType, modelName),
-      targetDate: formValue(form, "targetDate"),
-      milestoneType: milestoneType,
-      season: formValue(form, "season"),
-      modelName: modelName,
-      size: scheduleSizeValue(formValue(form, "size")),
-      sampleQuantity: "",
-      source: "wt-system-ui",
-      owner: formValue(form, "owner"),
-      notes: formValue(form, "notes"),
-      sharePointItemId: editingItem ? editingItem.sharePointItemId : ""
-    };
+    var payload = scheduleDraftFromForm(form, editingItem);
+    payload.rowKey = payload.rowKey || "WT-" + Date.now();
+    payload.submittedAt = payload.submittedAt || new Date().toISOString();
+    payload.updatedAt = new Date().toISOString();
 
     if (editingItem) {
       updateSchedule(root, payload, message);
@@ -3420,24 +3555,47 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function productFreezeWarningForSubmission(item) {
-    if (!item || !isT2FptHandoffSubmission(item) || !item.targetDate || !item.season || item.season === "All") return "";
-    var freeze = nextProductFreezeForSeason(item.season, item.targetDate);
-    if (!freeze) return "";
-    var gap = daysBetween(item.targetDate, freeze.date);
-    if (gap < 0 || gap >= 21) return "";
-    return "Product Freeze까지 " + gap + "일 남았습니다. Product Freeze 이전에 T2 WT를 통해 이슈사항에 대한 suggestion이 선행되어야 합니다.";
+    var context = productFreezeTimingContext(item);
+    if (!context.isTight) return "";
+    return "Sample handoff 일정이 너무 타이트하거나 늦습니다. Product Freeze 이전에 T2 WT를 통해 이슈사항에 대한 suggestion이 선행되어야 합니다.";
   }
 
-  function nextProductFreezeForSeason(season, date) {
+  function productFreezeTimingContext(item) {
+    var context = {
+      freeze: null,
+      reportEvent: null,
+      reportToFreezeBusinessDays: null,
+      isTight: false
+    };
+    if (!item || !isT2FptHandoffSubmission(item) || !isIsoDate(item.targetDate) || !item.season || item.season === "All") return context;
+    context.freeze = closestProductFreezeForSeason(item.season, item.targetDate);
+    if (!context.freeze) return context;
+    context.reportEvent = deriveHandoffEvents(item, item.rowKey || "preview").filter(function (event) {
+      return event.kind === "report";
+    })[0] || null;
+    if (!context.reportEvent) return context;
+    context.reportToFreezeBusinessDays = businessDaysBetweenIso(context.reportEvent.date, context.freeze.date);
+    context.isTight = context.reportToFreezeBusinessDays < 5;
+    return context;
+  }
+
+  function closestProductFreezeForSeason(season, date) {
+    if (!isIsoDate(date)) return null;
     var seasonKey = String(season || "").toUpperCase();
     return (EMBEDDED.milestones || []).filter(function (item) {
       return item &&
         item.source === "schedule.pdf" &&
         item.kind === "product_freeze" &&
         String(item.season || "").toUpperCase() === seasonKey &&
-        item.date >= date;
+        isIsoDate(item.date);
     }).sort(function (a, b) {
-      return a.date.localeCompare(b.date);
+      var distanceA = Math.abs(daysBetween(date, a.date));
+      var distanceB = Math.abs(daysBetween(date, b.date));
+      if (distanceA !== distanceB) return distanceA - distanceB;
+      var futureA = a.date >= date ? 0 : 1;
+      var futureB = b.date >= date ? 0 : 1;
+      if (futureA !== futureB) return futureA - futureB;
+      return gateOrder(a.gate) - gateOrder(b.gate);
     })[0] || null;
   }
 
@@ -3677,6 +3835,18 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       if (seen < count) cursor = addDays(cursor, 1);
     }
     return toIso(cursor);
+  }
+
+  function businessDaysBetweenIso(startIso, endIso) {
+    if (!isIsoDate(startIso) || !isIsoDate(endIso) || startIso === endIso) return 0;
+    var direction = endIso > startIso ? 1 : -1;
+    var cursor = fromIso(startIso);
+    var count = 0;
+    while (toIso(cursor) !== endIso) {
+      cursor = addDays(cursor, direction);
+      if (isBusinessDay(cursor)) count += direction;
+    }
+    return count;
   }
 
   function isBusinessDay(date) {
