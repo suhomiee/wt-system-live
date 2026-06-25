@@ -1287,7 +1287,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       ["Date", formatDateShort(event.date)],
       ["Type", event.kind || "deadline"],
       ["Season", event.season || "All"],
-      ["Gate", event.gate || (isUser ? "User schedule" : "WT")],
+      ["Gate", event.planGate || event.gate || (isUser ? "User schedule" : "WT")],
       [isUser ? "PCC Developer (English Name)" : "Owner", event.owner || "WT"],
       ["Source", eventSourceLabel(event)]
     ];
@@ -2915,6 +2915,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       targetDate: editingItem ? editingItem.targetDate : state.selectedDate,
       milestoneType: normalizeScheduleTypeValue(editingItem ? editingItem.milestoneType : ""),
       season: scheduleSeasonValue(editingItem ? editingItem.season : ""),
+      gate: scheduleGateValue(editingItem ? editingItem.gate : ""),
       modelName: editingItem ? editingItem.modelName : "",
       size: scheduleSizeValue(editingItem ? editingItem.size : ""),
       owner: editingItem ? editingItem.owner : "",
@@ -2929,6 +2930,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       editingItem ? '<input type="hidden" name="rowKey" value="' + text(editingItem.rowKey || state.editingEventId) + '">' : "",
       '<div class="wt-schedule-primary-fields">',
       select("Season", scheduleSeasonOptions(draft.season), "season", draft.season, " required data-schedule-priority=\"season\""),
+      select("Gate", scheduleGateOptions(draft.gate), "gate", draft.gate, " required data-schedule-priority=\"gate\""),
       '<label>Date<input name="targetDate" type="date" value="' + text(draft.targetDate) + '" required data-schedule-priority="date"></label>',
       select("Type", SCHEDULE_TYPE_OPTIONS, "type", draft.milestoneType, " required data-schedule-priority=\"type\""),
       '</div>',
@@ -2973,6 +2975,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       targetDate: formValue(form, "targetDate"),
       milestoneType: formValue(form, "type"),
       season: formValue(form, "season"),
+      gate: formValue(form, "gate"),
       modelName: formValue(form, "modelName"),
       size: formValue(form, "size"),
       owner: formValue(form, "owner"),
@@ -2983,6 +2986,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function scheduleDraftFromValues(values) {
     var milestoneType = normalizeScheduleTypeValue(values.milestoneType);
     var modelName = values.modelName || "";
+    var gate = scheduleGateValue(values.gate || "");
     return {
       rowKey: values.rowKey || "",
       submittedAt: values.submittedAt || "",
@@ -2991,6 +2995,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       targetDate: values.targetDate || "",
       milestoneType: milestoneType,
       season: values.season || "",
+      gate: gate,
       modelName: modelName,
       size: scheduleSizeValue(values.size || ""),
       sampleQuantity: "",
@@ -3012,15 +3017,18 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderScheduleLogicPreview(item) {
     var context = productFreezeTimingContext(item);
     var previewEvents = scheduleLogicPreviewEvents(item, context);
-    var gateLabel = context.freeze ? [item.season, context.freeze.gate].filter(Boolean).join(" · ") : (item.season || "Season");
+    var selectedGateLabel = [item.season || "Season", item.gate || "Gate"].filter(Boolean).join(" · ");
+    var freezeTitle = context.freeze ? (context.freeze.task || "(LTWT) Product Freeze") : "(LTWT) Product Freeze";
     var statusText = context.isTight
-      ? "Sample handoff 일정이 너무 타이트하거나 늦습니다. Product Freeze 이전에 T2 WT를 통해 이슈사항에 대한 suggestion이 선행되어야 합니다."
-      : (context.freeze ? "Product Freeze 기준 일정 여유가 확인되었습니다." : "선택한 시즌의 Product Freeze 일정을 찾을 수 없습니다.");
+      ? "Sample handoff 일정이 너무 타이트하거나 늦습니다. (LTWT) Product Freeze 이전에 T2 WT를 통해 이슈사항에 대한 suggestion이 선행되어야 합니다."
+      : (context.freeze
+        ? (context.reportEvent ? "(LTWT) Product Freeze 기준 일정 여유가 확인되었습니다." : "선택한 시즌/게이트의 (LTWT) Product Freeze 일정이 확인되었습니다.")
+        : "선택한 시즌/게이트의 (LTWT) Product Freeze 일정을 찾을 수 없습니다.");
     return [
       '<section class="wt-schedule-logic-preview ' + (context.isTight ? "is-tight" : "") + '" data-schedule-logic-preview>',
       '<header>',
       '<small>Schedule logic preview</small>',
-      '<b>' + text(gateLabel + (context.freeze ? " Product Freeze" : "")) + '</b>',
+      '<b>' + text([selectedGateLabel, freezeTitle].filter(Boolean).join(" · ")) + '</b>',
       '</header>',
       '<div class="wt-schedule-logic-track" role="list">',
       previewEvents.length ? previewEvents.map(function (event) {
@@ -3038,7 +3046,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       date: item.targetDate,
       title: normalizeScheduleTypeValue(item.milestoneType),
       kind: scheduleTypeKind(item.milestoneType) || "sample",
-      label: "User input",
+      label: [item.gate || "Gate", "User input"].filter(Boolean).join(" · "),
       previewType: "handoff"
     }];
     if (isT2FptHandoffSubmission(item)) {
@@ -3055,9 +3063,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (context.freeze) {
       events.push({
         date: context.freeze.date,
-        title: context.freeze.task || "Product Freeze",
+        title: context.freeze.task || "(LTWT) Product Freeze",
         kind: "deadline",
-        label: [context.freeze.gate, context.freeze.week ? "W" + context.freeze.week : ""].filter(Boolean).join(" · "),
+        label: [context.freeze.season || item.season, context.freeze.gate || item.gate].filter(Boolean).join(" · "),
         previewType: "freeze"
       });
     }
@@ -3097,6 +3105,29 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var options = scheduleSeasonOptions(currentValue);
     if (currentValue && currentValue !== "All") return currentValue;
     if (state.season && state.season !== "All" && options.indexOf(state.season) >= 0) return state.season;
+    return options[0] || "";
+  }
+
+  function availableGamePlanGates() {
+    return unique((EMBEDDED.milestones || []).map(function (item) {
+      return item && item.source === "schedule.pdf" && item.gate ? String(item.gate).toUpperCase() : "";
+    }).filter(Boolean)).sort(function (a, b) {
+      return gateOrder(a) - gateOrder(b) || a.localeCompare(b);
+    });
+  }
+
+  function scheduleGateOptions(currentValue) {
+    var value = String(currentValue || "").toUpperCase();
+    var options = unique(GAME_PLAN_GATE_ORDER.concat(availableGamePlanGates()));
+    if (value && options.indexOf(value) < 0) options = [value].concat(options);
+    return options;
+  }
+
+  function scheduleGateValue(currentValue) {
+    var value = String(currentValue || "").toUpperCase();
+    var options = scheduleGateOptions(value);
+    if (value && options.indexOf(value) >= 0) return value;
+    if (options.indexOf("GGP") >= 0) return "GGP";
     return options[0] || "";
   }
 
@@ -3408,6 +3439,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         kind: mapMilestoneKind(item.milestoneType || item.kind || "deadline"),
         season: item.season || "All",
         gate: item.milestoneType || "",
+        planGate: item.gate || "",
         owner: item.owner || "WT",
         modelName: item.modelName || "",
         size: item.size || "",
@@ -3487,6 +3519,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var reportDate = nthBusinessDayFromIso(item.targetDate, 5);
     var common = {
       season: item.season || "All",
+      planGate: item.gate || "",
       modelName: item.modelName || "",
       size: item.size || "",
       sampleQuantity: item.sampleQuantity || "",
@@ -3551,14 +3584,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       projectName: event.title,
       owner: event.owner,
       notes: event.notes,
-      gate: event.gate
+      gate: event.planGate || ""
     });
   }
 
   function productFreezeWarningForSubmission(item) {
     var context = productFreezeTimingContext(item);
     if (!context.isTight) return "";
-    return "Sample handoff 일정이 너무 타이트하거나 늦습니다. Product Freeze 이전에 T2 WT를 통해 이슈사항에 대한 suggestion이 선행되어야 합니다.";
+    return "Sample handoff 일정이 너무 타이트하거나 늦습니다. (LTWT) Product Freeze 이전에 T2 WT를 통해 이슈사항에 대한 suggestion이 선행되어야 합니다.";
   }
 
   function productFreezeTimingContext(item) {
@@ -3568,9 +3601,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       reportToFreezeBusinessDays: null,
       isTight: false
     };
-    if (!item || !isT2FptHandoffSubmission(item) || !isIsoDate(item.targetDate) || !item.season || item.season === "All") return context;
-    context.freeze = closestProductFreezeForSeason(item.season, item.targetDate);
+    if (!item || !isIsoDate(item.targetDate) || !item.season || item.season === "All" || !item.gate) return context;
+    context.freeze = closestLtwtProductFreezeForSchedule(item.season, item.gate, item.targetDate);
     if (!context.freeze) return context;
+    if (!isT2FptHandoffSubmission(item)) return context;
     context.reportEvent = deriveHandoffEvents(item, item.rowKey || "preview").filter(function (event) {
       return event.kind === "report";
     })[0] || null;
@@ -3580,14 +3614,17 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return context;
   }
 
-  function closestProductFreezeForSeason(season, date) {
+  function closestLtwtProductFreezeForSchedule(season, gate, date) {
     if (!isIsoDate(date)) return null;
     var seasonKey = String(season || "").toUpperCase();
+    var gateKey = String(gate || "").toUpperCase();
     return (EMBEDDED.milestones || []).filter(function (item) {
       return item &&
         item.source === "schedule.pdf" &&
         item.kind === "product_freeze" &&
+        isLtwtProductFreezeMilestone(item) &&
         String(item.season || "").toUpperCase() === seasonKey &&
+        String(item.gate || "").toUpperCase() === gateKey &&
         isIsoDate(item.date);
     }).sort(function (a, b) {
       var distanceA = Math.abs(daysBetween(date, a.date));
@@ -3598,6 +3635,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       if (futureA !== futureB) return futureA - futureB;
       return gateOrder(a.gate) - gateOrder(b.gate);
     })[0] || null;
+  }
+
+  function isLtwtProductFreezeMilestone(item) {
+    var task = String(item && item.task || "").toLowerCase();
+    return task.indexOf("ltwt") >= 0 && task.indexOf("product freeze") >= 0;
   }
 
   function mapMilestoneKind(kind) {
