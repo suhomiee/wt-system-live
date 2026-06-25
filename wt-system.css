@@ -496,6 +496,7 @@ textarea:focus-visible {
 .wt-dashboard,
 .wt-creation,
 .wt-game-plan-page,
+.wt-manager-page,
 .wt-lab,
 .wt-ai-page,
 .wt-libraries,
@@ -506,13 +507,233 @@ textarea:focus-visible {
 }
 
 .wt-calendar-page,
-.wt-dashboard {
+.wt-dashboard,
+.wt-manager-page {
   display: grid;
   gap: 14px;
 }
 
 .wt-calendar-page {
   grid-template-rows: auto minmax(0, 1fr);
+}
+
+.wt-manager-page {
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.wt-manager-head {
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.wt-manager-head small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.wt-manager-head h2 {
+  margin: 2px 0 0;
+  font-family: var(--font-display);
+  font-size: 26px;
+  line-height: 1;
+}
+
+.wt-manager-create,
+.wt-manager-empty button {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #1f5b61;
+  border-radius: 6px;
+  background: #073f47;
+  color: #fff;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.wt-manager-create .wt-icon,
+.wt-manager-empty button .wt-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.wt-manager-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.wt-manager-stats div {
+  min-width: 0;
+  min-height: 58px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.wt-manager-stats small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.wt-manager-stats b {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.wt-manager-message {
+  min-height: 34px;
+}
+
+.wt-manager-message:empty {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+}
+
+.wt-manager-table-wrap {
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.wt-manager-table {
+  width: 100%;
+  min-width: 1120px;
+  border-collapse: collapse;
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.wt-manager-table th,
+.wt-manager-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.wt-manager-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f6f8f7;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.wt-manager-table time,
+.wt-manager-table b {
+  font-weight: 900;
+}
+
+.wt-manager-table small {
+  color: var(--muted);
+}
+
+.wt-manager-season,
+.wt-manager-auto {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #f8faf9;
+  padding: 0 9px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.wt-manager-auto {
+  color: #0a5961;
+}
+
+.wt-manager-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wt-manager-action {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  padding: 0 9px;
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.wt-manager-action .wt-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.wt-manager-action.danger {
+  border-color: #8f3d34;
+  background: #fff4f1;
+  color: #8f3d34;
+}
+
+.wt-manager-action.danger.is-confirming {
+  background: #8f3d34;
+  color: #fff;
+}
+
+.wt-manager-empty {
+  min-height: 260px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  text-align: center;
+}
+
+.wt-manager-empty > .wt-icon {
+  width: 34px;
+  height: 34px;
+  color: #0a5961;
+}
+
+.wt-manager-empty b {
+  color: var(--ink);
+  font-size: 18px;
+}
+
+.wt-manager-empty span {
+  max-width: 420px;
+  line-height: 1.45;
 }
 
 .wt-control-strip {
@@ -2899,6 +3120,7 @@ textarea:focus-visible {
   .wt-dashboard,
   .wt-creation,
   .wt-game-plan-page,
+  .wt-manager-page,
   .wt-lab,
   .wt-ai-page,
   .wt-libraries,
@@ -2991,6 +3213,7 @@ textarea:focus-visible {
   .wt-calendar-page,
   .wt-dashboard,
   .wt-creation,
+  .wt-manager-page,
   .wt-libraries,
   .wt-editor-layout {
     padding: 14px;
@@ -3136,6 +3359,7 @@ textarea:focus-visible {
 #wt-system-root[data-wt-fit="viewport"] .wt-calendar-page,
 #wt-system-root[data-wt-fit="viewport"] .wt-dashboard,
 #wt-system-root[data-wt-fit="viewport"] .wt-creation,
+#wt-system-root[data-wt-fit="viewport"] .wt-manager-page,
 #wt-system-root[data-wt-fit="viewport"] .wt-lab,
 #wt-system-root[data-wt-fit="viewport"] .wt-ai-page,
 #wt-system-root[data-wt-fit="viewport"] .wt-libraries,

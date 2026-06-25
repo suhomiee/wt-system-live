@@ -158,6 +158,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     localSubmissions: [],
     editingEventId: "",
     pendingDeleteEventId: "",
+    returnSectionAfterEdit: "",
     activeEventId: ""
   };
 
@@ -218,6 +219,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         state.view = "display";
         state.editingEventId = "";
         state.pendingDeleteEventId = "";
+        state.returnSectionAfterEdit = "";
         state.activeEventId = "";
         render(root);
       }
@@ -236,6 +238,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         state.view = "display";
         state.editingEventId = "";
         state.pendingDeleteEventId = "";
+        state.returnSectionAfterEdit = "";
         state.actionMessage = "";
         render(root);
         return;
@@ -262,7 +265,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         var editId = editEventButton.getAttribute("data-edit-event-id");
         if (!findLocalSubmissionById(editId)) return;
         state.editingEventId = editId;
-        state.section = "calendar";
+        state.returnSectionAfterEdit = state.section === "manager" ? "manager" : "";
+        state.section = state.returnSectionAfterEdit || "calendar";
         state.view = "edit";
         state.selectedDate = editEventButton.getAttribute("data-date") || state.selectedDate;
         state.weekStart = periodAnchor(state.selectedDate, state.period);
@@ -301,8 +305,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         state.view = viewButton.getAttribute("data-view");
         state.editingEventId = "";
         state.pendingDeleteEventId = "";
+        state.returnSectionAfterEdit = state.view === "edit" && state.section === "manager" ? "manager" : "";
         state.activeEventId = "";
-        if (state.view === "edit") state.section = "calendar";
+        if (state.view === "edit") state.section = state.returnSectionAfterEdit || "calendar";
         render(root);
       }
 
@@ -488,6 +493,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<nav class="wt-primary-nav" aria-label="Primary">',
       navItem("dashboard", "Dashboard"),
       navItem("calendar", "Calendar"),
+      navItem("manager", "Schedule Manager"),
       navItem("gameplan", "WT Product Game Plan"),
       externalNavItem("phkReports", "PHK WT Reports", "phk"),
       externalNavItem("nikeReports", "Nike Lab Reports", "phk"),
@@ -530,7 +536,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderShell(root) {
-    var noToolbar = state.section === "dashboard" || state.section === "gameplan";
+    var noToolbar = state.section === "dashboard" || state.section === "gameplan" || state.section === "manager";
     return [
       '<main class="wt-main ' + (noToolbar ? "wt-main-no-toolbar" : "") + '" aria-label="WT System workspace">',
       noToolbar ? "" : renderToolbar(),
@@ -556,6 +562,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (state.section === "creation") return "Creation Plan";
     if (state.section === "assistant") return "AI Q&A";
     if (state.section === "gameplan") return "WT Product Game Plan";
+    if (state.section === "manager") return "Schedule Manager";
     return "Calendar";
   }
 
@@ -564,6 +571,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (state.section === "creation") return renderCreationPlan();
     if (state.section === "assistant") return renderAssistantPage(root);
     if (state.section === "gameplan") return renderGamePlan();
+    if (state.section === "manager") return renderScheduleManager(root);
     return renderCalendarWorkspace(root);
   }
 
@@ -658,6 +666,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       creation: '<path d="M15 5l4 4"></path><path d="M13.5 6.5l4 4L7 21H3v-4L13.5 6.5z"></path><path d="M16 3l5 5"></path>',
       calendar: '<rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M8 2v4"></path><path d="M16 2v4"></path><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path>',
       assistant: '<path d="M12 3a7 7 0 0 0-7 7v2a7 7 0 0 0 14 0v-2a7 7 0 0 0-7-7z"></path><path d="M9 10h.01"></path><path d="M15 10h.01"></path><path d="M9.5 15c1.7 1 3.3 1 5 0"></path><path d="M4 20l2-2"></path><path d="M20 20l-2-2"></path>',
+      manager: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.3-3.3a6 6 0 0 1-7.8 7.8l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9A6 6 0 0 1 18 3z"></path>',
       gameplan: '<path d="M4 5h16"></path><path d="M4 10h16"></path><path d="M4 15h16"></path><path d="M4 20h16"></path><path d="M8 5v15"></path><path d="M14 5v15"></path>',
       model: '<path d="M4 7h16"></path><path d="M7 4h10"></path><rect x="5" y="7" width="14" height="13" rx="2"></rect><path d="M9 11h6"></path><path d="M9 15h4"></path>',
       lab: '<path d="M9 3v5l-4.5 8.2A3.2 3.2 0 0 0 7.3 21h9.4a3.2 3.2 0 0 0 2.8-4.8L15 8V3"></path><path d="M8 3h8"></path><path d="M7 15h10"></path>',
@@ -667,6 +676,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       search: '<circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path>',
       flag: '<path d="M5 21V4"></path><path d="M5 4h12l-1.5 4L17 12H5"></path>',
       plus: '<path d="M12 5v14"></path><path d="M5 12h14"></path>',
+      edit: '<path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path>',
+      trash: '<path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 15H6L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path>',
       "chevron-left": '<path d="M15 18l-6-6 6-6"></path>',
       "chevron-right": '<path d="M9 18l6-6-6-6"></path>'
     };
@@ -1385,6 +1396,102 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         '</section>'
       ].join("");
     });
+  }
+
+  function renderScheduleManager(root) {
+    var todayIso = currentDateIso(root);
+    var submissions = managerSubmissions();
+    var upcomingCount = submissions.filter(function (item) { return (item.targetDate || "") >= todayIso; }).length;
+    var autoCount = submissions.reduce(function (sum, item, index) {
+      return sum + deriveHandoffEvents(item, submissionId(item, index)).length;
+    }, 0);
+    var modelCount = unique(submissions.map(function (item) { return item.modelName; }).filter(Boolean)).length;
+    return [
+      '<section class="wt-manager-page">',
+      '<header class="wt-manager-head">',
+      '<div>',
+      '<small>WT_Submissions</small>',
+      '<h2>Schedule Manager</h2>',
+      '</div>',
+      '<button type="button" class="wt-manager-create" data-view="edit">' + icon("plus") + '<span>Create Schedule</span></button>',
+      '</header>',
+      '<div class="wt-manager-stats">',
+      renderManagerStat("User schedules", submissions.length),
+      renderManagerStat("Upcoming", upcomingCount),
+      renderManagerStat("Auto linked", autoCount),
+      renderManagerStat("Models", modelCount),
+      '</div>',
+      '<div class="wt-action-message wt-manager-message">' + text(state.actionMessage || "") + '</div>',
+      submissions.length ? renderManagerTable(submissions) : renderManagerEmptyState(),
+      '</section>'
+    ].join("");
+  }
+
+  function managerSubmissions() {
+    return loadLocalSubmissions().slice().sort(function (a, b) {
+      return ((a.targetDate || "") + (a.projectName || "")).localeCompare((b.targetDate || "") + (b.projectName || ""));
+    });
+  }
+
+  function renderManagerStat(label, value) {
+    return '<div><small>' + text(label) + '</small><b>' + text(value) + '</b></div>';
+  }
+
+  function renderManagerTable(submissions) {
+    return [
+      '<div class="wt-manager-table-wrap">',
+      '<table class="wt-manager-table">',
+      '<thead><tr><th>Date</th><th>Season</th><th>Type</th><th>Model</th><th>Size</th><th>PCC Developer</th><th>Auto</th><th>Updated</th><th>Manage</th></tr></thead>',
+      '<tbody>',
+      submissions.map(function (item, index) {
+        return renderManagerRow(item, index);
+      }).join(""),
+      '</tbody>',
+      '</table>',
+      '</div>'
+    ].join("");
+  }
+
+  function renderManagerRow(item, index) {
+    var id = submissionId(item, index);
+    var confirmingDelete = state.pendingDeleteEventId === id;
+    var autoEvents = deriveHandoffEvents(item, id);
+    var autoLabel = autoEvents.length ? autoEvents.length + " linked" : "-";
+    return [
+      '<tr>',
+      '<td><time>' + text(formatDateShort(item.targetDate || state.selectedDate)) + '</time></td>',
+      '<td><span class="wt-manager-season">' + text(item.season || "All") + '</span></td>',
+      '<td><b>' + text(normalizeScheduleTypeValue(item.milestoneType || item.kind || "")) + '</b></td>',
+      '<td><span>' + text(item.modelName || item.projectName || "Untitled schedule") + '</span></td>',
+      '<td>' + text(item.size || "-") + '</td>',
+      '<td>' + text(item.owner || "-") + '</td>',
+      '<td><span class="wt-manager-auto">' + text(autoLabel) + '</span></td>',
+      '<td><small>' + text(formatSubmissionUpdated(item)) + '</small></td>',
+      '<td>',
+      '<div class="wt-manager-actions">',
+      '<button type="button" class="wt-manager-action" data-edit-event-id="' + text(id) + '" data-date="' + text(item.targetDate || state.selectedDate) + '" aria-label="' + text("Edit " + (item.projectName || "schedule")) + '">' + icon("edit") + '<span>Edit</span></button>',
+      '<button type="button" class="wt-manager-action danger ' + (confirmingDelete ? "is-confirming" : "") + '" data-delete-event-id="' + text(id) + '" aria-label="' + text("Delete " + (item.projectName || "schedule")) + '">' + icon("trash") + '<span>' + text(confirmingDelete ? "Confirm" : "Delete") + '</span></button>',
+      '</div>',
+      '</td>',
+      '</tr>'
+    ].join("");
+  }
+
+  function renderManagerEmptyState() {
+    return [
+      '<section class="wt-manager-empty">',
+      icon("manager"),
+      '<b>No user schedules yet</b>',
+      '<span>Create a schedule to manage model-level WT handoffs, reports, and sample actuals here.</span>',
+      '<button type="button" data-view="edit">' + icon("plus") + '<span>Create Schedule</span></button>',
+      '</section>'
+    ].join("");
+  }
+
+  function formatSubmissionUpdated(item) {
+    var value = item.updatedAt || item.submittedAt || "";
+    if (!value) return "-";
+    return formatDateTime(value);
   }
 
   function renderGamePlan() {
@@ -2825,10 +2932,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function completeScheduleSave(root, payload, message) {
     var saveWarning = productFreezeWarningForSubmission(payload);
-    state.section = "calendar";
+    state.section = state.returnSectionAfterEdit || "calendar";
     state.view = "display";
     state.editingEventId = "";
     state.pendingDeleteEventId = "";
+    state.returnSectionAfterEdit = "";
     state.activeEventId = saveWarning ? payload.rowKey : "";
     state.selectedDate = payload.targetDate || state.selectedDate;
     state.period = "month";
@@ -2868,14 +2976,16 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function deleteSchedule(root, id) {
     var item = findLocalSubmissionById(id);
     var mode = root.getAttribute("data-wt-backend-mode") || "local";
+    var returnSection = state.section === "manager" ? "manager" : "calendar";
     if (!item) return;
     if (mode === "sharepoint-list" && item.sharePointItemId) {
       deactivateSharePointListItem(root, item.sharePointItemId).then(function () {
         deleteLocalSubmission(id);
-        state.section = "calendar";
+        state.section = returnSection;
         state.view = "display";
         state.editingEventId = "";
         state.pendingDeleteEventId = "";
+        state.returnSectionAfterEdit = "";
         state.activeEventId = "";
         state.actionMessage = "Deleted from WT_Submissions.";
         render(root);
@@ -2887,10 +2997,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     }
 
     deleteLocalSubmission(id);
-    state.section = "calendar";
+    state.section = returnSection;
     state.view = "display";
     state.editingEventId = "";
     state.pendingDeleteEventId = "";
+    state.returnSectionAfterEdit = "";
     state.activeEventId = "";
     state.actionMessage = "Deleted locally for preview.";
     render(root);
