@@ -196,12 +196,22 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var closeModalButton = event.target.closest("[data-close-event-modal]");
       var closeScheduleModalButton = event.target.closest("[data-close-schedule-modal]");
       var sidebarToggleButton = event.target.closest("[data-sidebar-toggle]");
+      var copilotPopupLink = event.target.closest("a[data-copilot-popup]");
       var externalSourceLink = event.target.closest("a[data-external-source]");
 
       if (sidebarToggleButton && root.contains(sidebarToggleButton)) {
         event.preventDefault();
         state.sidebarCollapsed = !state.sidebarCollapsed;
         render(root);
+        return;
+      }
+
+      if (copilotPopupLink && root.contains(copilotPopupLink)) {
+        var copilotHref = copilotPopupLink.getAttribute("href");
+        if (copilotHref && copilotHref !== "#") {
+          event.preventDefault();
+          openCopilotPopup(copilotHref);
+        }
         return;
       }
 
@@ -519,11 +529,40 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function copilotNavItem(root, label) {
     var href = configuredCopilotUrl(root);
     return [
-      '<a href="' + text(href) + '" target="_blank" rel="noopener noreferrer" data-external-source="copilot" data-copilot-direct title="' + text(label) + '">',
+      '<a href="' + text(href) + '" target="wt-copilot-popup" rel="noopener noreferrer" data-external-source="copilot" data-copilot-popup data-copilot-direct title="' + text(label) + '">',
       icon("assistant"),
       '<span>' + text(label) + '</span>',
       '</a>'
     ].join("");
+  }
+
+  function openCopilotPopup(href) {
+    var screenRef = window.screen || {};
+    var availableWidth = screenRef.availWidth || window.innerWidth || 1280;
+    var availableHeight = screenRef.availHeight || window.innerHeight || 860;
+    var width = Math.min(1180, Math.max(920, Math.round(availableWidth * 0.72)));
+    var height = Math.min(860, Math.max(700, Math.round(availableHeight * 0.82)));
+    var left = Math.max(0, Math.round(((screenRef.availLeft || 0) + (availableWidth - width) / 2)));
+    var top = Math.max(0, Math.round(((screenRef.availTop || 0) + (availableHeight - height) / 2)));
+    var features = [
+      "popup=yes",
+      "width=" + width,
+      "height=" + height,
+      "left=" + left,
+      "top=" + top,
+      "resizable=yes",
+      "scrollbars=yes"
+    ].join(",");
+    var popup = window.open(href, "wt-copilot-popup", features);
+    if (popup) {
+      try {
+        popup.opener = null;
+        popup.focus();
+      } catch (error) {
+        // Browser-specific popup handles may not expose focus/opener after navigation.
+      }
+    }
+    return !!popup;
   }
 
   function externalNavItem(sourceKey, label, iconName) {
@@ -1775,7 +1814,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '</label>',
       '<div class="wt-ai-form-footer">',
       '<span>' + text(endpoint ? "Copilot Retrieval endpoint connected" : assistantKnowledgeStatusLabel(root)) + '</span>',
-      copilotUrl ? '<a href="' + text(copilotUrl) + '" target="_blank" rel="noopener noreferrer">Open Copilot</a>' : "",
+      copilotUrl ? '<a href="' + text(copilotUrl) + '" target="wt-copilot-popup" rel="noopener noreferrer" data-copilot-popup>Open Copilot</a>' : "",
       '<button type="submit">' + text(state.assistantStatus === "loading" ? "Searching" : "Ask") + '</button>',
       '</div>',
       '</form>'
@@ -1804,7 +1843,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<header><small>' + text(answer.mode || "Local index") + '</small><b>Answer</b></header>',
       warning ? '<div class="wt-ai-warning">' + text(warning) + '</div>' : "",
       '<p>' + text(answer.answer) + '</p>',
-      answer.copilotUrl ? '<a class="wt-ai-copilot-link" href="' + text(answer.copilotUrl) + '" target="_blank" rel="noopener noreferrer">Ask the same question in Copilot</a>' : "",
+      answer.copilotUrl ? '<a class="wt-ai-copilot-link" href="' + text(answer.copilotUrl) + '" target="wt-copilot-popup" rel="noopener noreferrer" data-copilot-popup>Ask the same question in Copilot</a>' : "",
       answer.matches && answer.matches.length ? '<div class="wt-ai-matches">' + answer.matches.map(renderAssistantMatch).join("") + '</div>' : "",
       '</article>'
     ].join("");
