@@ -11,8 +11,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     "July", "August", "September", "October", "November", "December"
   ];
   var WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  var SEASON_PREFIX_ORDER = ["SP", "SU", "FA", "HO"];
   var SEASONS = ["All", "SP27", "SU27", "FA27", "HO27", "SP28"];
   var GAME_PLAN_SEASONS = SEASONS.filter(function (season) { return season !== "All"; });
+  var SCHEDULE_SEASONS = buildScheduleSeasons(27, 31);
   var GAME_PLAN_GATE_ORDER = ["XLT", "PR", "GGP", "SPA"];
   var CALENDAR_VIEWS = [
     { id: "timeline", label: "Timeline View" },
@@ -977,11 +979,29 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function compareSeasonLabels(a, b) {
-    var order = ["FA26", "SP27", "SU27", "FA27", "HO27", "SP28", "All"];
-    var ai = order.indexOf(a);
-    var bi = order.indexOf(b);
-    if (ai >= 0 || bi >= 0) return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
+    var ai = seasonSortValue(a);
+    var bi = seasonSortValue(b);
+    if (ai !== null || bi !== null) return (ai === null ? 9999 : ai) - (bi === null ? 9999 : bi);
     return a.localeCompare(b);
+  }
+
+  function seasonSortValue(label) {
+    if (label === "All") return 9999;
+    var match = String(label || "").toUpperCase().match(/^([A-Z]{2})(\d{2})$/);
+    if (!match) return null;
+    var prefixIndex = SEASON_PREFIX_ORDER.indexOf(match[1]);
+    if (prefixIndex < 0) return null;
+    return Number(match[2]) * 10 + prefixIndex;
+  }
+
+  function buildScheduleSeasons(startYear, endYear) {
+    var seasons = [];
+    for (var year = startYear; year <= endYear; year += 1) {
+      SEASON_PREFIX_ORDER.forEach(function (prefix) {
+        seasons.push(prefix + ("0" + year).slice(-2));
+      });
+    }
+    return seasons;
   }
 
   function eventAccentClass(event) {
@@ -2694,9 +2714,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function scheduleSeasonOptions(currentValue) {
-    var options = availableSeasons().filter(function (season) { return season !== "All"; });
+    var options = unique(SCHEDULE_SEASONS.concat(availableSeasons().filter(function (season) { return season !== "All"; })));
     if (currentValue && currentValue !== "All" && options.indexOf(currentValue) < 0) options = [currentValue].concat(options);
-    return options;
+    return options.sort(compareSeasonLabels);
   }
 
   function scheduleSeasonValue(currentValue) {
