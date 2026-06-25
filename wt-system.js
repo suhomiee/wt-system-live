@@ -884,7 +884,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function eventPriority(event) {
     var score = 0;
-    if (event.date === state.selectedDate) score += 8;
     if (isUserEvent(event)) score += 4;
     if (isDerivedEvent(event)) score += 3;
     return score;
