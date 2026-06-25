@@ -145,7 +145,7 @@ textarea:focus-visible {
 
 .wt-sidebar {
   display: grid;
-  grid-template-rows: auto auto auto auto auto 1fr auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   gap: 14px;
   min-height: 0;
   padding: 24px 18px 18px;
@@ -210,6 +210,22 @@ textarea:focus-visible {
   padding: 8px 0 10px;
   border-top: 1px solid rgba(255,255,255,.10);
   border-bottom: 1px solid rgba(255,255,255,.10);
+}
+
+.wt-primary-nav-main {
+  align-self: start;
+}
+
+.wt-sidebar-bottom-nav {
+  align-self: end;
+  padding: 10px 0 0;
+  border-bottom: 0;
+}
+
+.wt-sidebar-bottom-nav button {
+  height: 46px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.06);
 }
 
 .wt-primary-nav button,
@@ -583,7 +599,7 @@ textarea:focus-visible {
 
 .wt-manager-stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -619,6 +635,225 @@ textarea:focus-visible {
   min-height: 0;
   padding: 0;
   border: 0;
+}
+
+.wt-manager-projects {
+  min-height: 0;
+  display: grid;
+  gap: 10px;
+  overflow: auto;
+}
+
+.wt-manager-project-row {
+  min-height: 190px;
+  display: grid;
+  grid-template-columns: minmax(280px, .32fr) minmax(0, 1fr);
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.wt-manager-project-info {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 14px;
+  border-right: 1px solid var(--line);
+}
+
+.wt-manager-project-topline {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.wt-manager-project-topline time {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.wt-manager-project-info h3 {
+  min-width: 0;
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.wt-manager-project-info > b {
+  color: #0a5961;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.wt-manager-meta-grid {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  align-content: start;
+}
+
+.wt-manager-meta-grid span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  background: #f8faf9;
+}
+
+.wt-manager-meta-grid small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.wt-manager-meta-grid strong {
+  min-width: 0;
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.wt-manager-timeline-panel {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  padding: 14px;
+  overflow: hidden;
+}
+
+.wt-manager-timeline-head {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.wt-manager-timeline-head b {
+  min-width: 0;
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.wt-manager-timeline-head small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.wt-manager-timeline {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 8px;
+}
+
+.wt-manager-timeline-chip {
+  --manager-chip-accent: var(--line-strong);
+  width: 148px;
+  min-width: 148px;
+  min-height: 112px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 6px;
+  align-content: start;
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--manager-chip-accent);
+  background: #fff;
+  color: var(--ink);
+  padding: 9px;
+  text-align: left;
+}
+
+.wt-manager-timeline-chip span,
+.wt-manager-timeline-chip small {
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1.15;
+}
+
+.wt-manager-timeline-chip span {
+  color: var(--manager-chip-accent);
+}
+
+.wt-manager-timeline-chip b {
+  min-width: 0;
+  color: inherit;
+  font-size: 12px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.wt-manager-timeline-chip small {
+  color: var(--muted);
+}
+
+.wt-manager-timeline-chip.is-user {
+  --manager-chip-accent: #073f47;
+  background: #073f47;
+  border-color: #073f47;
+  color: #fff;
+}
+
+.wt-manager-timeline-chip.is-user span,
+.wt-manager-timeline-chip.is-user small {
+  color: rgba(255,255,255,.78);
+}
+
+.wt-manager-timeline-chip.is-derived {
+  --manager-chip-accent: #d98b16;
+  background: #fff7e4;
+  border-color: rgba(217,139,22,.42);
+}
+
+.wt-manager-timeline-chip.is-system {
+  background: #fff;
+}
+
+.wt-manager-timeline-chip.wt-kind-sample {
+  --manager-chip-accent: #0a5961;
+}
+
+.wt-manager-timeline-chip.wt-kind-report {
+  --manager-chip-accent: #416a9b;
+}
+
+.wt-manager-timeline-chip.wt-kind-review {
+  --manager-chip-accent: #d98b16;
+}
+
+.wt-manager-timeline-chip.wt-kind-creation {
+  --manager-chip-accent: #5f8757;
+}
+
+.wt-manager-timeline-chip.wt-kind-deadline {
+  --manager-chip-accent: #8f3d34;
+}
+
+.wt-manager-no-plan {
+  margin: 0;
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--line);
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .wt-manager-table-wrap {
@@ -3200,6 +3435,19 @@ textarea:focus-visible {
     grid-template-columns: 116px repeat(var(--wt-cols), 122px);
   }
 
+  .wt-manager-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wt-manager-project-row {
+    grid-template-columns: 1fr;
+  }
+
+  .wt-manager-project-info {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
 }
 
 @media (min-width: 1241px) and (max-height: 880px) {
@@ -3248,6 +3496,7 @@ textarea:focus-visible {
 }
 
 #wt-system-root[data-wt-fit="viewport"] {
+  position: relative;
   width: 100vw;
   height: 100dvh;
   min-height: 0;
@@ -3257,6 +3506,8 @@ textarea:focus-visible {
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app {
+  position: absolute;
+  inset: 0 auto auto 0;
   width: var(--wt-fit-width, 1920px);
   min-width: var(--wt-fit-width, 1920px);
   height: var(--wt-fit-height, 1080px);
@@ -3355,7 +3606,7 @@ textarea:focus-visible {
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-sidebar {
-  grid-template-rows: auto auto auto auto auto 1fr auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-main {
@@ -3386,6 +3637,32 @@ textarea:focus-visible {
 
 #wt-system-root[data-wt-fit="viewport"] .wt-control-strip {
   gap: 10px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-manager .wt-manager-page {
+  gap: 10px;
+  padding: 12px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-manager .wt-manager-head {
+  min-height: 56px;
+  padding: 10px 14px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-manager .wt-manager-stats div {
+  min-height: 52px;
+  padding: 8px 10px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-manager .wt-manager-project-row {
+  min-height: 178px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-manager .wt-manager-timeline-chip {
+  width: 138px;
+  min-width: 138px;
+  min-height: 102px;
+  padding: 8px;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-filter-row {
@@ -5754,16 +6031,18 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div><b>FPT WT Management System</b></div>',
       '</div>',
       '<button type="button" class="wt-sidebar-create" data-view="edit">' + icon("plus") + '<span>Create Schedule</span></button>',
-      '<nav class="wt-primary-nav" aria-label="Primary">',
+      '<nav class="wt-primary-nav wt-primary-nav-main" aria-label="Primary">',
       navItem("dashboard", "Dashboard"),
       navItem("calendar", "Calendar"),
-      navItem("manager", "Schedule Manager"),
       navItem("gameplan", "WT Product Game Plan"),
       externalNavItem("phkReports", "PHK WT Reports", "phk"),
       externalNavItem("nikeReports", "Nike Lab Reports", "phk"),
       externalNavItem("nikeBMethodResult", "NIKE B-Method Result", "lab"),
       externalNavItem("nikeRows", "Product Test Database", "lab"),
       copilotNavItem(root, "AI Q&A"),
+      '</nav>',
+      '<nav class="wt-primary-nav wt-sidebar-bottom-nav" aria-label="Schedule management">',
+      navItem("manager", "Schedule Manager"),
       '</nav>',
       '</aside>'
     ].join("");
@@ -6670,6 +6949,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       return sum + deriveHandoffEvents(item, submissionId(item, index)).length;
     }, 0);
     var modelCount = unique(submissions.map(function (item) { return item.modelName; }).filter(Boolean)).length;
+    var planCount = managerPlanMilestoneCount(submissions);
     return [
       '<section class="wt-manager-page">',
       '<header class="wt-manager-head">',
@@ -6684,9 +6964,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       renderManagerStat("Upcoming", upcomingCount),
       renderManagerStat("Auto linked", autoCount),
       renderManagerStat("Models", modelCount),
+      renderManagerStat("Plan milestones", planCount),
       '</div>',
       '<div class="wt-action-message wt-manager-message">' + text(state.actionMessage || "") + '</div>',
-      submissions.length ? renderManagerTable(submissions) : renderManagerEmptyState(),
+      submissions.length ? renderManagerProjects(submissions) : renderManagerEmptyState(),
       '</section>'
     ].join("");
   }
@@ -6701,43 +6982,147 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return '<div><small>' + text(label) + '</small><b>' + text(value) + '</b></div>';
   }
 
-  function renderManagerTable(submissions) {
+  function renderManagerProjects(submissions) {
     return [
-      '<div class="wt-manager-table-wrap">',
-      '<table class="wt-manager-table">',
-      '<thead><tr><th>Date</th><th>Season</th><th>Type</th><th>Model</th><th>Size</th><th>PCC Developer</th><th>Auto</th><th>Updated</th><th>Manage</th></tr></thead>',
-      '<tbody>',
+      '<div class="wt-manager-projects" aria-label="Registered schedules with season product game plan milestones">',
       submissions.map(function (item, index) {
-        return renderManagerRow(item, index);
+        return renderManagerProjectRow(item, index);
       }).join(""),
-      '</tbody>',
-      '</table>',
       '</div>'
     ].join("");
   }
 
-  function renderManagerRow(item, index) {
+  function renderManagerProjectRow(item, index) {
     var id = submissionId(item, index);
     var confirmingDelete = state.pendingDeleteEventId === id;
     var autoEvents = deriveHandoffEvents(item, id);
-    var autoLabel = autoEvents.length ? autoEvents.length + " linked" : "-";
+    var autoLabel = autoEvents.length ? autoEvents.length + " linked" : "No auto";
+    var season = item.season || "All";
+    var type = normalizeScheduleTypeValue(item.milestoneType || item.kind || "");
+    var model = item.modelName || item.projectName || "Untitled schedule";
+    var owner = item.owner || "-";
+    var planEvents = managerSeasonMilestones(season);
+    var timelineEvents = managerTimelineEvents(item, id);
+    var linkedCount = 1 + autoEvents.length;
     return [
-      '<tr>',
-      '<td><time>' + text(formatDateShort(item.targetDate || state.selectedDate)) + '</time></td>',
-      '<td><span class="wt-manager-season">' + text(item.season || "All") + '</span></td>',
-      '<td><b>' + text(normalizeScheduleTypeValue(item.milestoneType || item.kind || "")) + '</b></td>',
-      '<td><span>' + text(item.modelName || item.projectName || "Untitled schedule") + '</span></td>',
-      '<td>' + text(item.size || "-") + '</td>',
-      '<td>' + text(item.owner || "-") + '</td>',
-      '<td><span class="wt-manager-auto">' + text(autoLabel) + '</span></td>',
-      '<td><small>' + text(formatSubmissionUpdated(item)) + '</small></td>',
-      '<td>',
-      '<div class="wt-manager-actions">',
-      '<button type="button" class="wt-manager-action" data-edit-event-id="' + text(id) + '" data-date="' + text(item.targetDate || state.selectedDate) + '" aria-label="' + text("Edit " + (item.projectName || "schedule")) + '">' + icon("edit") + '<span>Edit</span></button>',
-      '<button type="button" class="wt-manager-action danger ' + (confirmingDelete ? "is-confirming" : "") + '" data-delete-event-id="' + text(id) + '" aria-label="' + text("Delete " + (item.projectName || "schedule")) + '">' + icon("trash") + '<span>' + text(confirmingDelete ? "Confirm" : "Delete") + '</span></button>',
+      '<article class="wt-manager-project-row">',
+      '<section class="wt-manager-project-info" aria-label="' + text(model + " schedule details") + '">',
+      '<div class="wt-manager-project-topline">',
+      '<time>' + text(formatGamePlanDate(item.targetDate || state.selectedDate)) + '</time>',
+      '<span class="wt-manager-season">' + text(season) + '</span>',
       '</div>',
-      '</td>',
-      '</tr>'
+      '<h3>' + text(model) + '</h3>',
+      '<b>' + text(type) + '</b>',
+      '<div class="wt-manager-meta-grid">',
+      '<span><small>Size</small><strong>' + text(item.size || "-") + '</strong></span>',
+      '<span><small>PCC Developer</small><strong>' + text(owner) + '</strong></span>',
+      '<span><small>Auto</small><strong>' + text(autoLabel) + '</strong></span>',
+      '<span><small>Updated</small><strong>' + text(formatSubmissionUpdated(item)) + '</strong></span>',
+      '</div>',
+      '<div class="wt-manager-actions">',
+      '<button type="button" class="wt-manager-action" data-edit-event-id="' + text(id) + '" data-date="' + text(item.targetDate || state.selectedDate) + '" aria-label="' + text("Edit " + model) + '">' + icon("edit") + '<span>Edit</span></button>',
+      '<button type="button" class="wt-manager-action danger ' + (confirmingDelete ? "is-confirming" : "") + '" data-delete-event-id="' + text(id) + '" aria-label="' + text("Delete " + model) + '">' + icon("trash") + '<span>' + text(confirmingDelete ? "Confirm" : "Delete") + '</span></button>',
+      '</div>',
+      '</section>',
+      '<section class="wt-manager-timeline-panel" aria-label="' + text(season + " product game plan timeline") + '">',
+      '<div class="wt-manager-timeline-head">',
+      '<b>' + text(season === "All" ? "No season selected" : season + " Product Game Plan") + '</b>',
+      '<small>' + text(planEvents.length + " plan · " + linkedCount + " linked") + '</small>',
+      '</div>',
+      timelineEvents.length ? renderManagerTimeline(timelineEvents) : '<p class="wt-manager-no-plan">No linked product game plan milestones.</p>',
+      '</section>',
+      '</article>'
+    ].join("");
+  }
+
+  function managerTimelineEvents(item, id) {
+    var events = [];
+    if (item && item.targetDate) {
+      events.push({
+        id: id,
+        date: item.targetDate,
+        title: normalizeScheduleTypeValue(item.milestoneType || item.kind || "") + " - " + (item.modelName || item.projectName || "WT schedule"),
+        kind: mapMilestoneKind(item.milestoneType || item.kind || "deadline"),
+        gate: "User",
+        season: item.season || "All",
+        sourceType: "user"
+      });
+      deriveHandoffEvents(item, id).forEach(function (event) {
+        events.push(extendEvent(event, { sourceType: "derived" }));
+      });
+    }
+    managerSeasonMilestones(item ? item.season : "").forEach(function (event) {
+      events.push(event);
+    });
+    return events.sort(function (a, b) {
+      var dateSort = (a.date || "").localeCompare(b.date || "");
+      if (dateSort) return dateSort;
+      var sourceSort = managerTimelineSourceOrder(a.sourceType) - managerTimelineSourceOrder(b.sourceType);
+      if (sourceSort) return sourceSort;
+      return (a.title || "").localeCompare(b.title || "");
+    });
+  }
+
+  function managerSeasonMilestones(season) {
+    if (!season || season === "All") return [];
+    var seasonKey = String(season).toUpperCase();
+    return (EMBEDDED.milestones || []).filter(function (item) {
+      return item &&
+        item.source === "schedule.pdf" &&
+        String(item.season || "").toUpperCase() === seasonKey &&
+        item.date;
+    }).map(function (item) {
+      return {
+        id: item.id,
+        date: item.date,
+        title: item.task || item.gate || "Milestone",
+        kind: mapMilestoneKind(item.kind),
+        gate: item.gate || "WT",
+        season: item.season || season,
+        week: item.week || "",
+        sourceType: "system"
+      };
+    }).sort(function (a, b) {
+      var dateSort = a.date.localeCompare(b.date);
+      if (dateSort) return dateSort;
+      var gateSort = gateOrder(a.gate) - gateOrder(b.gate);
+      if (gateSort) return gateSort;
+      return (a.title || "").localeCompare(b.title || "");
+    });
+  }
+
+  function managerPlanMilestoneCount(submissions) {
+    var seasons = unique((submissions || []).map(function (item) { return item.season; }).filter(function (season) {
+      return season && season !== "All";
+    }));
+    return seasons.reduce(function (sum, season) {
+      return sum + managerSeasonMilestones(season).length;
+    }, 0);
+  }
+
+  function managerTimelineSourceOrder(sourceType) {
+    if (sourceType === "user") return 0;
+    if (sourceType === "derived") return 1;
+    return 2;
+  }
+
+  function renderManagerTimeline(events) {
+    return [
+      '<div class="wt-manager-timeline" role="list">',
+      events.map(renderManagerTimelineChip).join(""),
+      '</div>'
+    ].join("");
+  }
+
+  function renderManagerTimelineChip(event) {
+    var sourceType = event.sourceType || "system";
+    var sourceLabel = sourceType === "user" ? "User" : sourceType === "derived" ? "Auto" : (event.gate || "Plan");
+    return [
+      '<button type="button" role="listitem" class="wt-manager-timeline-chip wt-kind-' + text(event.kind || "deadline") + ' is-' + text(sourceType) + '" data-event-id="' + text(event.id || "") + '" data-date="' + text(event.date || state.selectedDate) + '" title="' + text(formatGamePlanDate(event.date) + " · " + sourceLabel + " · " + event.title) + '">',
+      '<span>' + text(formatGamePlanDate(event.date)) + '</span>',
+      '<b>' + text(shortTitle(event.title, 30)) + '</b>',
+      '<small>' + text([sourceLabel, event.week ? "W" + event.week : ""].filter(Boolean).join(" · ")) + '</small>',
+      '</button>'
     ].join("");
   }
 

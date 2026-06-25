@@ -490,16 +490,18 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div><b>FPT WT Management System</b></div>',
       '</div>',
       '<button type="button" class="wt-sidebar-create" data-view="edit">' + icon("plus") + '<span>Create Schedule</span></button>',
-      '<nav class="wt-primary-nav" aria-label="Primary">',
+      '<nav class="wt-primary-nav wt-primary-nav-main" aria-label="Primary">',
       navItem("dashboard", "Dashboard"),
       navItem("calendar", "Calendar"),
-      navItem("manager", "Schedule Manager"),
       navItem("gameplan", "WT Product Game Plan"),
       externalNavItem("phkReports", "PHK WT Reports", "phk"),
       externalNavItem("nikeReports", "Nike Lab Reports", "phk"),
       externalNavItem("nikeBMethodResult", "NIKE B-Method Result", "lab"),
       externalNavItem("nikeRows", "Product Test Database", "lab"),
       copilotNavItem(root, "AI Q&A"),
+      '</nav>',
+      '<nav class="wt-primary-nav wt-sidebar-bottom-nav" aria-label="Schedule management">',
+      navItem("manager", "Schedule Manager"),
       '</nav>',
       '</aside>'
     ].join("");
@@ -1406,6 +1408,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       return sum + deriveHandoffEvents(item, submissionId(item, index)).length;
     }, 0);
     var modelCount = unique(submissions.map(function (item) { return item.modelName; }).filter(Boolean)).length;
+    var planCount = managerPlanMilestoneCount(submissions);
     return [
       '<section class="wt-manager-page">',
       '<header class="wt-manager-head">',
@@ -1420,9 +1423,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       renderManagerStat("Upcoming", upcomingCount),
       renderManagerStat("Auto linked", autoCount),
       renderManagerStat("Models", modelCount),
+      renderManagerStat("Plan milestones", planCount),
       '</div>',
       '<div class="wt-action-message wt-manager-message">' + text(state.actionMessage || "") + '</div>',
-      submissions.length ? renderManagerTable(submissions) : renderManagerEmptyState(),
+      submissions.length ? renderManagerProjects(submissions) : renderManagerEmptyState(),
       '</section>'
     ].join("");
   }
@@ -1437,43 +1441,147 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return '<div><small>' + text(label) + '</small><b>' + text(value) + '</b></div>';
   }
 
-  function renderManagerTable(submissions) {
+  function renderManagerProjects(submissions) {
     return [
-      '<div class="wt-manager-table-wrap">',
-      '<table class="wt-manager-table">',
-      '<thead><tr><th>Date</th><th>Season</th><th>Type</th><th>Model</th><th>Size</th><th>PCC Developer</th><th>Auto</th><th>Updated</th><th>Manage</th></tr></thead>',
-      '<tbody>',
+      '<div class="wt-manager-projects" aria-label="Registered schedules with season product game plan milestones">',
       submissions.map(function (item, index) {
-        return renderManagerRow(item, index);
+        return renderManagerProjectRow(item, index);
       }).join(""),
-      '</tbody>',
-      '</table>',
       '</div>'
     ].join("");
   }
 
-  function renderManagerRow(item, index) {
+  function renderManagerProjectRow(item, index) {
     var id = submissionId(item, index);
     var confirmingDelete = state.pendingDeleteEventId === id;
     var autoEvents = deriveHandoffEvents(item, id);
-    var autoLabel = autoEvents.length ? autoEvents.length + " linked" : "-";
+    var autoLabel = autoEvents.length ? autoEvents.length + " linked" : "No auto";
+    var season = item.season || "All";
+    var type = normalizeScheduleTypeValue(item.milestoneType || item.kind || "");
+    var model = item.modelName || item.projectName || "Untitled schedule";
+    var owner = item.owner || "-";
+    var planEvents = managerSeasonMilestones(season);
+    var timelineEvents = managerTimelineEvents(item, id);
+    var linkedCount = 1 + autoEvents.length;
     return [
-      '<tr>',
-      '<td><time>' + text(formatDateShort(item.targetDate || state.selectedDate)) + '</time></td>',
-      '<td><span class="wt-manager-season">' + text(item.season || "All") + '</span></td>',
-      '<td><b>' + text(normalizeScheduleTypeValue(item.milestoneType || item.kind || "")) + '</b></td>',
-      '<td><span>' + text(item.modelName || item.projectName || "Untitled schedule") + '</span></td>',
-      '<td>' + text(item.size || "-") + '</td>',
-      '<td>' + text(item.owner || "-") + '</td>',
-      '<td><span class="wt-manager-auto">' + text(autoLabel) + '</span></td>',
-      '<td><small>' + text(formatSubmissionUpdated(item)) + '</small></td>',
-      '<td>',
-      '<div class="wt-manager-actions">',
-      '<button type="button" class="wt-manager-action" data-edit-event-id="' + text(id) + '" data-date="' + text(item.targetDate || state.selectedDate) + '" aria-label="' + text("Edit " + (item.projectName || "schedule")) + '">' + icon("edit") + '<span>Edit</span></button>',
-      '<button type="button" class="wt-manager-action danger ' + (confirmingDelete ? "is-confirming" : "") + '" data-delete-event-id="' + text(id) + '" aria-label="' + text("Delete " + (item.projectName || "schedule")) + '">' + icon("trash") + '<span>' + text(confirmingDelete ? "Confirm" : "Delete") + '</span></button>',
+      '<article class="wt-manager-project-row">',
+      '<section class="wt-manager-project-info" aria-label="' + text(model + " schedule details") + '">',
+      '<div class="wt-manager-project-topline">',
+      '<time>' + text(formatGamePlanDate(item.targetDate || state.selectedDate)) + '</time>',
+      '<span class="wt-manager-season">' + text(season) + '</span>',
       '</div>',
-      '</td>',
-      '</tr>'
+      '<h3>' + text(model) + '</h3>',
+      '<b>' + text(type) + '</b>',
+      '<div class="wt-manager-meta-grid">',
+      '<span><small>Size</small><strong>' + text(item.size || "-") + '</strong></span>',
+      '<span><small>PCC Developer</small><strong>' + text(owner) + '</strong></span>',
+      '<span><small>Auto</small><strong>' + text(autoLabel) + '</strong></span>',
+      '<span><small>Updated</small><strong>' + text(formatSubmissionUpdated(item)) + '</strong></span>',
+      '</div>',
+      '<div class="wt-manager-actions">',
+      '<button type="button" class="wt-manager-action" data-edit-event-id="' + text(id) + '" data-date="' + text(item.targetDate || state.selectedDate) + '" aria-label="' + text("Edit " + model) + '">' + icon("edit") + '<span>Edit</span></button>',
+      '<button type="button" class="wt-manager-action danger ' + (confirmingDelete ? "is-confirming" : "") + '" data-delete-event-id="' + text(id) + '" aria-label="' + text("Delete " + model) + '">' + icon("trash") + '<span>' + text(confirmingDelete ? "Confirm" : "Delete") + '</span></button>',
+      '</div>',
+      '</section>',
+      '<section class="wt-manager-timeline-panel" aria-label="' + text(season + " product game plan timeline") + '">',
+      '<div class="wt-manager-timeline-head">',
+      '<b>' + text(season === "All" ? "No season selected" : season + " Product Game Plan") + '</b>',
+      '<small>' + text(planEvents.length + " plan · " + linkedCount + " linked") + '</small>',
+      '</div>',
+      timelineEvents.length ? renderManagerTimeline(timelineEvents) : '<p class="wt-manager-no-plan">No linked product game plan milestones.</p>',
+      '</section>',
+      '</article>'
+    ].join("");
+  }
+
+  function managerTimelineEvents(item, id) {
+    var events = [];
+    if (item && item.targetDate) {
+      events.push({
+        id: id,
+        date: item.targetDate,
+        title: normalizeScheduleTypeValue(item.milestoneType || item.kind || "") + " - " + (item.modelName || item.projectName || "WT schedule"),
+        kind: mapMilestoneKind(item.milestoneType || item.kind || "deadline"),
+        gate: "User",
+        season: item.season || "All",
+        sourceType: "user"
+      });
+      deriveHandoffEvents(item, id).forEach(function (event) {
+        events.push(extendEvent(event, { sourceType: "derived" }));
+      });
+    }
+    managerSeasonMilestones(item ? item.season : "").forEach(function (event) {
+      events.push(event);
+    });
+    return events.sort(function (a, b) {
+      var dateSort = (a.date || "").localeCompare(b.date || "");
+      if (dateSort) return dateSort;
+      var sourceSort = managerTimelineSourceOrder(a.sourceType) - managerTimelineSourceOrder(b.sourceType);
+      if (sourceSort) return sourceSort;
+      return (a.title || "").localeCompare(b.title || "");
+    });
+  }
+
+  function managerSeasonMilestones(season) {
+    if (!season || season === "All") return [];
+    var seasonKey = String(season).toUpperCase();
+    return (EMBEDDED.milestones || []).filter(function (item) {
+      return item &&
+        item.source === "schedule.pdf" &&
+        String(item.season || "").toUpperCase() === seasonKey &&
+        item.date;
+    }).map(function (item) {
+      return {
+        id: item.id,
+        date: item.date,
+        title: item.task || item.gate || "Milestone",
+        kind: mapMilestoneKind(item.kind),
+        gate: item.gate || "WT",
+        season: item.season || season,
+        week: item.week || "",
+        sourceType: "system"
+      };
+    }).sort(function (a, b) {
+      var dateSort = a.date.localeCompare(b.date);
+      if (dateSort) return dateSort;
+      var gateSort = gateOrder(a.gate) - gateOrder(b.gate);
+      if (gateSort) return gateSort;
+      return (a.title || "").localeCompare(b.title || "");
+    });
+  }
+
+  function managerPlanMilestoneCount(submissions) {
+    var seasons = unique((submissions || []).map(function (item) { return item.season; }).filter(function (season) {
+      return season && season !== "All";
+    }));
+    return seasons.reduce(function (sum, season) {
+      return sum + managerSeasonMilestones(season).length;
+    }, 0);
+  }
+
+  function managerTimelineSourceOrder(sourceType) {
+    if (sourceType === "user") return 0;
+    if (sourceType === "derived") return 1;
+    return 2;
+  }
+
+  function renderManagerTimeline(events) {
+    return [
+      '<div class="wt-manager-timeline" role="list">',
+      events.map(renderManagerTimelineChip).join(""),
+      '</div>'
+    ].join("");
+  }
+
+  function renderManagerTimelineChip(event) {
+    var sourceType = event.sourceType || "system";
+    var sourceLabel = sourceType === "user" ? "User" : sourceType === "derived" ? "Auto" : (event.gate || "Plan");
+    return [
+      '<button type="button" role="listitem" class="wt-manager-timeline-chip wt-kind-' + text(event.kind || "deadline") + ' is-' + text(sourceType) + '" data-event-id="' + text(event.id || "") + '" data-date="' + text(event.date || state.selectedDate) + '" title="' + text(formatGamePlanDate(event.date) + " · " + sourceLabel + " · " + event.title) + '">',
+      '<span>' + text(formatGamePlanDate(event.date)) + '</span>',
+      '<b>' + text(shortTitle(event.title, 30)) + '</b>',
+      '<small>' + text([sourceLabel, event.week ? "W" + event.week : ""].filter(Boolean).join(" · ")) + '</small>',
+      '</button>'
     ].join("");
   }
 
