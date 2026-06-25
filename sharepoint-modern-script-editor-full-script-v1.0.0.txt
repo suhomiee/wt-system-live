@@ -7355,7 +7355,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<td class="wt-game-plan-cell">',
       '<div class="wt-game-plan-event" title="' + text(season + " · " + item.task + " · " + formatGamePlanDate(item.date)) + '">',
       '<b>' + text(formatGamePlanDate(item.date)) + '</b>',
-      item.week ? '<small>W' + text(item.week) + '</small>' : '<small>' + text(season) + '</small>',
+      '<small>' + text(season) + '</small>',
       '</div>',
       '</td>'
     ].join("");
