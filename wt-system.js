@@ -18,7 +18,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   var GAME_PLAN_GATE_ORDER = ["XLT", "PR", "GGP", "SPA"];
   var CALENDAR_VIEWS = [
     { id: "timeline", label: "Timeline View" },
-    { id: "gantt", label: "Gantt" },
     { id: "calendar", label: "Calendar View" },
     { id: "list", label: "List" },
     { id: "season-grid", label: "Season Grid" }
@@ -360,7 +359,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       }
 
       if (calendarViewButton && root.contains(calendarViewButton)) {
-        state.calendarView = calendarViewButton.getAttribute("data-calendar-view");
+        state.calendarView = normalizeCalendarView(calendarViewButton.getAttribute("data-calendar-view"));
         if (state.calendarView === "calendar" && CALENDAR_PERIOD_IDS.indexOf(state.period) < 0) {
           state.period = "month";
           state.weekStart = periodAnchor(state.selectedDate, state.period);
@@ -753,8 +752,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderCalendarBoard(compact) {
+    state.calendarView = normalizeCalendarView(state.calendarView);
     if (state.calendarView === "calendar") return renderCalendarViewBoard(compact);
-    if (state.calendarView === "gantt") return renderGanttBoard(compact);
     if (state.calendarView === "list") return renderListBoard(compact);
     if (state.calendarView === "season-grid") return renderSeasonGridBoard(compact);
     return renderTimelineBoard(compact);
@@ -1123,48 +1122,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var stringValue = String(value || "");
     if (stringValue.length <= maxLength) return stringValue;
     return stringValue.slice(0, maxLength - 3).replace(/\s+\S*$/, "") + "...";
-  }
-
-  function renderGanttBoard(compact) {
-    var range = currentRange();
-    var units = timelineUnits(range);
-    var events = eventsForCurrentRange();
-    var groups = unique(events.map(function (event) { return event.season || "All"; })).slice(0, compact ? 5 : 8);
-    return [
-      '<section class="wt-gantt-board ' + (compact ? "compact" : "") + '" aria-label="Gantt calendar">',
-      '<div class="wt-timeline-head" style="--wt-cols:' + text(units.length) + '">',
-      '<span class="wt-timeline-corner"></span>',
-      units.map(function (unit) {
-        return '<span><b>' + text(unit.label) + '</b><small>' + text(unit.caption) + '</small></span>';
-      }).join(""),
-      '</div>',
-      '<div class="wt-gantt-body">',
-      groups.length ? groups.map(function (season) {
-        var seasonEvents = events.filter(function (event) { return (event.season || "All") === season; });
-        if (compact) seasonEvents = seasonEvents.slice(0, 8);
-        return renderGanttLane(season, seasonEvents, units);
-      }).join("") : renderEmptyBoard("No events in this range."),
-      '</div>',
-      '</section>'
-    ].join("");
-  }
-
-  function renderGanttLane(label, events, units) {
-    var rows = assignLaneRows(events, units);
-    var rowCount = Math.max(1, rows.length);
-    return [
-      '<article class="wt-gantt-lane" style="--wt-gantt-rows:' + text(rowCount) + '">',
-      '<div class="wt-gantt-label"><b>' + text(label) + '</b><small>' + text(events.length) + ' events</small></div>',
-      '<div class="wt-gantt-track" style="--wt-cols:' + text(units.length) + '; --wt-gantt-rows:' + text(rowCount) + '">',
-      events.map(function (event) {
-        var position = eventUnitPosition(event, units);
-        var row = event.__laneRow || 1;
-        var selected = event.date === state.selectedDate ? " is-selected" : "";
-        return '<button type="button" class="wt-gantt-chip wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="grid-column:' + text(position.start) + ' / span ' + text(position.span) + '; --wt-row:' + text(row) + '"><span>' + text(formatDateShort(event.date) + " · " + (event.gate || event.kind)) + '</span><b>' + text(event.title) + '</b></button>';
-      }).join(""),
-      '</div>',
-      '</article>'
-    ].join("");
   }
 
   function renderListBoard(compact) {
@@ -4033,8 +3990,16 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function calendarViewLabel(id) {
-    var option = CALENDAR_VIEWS.filter(function (view) { return view.id === id; })[0];
+    var option = calendarViewOption(id);
     return option ? option.label : "Timeline View";
+  }
+
+  function normalizeCalendarView(id) {
+    return calendarViewOption(id) ? id : "timeline";
+  }
+
+  function calendarViewOption(id) {
+    return CALENDAR_VIEWS.filter(function (view) { return view.id === id; })[0];
   }
 
   function periodLabel(id) {
