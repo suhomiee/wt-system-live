@@ -61,6 +61,15 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       manifestKey: "nikeLabReports",
       url: "https://taekwangcom.sharepoint.com/:f:/s/T2RL2/IgBl9gmylH3wTpjAobY83-rwARqXBo4nsmOv41iT7f_ZGLk?e=1FKUUQ"
     },
+    nikeBMethodResult: {
+      title: "nike b-method result",
+      eyebrow: "SharePoint page",
+      label: "nike b-method result",
+      caption: "Silo Analysis CSP test result page",
+      status: "SharePoint page",
+      sourceType: "page",
+      url: "https://taekwangcom.sharepoint.com/sites/T2RL2/SitePages/Silo_Analysis_CSP_Test_20260420_212102.aspx"
+    },
     phkReports: {
       title: "PHK WT Reports",
       eyebrow: "PDF report archive",
@@ -184,11 +193,21 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var closeModalButton = event.target.closest("[data-close-event-modal]");
       var closeScheduleModalButton = event.target.closest("[data-close-schedule-modal]");
       var sidebarToggleButton = event.target.closest("[data-sidebar-toggle]");
+      var externalSourceLink = event.target.closest("a[data-external-source]");
 
       if (sidebarToggleButton && root.contains(sidebarToggleButton)) {
         event.preventDefault();
         state.sidebarCollapsed = !state.sidebarCollapsed;
         render(root);
+        return;
+      }
+
+      if (externalSourceLink && root.contains(externalSourceLink)) {
+        var externalHref = externalSourceLink.getAttribute("href");
+        if (externalHref && externalHref !== "#") {
+          event.preventDefault();
+          window.open(externalHref, "_blank", "noopener,noreferrer");
+        }
         return;
       }
 
@@ -470,6 +489,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       navItem("gameplan", "WT Product Game Plan"),
       externalNavItem("phkReports", "PHK WT Reports", "phk"),
       externalNavItem("nikeReports", "Nike Lab Reports", "phk"),
+      externalNavItem("nikeBMethodResult", "nike b-method result", "lab"),
       externalNavItem("nikeRows", "Product Test Database", "lab"),
       copilotNavItem(root, "AI Q&A"),
       '</nav>',
