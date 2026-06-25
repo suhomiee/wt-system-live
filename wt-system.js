@@ -180,6 +180,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var viewButton = event.target.closest("[data-view]");
       var dateButton = event.target.closest("[data-date]");
       var weekButton = event.target.closest("[data-week-shift]");
+      var dashboardMonthButton = event.target.closest("[data-dashboard-month-date]");
+      var dashboardMonthShiftButton = event.target.closest("[data-dashboard-month-shift]");
+      var dashboardWeekShiftButton = event.target.closest("[data-dashboard-week-shift]");
+      var dashboardTodayButton = event.target.closest("[data-dashboard-today]");
       var todayButton = event.target.closest("[data-today]");
       var seasonButton = event.target.closest("[data-season]");
       var calendarViewButton = event.target.closest("[data-calendar-view]");
@@ -308,6 +312,58 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         state.period = "month";
         state.selectedDate = quarterMonthDate;
         state.weekStart = periodAnchor(quarterMonthDate, "month");
+        state.pendingDeleteEventId = "";
+        state.activeEventId = "";
+        state.actionMessage = "";
+        render(root);
+        return;
+      }
+
+      if (dashboardMonthButton && root.contains(dashboardMonthButton)) {
+        event.preventDefault();
+        var dashboardMonthDate = dashboardMonthButton.getAttribute("data-dashboard-month-date");
+        if (!isIsoDate(dashboardMonthDate)) return;
+        state.selectedDate = dashboardMonthDate;
+        state.weekStart = periodAnchor(dashboardMonthDate, "month");
+        state.pendingDeleteEventId = "";
+        state.activeEventId = "";
+        state.actionMessage = "";
+        render(root);
+        return;
+      }
+
+      if (dashboardMonthShiftButton && root.contains(dashboardMonthShiftButton)) {
+        event.preventDefault();
+        var monthShift = Number(dashboardMonthShiftButton.getAttribute("data-dashboard-month-shift"));
+        var currentMonth = fromIso(state.selectedDate);
+        var nextMonth = addMonths(currentMonth, monthShift);
+        state.selectedDate = toIso(nextMonth);
+        state.weekStart = periodAnchor(state.selectedDate, state.period);
+        state.pendingDeleteEventId = "";
+        state.activeEventId = "";
+        state.actionMessage = "";
+        render(root);
+        return;
+      }
+
+      if (dashboardWeekShiftButton && root.contains(dashboardWeekShiftButton)) {
+        event.preventDefault();
+        var weekShift = Number(dashboardWeekShiftButton.getAttribute("data-dashboard-week-shift"));
+        var nextWeekStart = addDays(startOfWeek(fromIso(state.selectedDate)), weekShift * 7);
+        state.selectedDate = toIso(nextWeekStart);
+        state.weekStart = periodAnchor(state.selectedDate, state.period);
+        state.pendingDeleteEventId = "";
+        state.activeEventId = "";
+        state.actionMessage = "";
+        render(root);
+        return;
+      }
+
+      if (dashboardTodayButton && root.contains(dashboardTodayButton)) {
+        event.preventDefault();
+        var dashboardTodayIso = currentDateIso(root);
+        state.selectedDate = dashboardTodayIso;
+        state.weekStart = periodAnchor(dashboardTodayIso, state.period);
         state.pendingDeleteEventId = "";
         state.activeEventId = "";
         state.actionMessage = "";
@@ -1375,9 +1431,90 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderDashboard() {
     return [
       '<section class="wt-dashboard">',
+      renderDashboardGanttOverview(),
+      '<div class="wt-dashboard-calendar-grid">',
       renderDashboardMonthPanel(),
-      renderDashboardYearStrip(),
+      renderDashboardWeekPanel(),
+      '</div>',
       '</section>'
+    ].join("");
+  }
+
+  function renderDashboardGanttOverview() {
+    var range = periodRange(state.selectedDate, "year");
+    var units = monthUnits(range);
+    var events = filteredEventsForRange(range.start, range.end);
+    var year = fromIso(state.selectedDate).getFullYear();
+    return [
+      '<section class="wt-dashboard-gantt" aria-label="' + text(year + " schedule overview") + '">',
+      '<header class="wt-dashboard-gantt-head">',
+      '<div><b>' + text(year) + '</b><span>Year schedule</span></div>',
+      '<div class="wt-dashboard-gantt-legend">',
+      '<span class="is-user">Model</span><span class="is-derived">Auto</span><span class="is-system">Plan</span>',
+      '</div>',
+      '</header>',
+      '<div class="wt-dashboard-gantt-months" style="--wt-cols:' + text(units.length) + '">',
+      units.map(function (unit) {
+        var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " active" : "";
+        return '<button type="button" class="' + selected + '" data-dashboard-month-date="' + text(unit.start) + '" aria-label="' + text("Open " + unit.label + " " + unit.caption) + '"><b>' + text(unit.label) + '</b><span>' + text(unit.caption) + '</span></button>';
+      }).join(""),
+      '</div>',
+      '<div class="wt-dashboard-gantt-body">',
+      dashboardGanttLanes().map(function (lane) {
+        return renderDashboardGanttLane(lane, units, events);
+      }).join(""),
+      '</div>',
+      '</section>'
+    ].join("");
+  }
+
+  function dashboardGanttLanes() {
+    return [
+      { id: "XLT", label: "XLT" },
+      { id: "PR", label: "PR" },
+      { id: "GGP", label: "GGP" },
+      { id: "SPA", label: "SPA" },
+      { id: "model", label: "Model" }
+    ];
+  }
+
+  function renderDashboardGanttLane(lane, units, events) {
+    return [
+      '<article class="wt-dashboard-gantt-lane wt-gantt-lane-' + text(lane.id.toLowerCase()) + '">',
+      '<div class="wt-dashboard-gantt-label">' + text(lane.label) + '</div>',
+      '<div class="wt-dashboard-gantt-track" style="--wt-cols:' + text(units.length) + '">',
+      units.map(function (unit) {
+        return renderDashboardGanttCell(lane, unit, events);
+      }).join(""),
+      '</div>',
+      '</article>'
+    ].join("");
+  }
+
+  function renderDashboardGanttCell(lane, unit, events) {
+    var monthEvents = prioritizedEvents(events.filter(function (event) {
+      return eventOverlapsRange(event, unit.start, unit.end) && dashboardGanttEventInLane(event, lane.id);
+    }));
+    var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " is-selected-month" : "";
+    return [
+      '<button type="button" class="wt-dashboard-gantt-cell' + selected + '" data-dashboard-month-date="' + text(unit.start) + '" aria-label="' + text(lane.label + " " + unit.label + " events") + '">',
+      monthEvents.length ? monthEvents.slice(0, 4).map(renderDashboardGanttChip).join("") : '<span class="wt-dashboard-gantt-empty"></span>',
+      monthEvents.length > 4 ? '<small>' + text("+" + (monthEvents.length - 4)) + '</small>' : "",
+      '</button>'
+    ].join("");
+  }
+
+  function dashboardGanttEventInLane(event, laneId) {
+    if (laneId === "model") return isUserEvent(event) || isDerivedEvent(event);
+    return !isUserEvent(event) && !isDerivedEvent(event) && event.gate === laneId;
+  }
+
+  function renderDashboardGanttChip(event) {
+    return [
+      '<i class="wt-dashboard-gantt-chip wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '" title="' + text(eventTooltip(event)) + '">',
+      '<span>' + text(dayOfMonth(event.date)) + '</span>',
+      '<b>' + text(shortTitle(event.modelName || event.title, 18)) + '</b>',
+      '</i>'
     ].join("");
   }
 
@@ -1458,12 +1595,39 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return withCalendarState("month", state.selectedDate, function () {
       var monthTitle = MONTHS[fromIso(state.selectedDate).getMonth()] + " " + fromIso(state.selectedDate).getFullYear();
       return [
-        '<section class="wt-dashboard-month-panel">',
-        '<header>',
-        '<h2>' + text(monthTitle) + '</h2>',
+        '<section class="wt-dashboard-month-panel" aria-label="' + text(monthTitle + " monthly calendar") + '">',
+        '<header class="wt-dashboard-panel-head">',
+        '<div><h2>' + text(monthTitle) + '</h2><span>Month</span></div>',
+        '<div class="wt-dashboard-panel-actions">',
+        '<button type="button" data-dashboard-month-shift="-1" aria-label="Previous month">' + icon("chevron-left") + '</button>',
+        '<button type="button" data-dashboard-today>Today</button>',
+        '<button type="button" data-dashboard-month-shift="1" aria-label="Next month">' + icon("chevron-right") + '</button>',
+        '</div>',
         '</header>',
         '<div class="wt-dashboard-month-board">',
         renderCalendarViewBoard(true),
+        '</div>',
+        '</section>'
+      ].join("");
+    });
+  }
+
+  function renderDashboardWeekPanel() {
+    var weekStartIso = toIso(startOfWeek(fromIso(state.selectedDate)));
+    return withCalendarState("week", weekStartIso, function () {
+      var range = currentRange();
+      return [
+        '<section class="wt-dashboard-week-panel" aria-label="' + text("Week calendar " + formatRange(range)) + '">',
+        '<header class="wt-dashboard-panel-head">',
+        '<div><h2>' + text(formatRange(range)) + '</h2><span>Week</span></div>',
+        '<div class="wt-dashboard-panel-actions">',
+        '<button type="button" data-dashboard-week-shift="-1" aria-label="Previous week">' + icon("chevron-left") + '</button>',
+        '<button type="button" data-dashboard-today>Today</button>',
+        '<button type="button" data-dashboard-week-shift="1" aria-label="Next week">' + icon("chevron-right") + '</button>',
+        '</div>',
+        '</header>',
+        '<div class="wt-dashboard-week-board">',
+        renderWeekBoard(true),
         '</div>',
         '</section>'
       ].join("");
