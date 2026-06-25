@@ -911,8 +911,7 @@ textarea:focus-visible {
   color: var(--muted);
 }
 
-.wt-manager-season,
-.wt-manager-auto {
+.wt-manager-season {
   display: inline-flex;
   align-items: center;
   min-height: 24px;
@@ -922,10 +921,6 @@ textarea:focus-visible {
   padding: 0 9px;
   font-size: 12px;
   font-weight: 850;
-}
-
-.wt-manager-auto {
-  color: #0a5961;
 }
 
 .wt-manager-actions {

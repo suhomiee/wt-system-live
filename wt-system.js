@@ -1486,8 +1486,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderManagerProjectRow(item, index) {
     var id = submissionId(item, index);
     var confirmingDelete = state.pendingDeleteEventId === id;
-    var autoEvents = deriveHandoffEvents(item, id);
-    var autoLabel = autoEvents.length ? autoEvents.length + " linked" : "No auto";
     var season = item.season || "All";
     var type = normalizeScheduleTypeValue(item.milestoneType || item.kind || "");
     var model = item.modelName || item.projectName || "Untitled schedule";
@@ -1506,7 +1504,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-manager-meta-grid">',
       '<span><small>Size</small><strong>' + text(item.size || "-") + '</strong></span>',
       '<span><small>Schedule Date</small><strong>' + text(formatGamePlanDate(item.targetDate || state.selectedDate)) + '</strong></span>',
-      '<span><small>Auto</small><strong>' + text(autoLabel) + '</strong></span>',
       '<span><small>Updated</small><strong>' + text(formatSubmissionUpdated(item)) + '</strong></span>',
       '</div>',
       '<div class="wt-manager-actions">',
@@ -1596,7 +1593,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderManagerTimelineChip(event) {
     var sourceType = event.sourceType || "system";
-    var sourceLabel = sourceType === "user" ? "User" : sourceType === "derived" ? "Auto" : (event.gate || "Plan");
+    var sourceLabel = sourceType === "user" ? "User" : sourceType === "derived" ? (event.gate || "Workflow") : (event.gate || "Plan");
     return [
       '<button type="button" role="listitem" class="wt-manager-timeline-chip wt-kind-' + text(event.kind || "deadline") + ' is-' + text(sourceType) + '" data-event-id="' + text(event.id || "") + '" data-date="' + text(event.date || state.selectedDate) + '" title="' + text(formatGamePlanDate(event.date) + " · " + sourceLabel + " · " + event.title) + '">',
       '<span>' + text(formatGamePlanDate(event.date)) + '</span>',
@@ -2912,7 +2909,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var confirmingDelete = editingItem && state.pendingDeleteEventId === state.editingEventId;
     var draft = scheduleDraftFromValues({
       rowKey: editingItem ? (editingItem.rowKey || state.editingEventId) : "",
-      targetDate: editingItem ? editingItem.targetDate : state.selectedDate,
+      targetDate: editingItem ? editingItem.targetDate : "",
       milestoneType: normalizeScheduleTypeValue(editingItem ? editingItem.milestoneType : ""),
       season: scheduleSeasonValue(editingItem ? editingItem.season : ""),
       gate: scheduleGateValue(editingItem ? editingItem.gate : ""),
@@ -3017,9 +3014,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderScheduleLogicPreview(item) {
     var context = productFreezeTimingContext(item);
     var previewEvents = scheduleLogicPreviewEvents(item, context);
+    var hasScheduleDate = item && isIsoDate(item.targetDate);
     var selectedGateLabel = [item.season || "Season", item.gate || "Gate"].filter(Boolean).join(" · ");
     var freezeTitle = context.freeze ? (context.freeze.task || "(LTWT) Product Freeze") : "(LTWT) Product Freeze";
-    var statusText = context.isTight
+    var statusText = !hasScheduleDate
+      ? "Season, Gate, Date를 선택하면 관련 일정이 표시됩니다."
+      : context.isTight
       ? "Sample handoff 일정이 너무 타이트하거나 늦습니다. (LTWT) Product Freeze 이전에 T2 WT를 통해 이슈사항에 대한 suggestion이 선행되어야 합니다."
       : (context.freeze
         ? (context.reportEvent ? "(LTWT) Product Freeze 기준 일정 여유가 확인되었습니다." : "선택한 시즌/게이트의 (LTWT) Product Freeze 일정이 확인되었습니다.")
@@ -3033,7 +3033,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-schedule-logic-track" role="list">',
       previewEvents.length ? previewEvents.map(function (event) {
         return renderScheduleLogicChip(event, context);
-      }).join("") : '<p class="wt-schedule-logic-empty">Select a season and date to preview the schedule logic.</p>',
+      }).join("") : '<p class="wt-schedule-logic-empty">Season, Gate, Date를 선택하면 관련 일정이 표시됩니다.</p>',
       '</div>',
       '<p class="wt-schedule-logic-message">' + text(statusText) + '</p>',
       '</section>'
