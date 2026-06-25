@@ -611,6 +611,8 @@ textarea:focus-visible {
   min-height: 0;
   display: grid;
   gap: 8px;
+  align-content: start;
+  grid-auto-rows: max-content;
   overflow: auto;
 }
 
