@@ -4919,12 +4919,13 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-sidebar-toggle {
-  position: absolute;
+  --wt-sidebar-width: 256px;
+  position: fixed;
   top: 50%;
-  left: calc(var(--wt-sidebar-width) - 18px);
-  z-index: 80;
-  width: 36px;
-  height: 64px;
+  left: calc(var(--wt-sidebar-edge, var(--wt-sidebar-width)) - 22px);
+  z-index: 120;
+  width: 44px;
+  height: 76px;
   display: grid;
   place-items: center;
   padding: 0;
@@ -4984,8 +4985,22 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   box-shadow: 0 16px 34px rgba(0, 38, 46, .25);
 }
 
+#wt-system-root.is-sidebar-collapsed .wt-sidebar-toggle,
+.wt-root.is-sidebar-collapsed .wt-sidebar-toggle {
+  left: 0;
+  border-left-color: transparent;
+  border-radius: 0 999px 999px 0;
+  background: #003a46;
+  color: #ffffff;
+  box-shadow: 0 16px 34px rgba(0, 38, 46, .25);
+}
+
 .wt-app.is-sidebar-collapsed .wt-sidebar-toggle:hover,
-.wt-app.is-sidebar-collapsed .wt-sidebar-toggle:focus-visible {
+.wt-app.is-sidebar-collapsed .wt-sidebar-toggle:focus-visible,
+#wt-system-root.is-sidebar-collapsed .wt-sidebar-toggle:hover,
+#wt-system-root.is-sidebar-collapsed .wt-sidebar-toggle:focus-visible,
+.wt-root.is-sidebar-collapsed .wt-sidebar-toggle:hover,
+.wt-root.is-sidebar-collapsed .wt-sidebar-toggle:focus-visible {
   background: #004f5d;
   border-color: rgba(255,255,255,.28);
   border-left-color: transparent;

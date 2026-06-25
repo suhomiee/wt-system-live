@@ -423,19 +423,23 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function applyViewportFit(root) {
     if (root.getAttribute("data-wt-standalone") !== "true") return;
-    var designWidth = 1920;
-    var designHeight = 1080;
-    var scale = Math.min(window.innerWidth / designWidth, window.innerHeight / designHeight);
+    var baseWidth = 1920;
+    var baseHeight = 1080;
+    var scale = Math.min(1, window.innerWidth / baseWidth, window.innerHeight / baseHeight);
+    var designWidth = Math.max(baseWidth, Math.round(window.innerWidth / scale));
+    var designHeight = Math.max(baseHeight, Math.round(window.innerHeight / scale));
     root.setAttribute("data-wt-fit", "viewport");
     root.style.setProperty("--wt-fit-scale", String(scale));
     root.style.setProperty("--wt-fit-width", designWidth + "px");
     root.style.setProperty("--wt-fit-height", designHeight + "px");
+    root.style.setProperty("--wt-sidebar-edge", Math.round(256 * scale) + "px");
   }
 
   function renderApp(root) {
+    if (root) root.classList.toggle("is-sidebar-collapsed", state.sidebarCollapsed);
     return [
-      '<div class="wt-app is-' + text(state.section) + ' is-' + text(state.view) + (state.sidebarCollapsed ? " is-sidebar-collapsed" : "") + '">',
       renderSidebarToggle(),
+      '<div class="wt-app is-' + text(state.section) + ' is-' + text(state.view) + (state.sidebarCollapsed ? " is-sidebar-collapsed" : "") + '">',
       renderSidebar(root),
       renderShell(root),
       renderEventModal(),
@@ -1302,7 +1306,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var events = filteredEventsForRange(unit.start, unit.end);
     var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " is-selected" : "";
     var monthLabel = MONTHS[fromIso(unit.start).getMonth()];
-    var visibleLimit = 2;
+    var visibleLimit = 6;
     return [
       '<article class="wt-year-month-tile' + selected + '">',
       '<button type="button" class="wt-year-month-head-button" data-date="' + text(unit.start) + '" aria-label="' + text(unit.label + " overview") + '">',
