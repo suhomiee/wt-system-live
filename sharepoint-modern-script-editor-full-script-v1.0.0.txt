@@ -7864,9 +7864,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function dashboardGanttIsFocusEvent(event) {
     if (!event) return false;
-    if (["handoff", "product_freeze", "bom_ddd", "results_ready"].indexOf(event.kind) >= 0) return true;
+    if (["handoff", "product_freeze", "bom_ddd", "x_fty"].indexOf(event.kind) >= 0) return true;
     var signature = String((event.title || "") + " " + (event.kind || "")).toLowerCase();
-    return /product freeze|bom ddd|handoff|wt report|results ready/.test(signature);
+    return /product freeze|bom ddd|handoff|wt report|x[-_ ]?fty/.test(signature);
   }
 
   function dashboardGanttRequiredRows(events, range) {
