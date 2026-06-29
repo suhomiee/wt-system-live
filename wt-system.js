@@ -151,6 +151,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     search: "",
     deadlineHighlight: false,
     modelScheduleHighlight: false,
+    dashboardScheduleMode: "focus",
     sidebarCollapsed: false,
     actionMessage: "",
     season: "All",
@@ -184,6 +185,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var dashboardMonthShiftButton = event.target.closest("[data-dashboard-month-shift]");
       var dashboardWeekShiftButton = event.target.closest("[data-dashboard-week-shift]");
       var dashboardTodayButton = event.target.closest("[data-dashboard-today]");
+      var dashboardScheduleModeButton = event.target.closest("[data-dashboard-schedule-mode]");
       var todayButton = event.target.closest("[data-today]");
       var seasonButton = event.target.closest("[data-season]");
       var calendarViewButton = event.target.closest("[data-calendar-view]");
@@ -364,6 +366,16 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         var dashboardTodayIso = currentDateIso(root);
         state.selectedDate = dashboardTodayIso;
         state.weekStart = periodAnchor(dashboardTodayIso, state.period);
+        state.pendingDeleteEventId = "";
+        state.activeEventId = "";
+        state.actionMessage = "";
+        render(root);
+        return;
+      }
+
+      if (dashboardScheduleModeButton && root.contains(dashboardScheduleModeButton)) {
+        event.preventDefault();
+        state.dashboardScheduleMode = normalizeDashboardScheduleMode(dashboardScheduleModeButton.getAttribute("data-dashboard-schedule-mode"));
         state.pendingDeleteEventId = "";
         state.activeEventId = "";
         state.actionMessage = "";
@@ -1443,8 +1455,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var range = periodRange(state.selectedDate, "year");
     var units = monthUnits(range);
     var events = filteredEventsForRange(range.start, range.end);
+    var scheduleMode = normalizeDashboardScheduleMode(state.dashboardScheduleMode);
     var laneItems = dashboardGanttLanes().map(function (lane) {
-      var laneEvents = dashboardGanttLaneEvents(lane, events, range);
+      var laneEvents = dashboardGanttLaneEvents(lane, events, range, scheduleMode);
       return {
         lane: lane,
         events: laneEvents,
@@ -1456,8 +1469,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<section class="wt-dashboard-gantt" aria-label="' + text(year + " schedule overview") + '">',
       '<header class="wt-dashboard-gantt-head">',
       '<div><b>' + text(year) + '</b><span>Year schedule</span></div>',
+      '<div class="wt-dashboard-gantt-tools">',
+      renderDashboardGanttModeControls(scheduleMode),
       '<div class="wt-dashboard-gantt-legend">',
       '<span class="is-user">Model</span><span class="is-derived">Auto</span><span class="is-system">Plan</span>',
+      '</div>',
       '</div>',
       '</header>',
       '<div class="wt-dashboard-gantt-months">',
@@ -1515,19 +1531,44 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return !isUserEvent(event) && !isDerivedEvent(event) && event.gate === laneId;
   }
 
-  function dashboardGanttLaneEvents(lane, events, range) {
+  function dashboardGanttLaneEvents(lane, events, range, mode) {
     return events.filter(function (event) {
-      return eventOverlapsRange(event, range.start, range.end) && dashboardGanttEventInLane(event, lane.id) && dashboardGanttIsKeyEvent(event);
+      return eventOverlapsRange(event, range.start, range.end) && dashboardGanttEventInLane(event, lane.id) && dashboardGanttShouldShowEvent(event, mode);
     }).sort(function (a, b) {
       return (a.date + (a.endDate || "") + a.title).localeCompare(b.date + (b.endDate || "") + b.title);
     });
   }
 
-  function dashboardGanttIsKeyEvent(event) {
+  function renderDashboardGanttModeControls(mode) {
+    var options = [
+      { id: "focus", label: "Focus" },
+      { id: "all", label: "All" }
+    ];
+    return [
+      '<div class="wt-dashboard-gantt-mode" role="group" aria-label="Year schedule density">',
+      options.map(function (option) {
+        var active = option.id === mode ? " active" : "";
+        return '<button type="button" class="' + active + '" data-dashboard-schedule-mode="' + text(option.id) + '" aria-pressed="' + text(option.id === mode ? "true" : "false") + '">' + text(option.label) + '</button>';
+      }).join(""),
+      '</div>'
+    ].join("");
+  }
+
+  function normalizeDashboardScheduleMode(value) {
+    return value === "all" ? "all" : "focus";
+  }
+
+  function dashboardGanttShouldShowEvent(event, mode) {
     if (isUserEvent(event) || isDerivedEvent(event)) return true;
-    if (event && event.source === "schedule.pdf") return true;
+    if (mode === "all") return !!event && event.source === "schedule.pdf";
+    return dashboardGanttIsFocusEvent(event);
+  }
+
+  function dashboardGanttIsFocusEvent(event) {
+    if (!event) return false;
+    if (["handoff", "product_freeze", "bom_ddd", "results_ready"].indexOf(event.kind) >= 0) return true;
     var signature = String((event.title || "") + " " + (event.kind || "")).toLowerCase();
-    return /product freeze|bom ddd|handoff|wt report/.test(signature);
+    return /product freeze|bom ddd|handoff|wt report|results ready/.test(signature);
   }
 
   function dashboardGanttRequiredRows(events, range) {
