@@ -186,6 +186,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var dashboardWeekShiftButton = event.target.closest("[data-dashboard-week-shift]");
       var dashboardTodayButton = event.target.closest("[data-dashboard-today]");
       var dashboardScheduleModeButton = event.target.closest("[data-dashboard-schedule-mode]");
+      var dashboardGanttEventButton = event.target.closest("[data-dashboard-gantt-event]");
       var todayButton = event.target.closest("[data-today]");
       var seasonButton = event.target.closest("[data-season]");
       var calendarViewButton = event.target.closest("[data-calendar-view]");
@@ -289,6 +290,21 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         state.actionMessage = "";
         state.pendingDeleteEventId = "";
         state.activeEventId = "";
+        render(root);
+        return;
+      }
+
+      if (dashboardGanttEventButton && root.contains(dashboardGanttEventButton)) {
+        event.preventDefault();
+        var dashboardGanttEventId = dashboardGanttEventButton.getAttribute("data-event-id");
+        var dashboardGanttEvent = findEventById(dashboardGanttEventId);
+        var dashboardGanttDate = dashboardGanttEvent && dashboardGanttEvent.date || dashboardGanttEventButton.getAttribute("data-date");
+        if (!isIsoDate(dashboardGanttDate)) return;
+        state.selectedDate = dashboardGanttDate;
+        state.weekStart = periodAnchor(dashboardGanttDate, "month");
+        state.pendingDeleteEventId = "";
+        state.activeEventId = "";
+        state.actionMessage = "";
         render(root);
         return;
       }
@@ -1645,7 +1661,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var pointClass = item.position.isPoint ? " is-point" : " is-duration";
     var meta = formatDateShort(event.date) + " ";
     return [
-      '<button type="button" class="wt-dashboard-gantt-bar' + pointClass + ' wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '; --wt-rows:' + text(item.rows) + '">',
+      '<button type="button" class="wt-dashboard-gantt-bar' + pointClass + ' wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '" data-dashboard-gantt-event data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '; --wt-rows:' + text(item.rows) + '">',
       '<span>' + text(meta) + '</span>',
       '<b>' + text(shortTitle(dashboardGanttBarLabel(event), 32)) + '</b>',
       '</button>'
