@@ -5744,6 +5744,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   display: grid;
   grid-template-rows: 38px 34px minmax(0, 1fr);
   padding: 10px 12px 12px;
+  --wt-gantt-label-width: 56px;
 }
 
 .wt-dashboard-gantt-head,
@@ -5806,19 +5807,30 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   background: #9aa3a0;
 }
 
-.wt-dashboard-gantt-months,
+.wt-dashboard-gantt-month-row,
 .wt-dashboard-gantt-month-hit-grid {
   display: grid;
   grid-template-columns: repeat(var(--wt-cols, 12), minmax(0, 1fr));
 }
 
 .wt-dashboard-gantt-months {
+  display: grid;
+  grid-template-columns: var(--wt-gantt-label-width) minmax(0, 1fr);
   border: 1px solid var(--flow-border);
   border-bottom: 0;
   background: #f7f9f8;
 }
 
-.wt-dashboard-gantt-months button {
+.wt-dashboard-gantt-month-spacer {
+  border-right: 1px solid var(--flow-border);
+  background: #fbfcfb;
+}
+
+.wt-dashboard-gantt-month-row {
+  min-width: 0;
+}
+
+.wt-dashboard-gantt-month-row button {
   min-width: 0;
   display: grid;
   grid-template-columns: 1fr auto;
@@ -5832,21 +5844,21 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   cursor: pointer;
 }
 
-.wt-dashboard-gantt-months button:first-child {
+.wt-dashboard-gantt-month-row button:first-child {
   border-left: 0;
 }
 
-.wt-dashboard-gantt-months button.active {
+.wt-dashboard-gantt-month-row button.active {
   background: rgba(0, 58, 70, .09);
 }
 
-.wt-dashboard-gantt-months b {
+.wt-dashboard-gantt-month-row b {
   font-size: 13px;
   font-weight: 600;
   line-height: 1;
 }
 
-.wt-dashboard-gantt-months span {
+.wt-dashboard-gantt-month-row span {
   margin: 0;
   color: var(--flow-muted);
   font-size: 10px;
@@ -5863,7 +5875,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-dashboard-gantt-lane {
   min-height: 0;
   display: grid;
-  grid-template-columns: 56px minmax(0, 1fr);
+  grid-template-columns: var(--wt-gantt-label-width) minmax(0, 1fr);
   border-top: 1px solid var(--flow-border);
 }
 
@@ -5940,6 +5952,36 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   text-align: left;
 }
 
+.wt-dashboard-gantt-bar.is-point {
+  width: auto;
+  max-width: 200px;
+  min-width: 0;
+  grid-template-columns: 6px auto minmax(0, 1fr);
+  gap: 5px;
+  padding: 0 4px;
+  border-color: transparent;
+  border-left-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  transform: translateX(-4px);
+}
+
+.wt-dashboard-gantt-bar.is-point::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #5e6a66;
+}
+
+.wt-dashboard-gantt-bar.is-point.wt-event-user::before {
+  background: #008a8f;
+}
+
+.wt-dashboard-gantt-bar.is-point.wt-event-derived::before {
+  background: #5b6ee1;
+}
+
 .wt-dashboard-gantt-bar span {
   min-width: 0;
   color: var(--flow-muted);
@@ -5997,6 +6039,10 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   grid-template-columns: minmax(560px, 1.22fr) minmax(360px, .78fr);
   gap: 12px;
   overflow: hidden;
+}
+
+.wt-dashboard-calendar-grid.is-month-only {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .wt-dashboard-month-panel,
@@ -6143,8 +6189,16 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
     grid-template-columns: minmax(520px, 1.18fr) minmax(330px, .82fr);
   }
 
+  .wt-dashboard-calendar-grid.is-month-only {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .wt-dashboard-gantt-bar {
     padding-inline: 6px;
+  }
+
+  .wt-dashboard-gantt-bar.is-point {
+    max-width: 176px;
   }
 
   .wt-dashboard-gantt-bar b {
@@ -7596,9 +7650,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       '<section class="wt-dashboard">',
       renderDashboardGanttOverview(),
-      '<div class="wt-dashboard-calendar-grid">',
+      '<div class="wt-dashboard-calendar-grid is-month-only">',
       renderDashboardMonthPanel(),
-      renderDashboardWeekPanel(),
       '</div>',
       '</section>'
     ].join("");
@@ -7617,11 +7670,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<span class="is-user">Model</span><span class="is-derived">Auto</span><span class="is-system">Plan</span>',
       '</div>',
       '</header>',
-      '<div class="wt-dashboard-gantt-months" style="--wt-cols:' + text(units.length) + '">',
+      '<div class="wt-dashboard-gantt-months">',
+      '<span class="wt-dashboard-gantt-month-spacer" aria-hidden="true"></span>',
+      '<div class="wt-dashboard-gantt-month-row" style="--wt-cols:' + text(units.length) + '">',
       units.map(function (unit) {
         var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " active" : "";
         return '<button type="button" class="' + selected + '" data-dashboard-month-date="' + text(unit.start) + '" aria-label="' + text("Open " + unit.label + " " + unit.caption) + '"><b>' + text(unit.label) + '</b><span>' + text(unit.caption) + '</span></button>';
       }).join(""),
+      '</div>',
       '</div>',
       '<div class="wt-dashboard-gantt-body">',
       dashboardGanttLanes().map(function (lane) {
@@ -7659,7 +7715,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       assigned.items.length ? assigned.items.map(function (item) {
         return renderDashboardGanttBar(item);
       }).join("") : "",
-      assigned.overflow ? '<span class="wt-dashboard-gantt-overflow" title="' + text(assigned.overflow + " more milestones in " + lane.label) + '">+' + text(assigned.overflow) + '</span>' : "",
       '</div>',
       '</article>'
     ].join("");
@@ -7721,26 +7776,33 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var endIso = event.endDate || event.date;
     var endDay = Math.max(startDay, Math.min(totalDays - 1, daysBetween(range.start, endIso)));
     var left = (startDay / totalDays) * 100;
-    var width = Math.max(((endDay - startDay + 1) / totalDays) * 100, 11.2);
+    var isPoint = dashboardGanttIsPointEvent(event);
+    var width = isPoint ? 6.8 : Math.max(((endDay - startDay + 1) / totalDays) * 100, 11.2);
     if (left + width > 100) left = Math.max(0, 100 - width);
     return {
       left: left.toFixed(3),
-      width: width.toFixed(3)
+      width: width.toFixed(3),
+      isPoint: isPoint
     };
   }
 
   function renderDashboardGanttBar(item) {
     var event = item.event;
+    var pointClass = item.position.isPoint ? " is-point" : " is-duration";
     var meta = [
       formatDateShort(event.date),
-      event.modelName || event.gate || event.season || event.kind
+      isUserEvent(event) || isDerivedEvent(event) ? (event.modelName || event.gate || event.season || event.kind) : ""
     ].filter(Boolean).join(" · ");
     return [
-      '<button type="button" class="wt-dashboard-gantt-bar wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '; --wt-rows:' + text(item.rows) + '">',
+      '<button type="button" class="wt-dashboard-gantt-bar' + pointClass + ' wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '; --wt-rows:' + text(item.rows) + '">',
       '<span>' + text(meta) + '</span>',
       '<b>' + text(shortTitle(dashboardGanttBarTitle(event), 24)) + '</b>',
       '</button>'
     ].join("");
+  }
+
+  function dashboardGanttIsPointEvent(event) {
+    return !event || !event.endDate || event.endDate === event.date;
   }
 
   function dashboardGanttBarTitle(event) {

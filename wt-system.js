@@ -1432,9 +1432,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       '<section class="wt-dashboard">',
       renderDashboardGanttOverview(),
-      '<div class="wt-dashboard-calendar-grid">',
+      '<div class="wt-dashboard-calendar-grid is-month-only">',
       renderDashboardMonthPanel(),
-      renderDashboardWeekPanel(),
       '</div>',
       '</section>'
     ].join("");
@@ -1453,11 +1452,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<span class="is-user">Model</span><span class="is-derived">Auto</span><span class="is-system">Plan</span>',
       '</div>',
       '</header>',
-      '<div class="wt-dashboard-gantt-months" style="--wt-cols:' + text(units.length) + '">',
+      '<div class="wt-dashboard-gantt-months">',
+      '<span class="wt-dashboard-gantt-month-spacer" aria-hidden="true"></span>',
+      '<div class="wt-dashboard-gantt-month-row" style="--wt-cols:' + text(units.length) + '">',
       units.map(function (unit) {
         var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " active" : "";
         return '<button type="button" class="' + selected + '" data-dashboard-month-date="' + text(unit.start) + '" aria-label="' + text("Open " + unit.label + " " + unit.caption) + '"><b>' + text(unit.label) + '</b><span>' + text(unit.caption) + '</span></button>';
       }).join(""),
+      '</div>',
       '</div>',
       '<div class="wt-dashboard-gantt-body">',
       dashboardGanttLanes().map(function (lane) {
@@ -1495,7 +1497,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       assigned.items.length ? assigned.items.map(function (item) {
         return renderDashboardGanttBar(item);
       }).join("") : "",
-      assigned.overflow ? '<span class="wt-dashboard-gantt-overflow" title="' + text(assigned.overflow + " more milestones in " + lane.label) + '">+' + text(assigned.overflow) + '</span>' : "",
       '</div>',
       '</article>'
     ].join("");
@@ -1557,26 +1558,33 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var endIso = event.endDate || event.date;
     var endDay = Math.max(startDay, Math.min(totalDays - 1, daysBetween(range.start, endIso)));
     var left = (startDay / totalDays) * 100;
-    var width = Math.max(((endDay - startDay + 1) / totalDays) * 100, 11.2);
+    var isPoint = dashboardGanttIsPointEvent(event);
+    var width = isPoint ? 6.8 : Math.max(((endDay - startDay + 1) / totalDays) * 100, 11.2);
     if (left + width > 100) left = Math.max(0, 100 - width);
     return {
       left: left.toFixed(3),
-      width: width.toFixed(3)
+      width: width.toFixed(3),
+      isPoint: isPoint
     };
   }
 
   function renderDashboardGanttBar(item) {
     var event = item.event;
+    var pointClass = item.position.isPoint ? " is-point" : " is-duration";
     var meta = [
       formatDateShort(event.date),
-      event.modelName || event.gate || event.season || event.kind
+      isUserEvent(event) || isDerivedEvent(event) ? (event.modelName || event.gate || event.season || event.kind) : ""
     ].filter(Boolean).join(" · ");
     return [
-      '<button type="button" class="wt-dashboard-gantt-bar wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '; --wt-rows:' + text(item.rows) + '">',
+      '<button type="button" class="wt-dashboard-gantt-bar' + pointClass + ' wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '; --wt-rows:' + text(item.rows) + '">',
       '<span>' + text(meta) + '</span>',
       '<b>' + text(shortTitle(dashboardGanttBarTitle(event), 24)) + '</b>',
       '</button>'
     ].join("");
+  }
+
+  function dashboardGanttIsPointEvent(event) {
+    return !event || !event.endDate || event.endDate === event.date;
   }
 
   function dashboardGanttBarTitle(event) {
