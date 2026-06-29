@@ -1443,6 +1443,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var range = periodRange(state.selectedDate, "year");
     var units = monthUnits(range);
     var events = filteredEventsForRange(range.start, range.end);
+    var laneItems = dashboardGanttLanes().map(function (lane) {
+      var laneEvents = dashboardGanttLaneEvents(lane, events, range);
+      return {
+        lane: lane,
+        events: laneEvents,
+        rows: dashboardGanttRequiredRows(laneEvents, range)
+      };
+    });
     var year = fromIso(state.selectedDate).getFullYear();
     return [
       '<section class="wt-dashboard-gantt" aria-label="' + text(year + " schedule overview") + '">',
@@ -1461,9 +1469,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       }).join(""),
       '</div>',
       '</div>',
-      '<div class="wt-dashboard-gantt-body">',
-      dashboardGanttLanes().map(function (lane) {
-        return renderDashboardGanttLane(lane, units, events, range);
+      '<div class="wt-dashboard-gantt-body" style="grid-template-rows:' + text(laneItems.map(function (item) {
+        return Math.max(1, item.rows) + "fr";
+      }).join(" ")) + '">',
+      laneItems.map(function (item) {
+        return renderDashboardGanttLane(item.lane, units, item.events, item.rows);
       }).join(""),
       '</div>',
       '</section>'
@@ -1480,10 +1490,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     ];
   }
 
-  function renderDashboardGanttLane(lane, units, events, range) {
-    var rows = 2;
-    var laneEvents = dashboardGanttLaneEvents(lane, events, range);
-    var assigned = dashboardGanttAssignRows(laneEvents, range, rows);
+  function renderDashboardGanttLane(lane, units, laneEvents, rows) {
+    var assigned = dashboardGanttAssignRows(laneEvents, periodRange(state.selectedDate, "year"), rows);
     return [
       '<article class="wt-dashboard-gantt-lane wt-gantt-lane-' + text(lane.id.toLowerCase()) + '">',
       '<div class="wt-dashboard-gantt-label">' + text(lane.label) + '</div>',
@@ -1517,8 +1525,31 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function dashboardGanttIsKeyEvent(event) {
     if (isUserEvent(event) || isDerivedEvent(event)) return true;
+    if (event && event.source === "schedule.pdf") return true;
     var signature = String((event.title || "") + " " + (event.kind || "")).toLowerCase();
     return /product freeze|bom ddd|handoff|wt report/.test(signature);
+  }
+
+  function dashboardGanttRequiredRows(events, range) {
+    var rowEnds = [];
+    events.forEach(function (event) {
+      var position = dashboardGanttPosition(event, range);
+      var positionStart = Number(position.left);
+      var positionEnd = positionStart + Number(position.width);
+      var row = -1;
+      for (var index = 0; index < rowEnds.length; index += 1) {
+        if (positionStart >= rowEnds[index] + 1.8) {
+          row = index;
+          break;
+        }
+      }
+      if (row < 0) {
+        rowEnds.push(positionEnd);
+      } else {
+        rowEnds[row] = positionEnd;
+      }
+    });
+    return Math.max(1, rowEnds.length);
   }
 
   function dashboardGanttAssignRows(events, range, rows) {
@@ -1559,7 +1590,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var endDay = Math.max(startDay, Math.min(totalDays - 1, daysBetween(range.start, endIso)));
     var left = (startDay / totalDays) * 100;
     var isPoint = dashboardGanttIsPointEvent(event);
-    var width = isPoint ? 6.8 : Math.max(((endDay - startDay + 1) / totalDays) * 100, 11.2);
+    var width = isPoint ? 14.2 : Math.max(((endDay - startDay + 1) / totalDays) * 100, 11.2);
     if (left + width > 100) left = Math.max(0, 100 - width);
     return {
       left: left.toFixed(3),
@@ -1571,16 +1602,21 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderDashboardGanttBar(item) {
     var event = item.event;
     var pointClass = item.position.isPoint ? " is-point" : " is-duration";
-    var meta = [
-      formatDateShort(event.date),
-      isUserEvent(event) || isDerivedEvent(event) ? (event.modelName || event.gate || event.season || event.kind) : ""
-    ].filter(Boolean).join(" · ");
+    var meta = formatDateShort(event.date) + " ";
     return [
       '<button type="button" class="wt-dashboard-gantt-bar' + pointClass + ' wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '; --wt-rows:' + text(item.rows) + '">',
       '<span>' + text(meta) + '</span>',
-      '<b>' + text(shortTitle(dashboardGanttBarTitle(event), 24)) + '</b>',
+      '<b>' + text(shortTitle(dashboardGanttBarLabel(event), 32)) + '</b>',
       '</button>'
     ].join("");
+  }
+
+  function dashboardGanttBarLabel(event) {
+    return [
+      event.season,
+      event.gate,
+      dashboardGanttBarTitle(event)
+    ].filter(Boolean).join(" ");
   }
 
   function dashboardGanttIsPointEvent(event) {
