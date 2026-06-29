@@ -5724,7 +5724,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   height: 100%;
   min-height: 0;
   display: grid;
-  grid-template-rows: minmax(178px, .34fr) minmax(0, 1fr);
+  grid-template-rows: clamp(420px, 40vh, 460px) minmax(0, 1fr);
   gap: 12px;
   padding: 12px;
   overflow: hidden;
@@ -5742,8 +5742,8 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-dashboard-gantt {
   display: grid;
-  grid-template-rows: 32px 28px minmax(0, 1fr);
-  padding: 8px 10px 10px;
+  grid-template-rows: 38px 34px minmax(0, 1fr);
+  padding: 10px 12px 12px;
 }
 
 .wt-dashboard-gantt-head,
@@ -5761,7 +5761,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   margin: 0;
   color: var(--flow-ink);
   font-family: var(--font-text);
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   line-height: 1.1;
 }
@@ -5807,7 +5807,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-dashboard-gantt-months,
-.wt-dashboard-gantt-track {
+.wt-dashboard-gantt-month-hit-grid {
   display: grid;
   grid-template-columns: repeat(var(--wt-cols, 12), minmax(0, 1fr));
 }
@@ -5855,7 +5855,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-dashboard-gantt-body {
   min-height: 0;
   display: grid;
-  grid-template-rows: repeat(5, minmax(0, 1fr));
+  grid-template-rows: repeat(5, minmax(38px, 1fr));
   border: 1px solid var(--flow-border);
   overflow: hidden;
 }
@@ -5863,7 +5863,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-dashboard-gantt-lane {
   min-height: 0;
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-columns: 56px minmax(0, 1fr);
   border-top: 1px solid var(--flow-border);
 }
 
@@ -5874,82 +5874,121 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-dashboard-gantt-label {
   display: flex;
   align-items: center;
-  padding: 0 8px;
+  padding: 0 10px;
   border-right: 1px solid var(--flow-border);
   background: #fbfcfb;
   color: var(--flow-ink);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 }
 
-.wt-dashboard-gantt-cell {
+.wt-dashboard-gantt-track {
+  position: relative;
   min-width: 0;
   min-height: 0;
-  display: grid;
-  align-content: start;
-  gap: 2px;
-  padding: 3px 4px;
-  border: 0;
-  border-left: 1px solid var(--flow-border);
-  background: #ffffff;
-  text-align: left;
-  cursor: pointer;
   overflow: hidden;
+  background-color: #ffffff;
+  background-image: linear-gradient(to right, rgba(0,58,70,.09) 1px, transparent 1px);
+  background-size: calc(100% / 12) 100%;
 }
 
-.wt-dashboard-gantt-cell:first-child {
+.wt-dashboard-gantt-month-hit-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.wt-dashboard-gantt-month-hit-grid button {
+  min-width: 0;
+  border: 0;
+  border-left: 1px solid var(--flow-border);
+  background: transparent;
+  cursor: pointer;
+}
+
+.wt-dashboard-gantt-month-hit-grid button:first-child {
   border-left: 0;
 }
 
-.wt-dashboard-gantt-cell.is-selected-month {
-  background: #eef8f7;
+.wt-dashboard-gantt-month-hit-grid button.is-selected-month {
+  background: rgba(0, 138, 143, .08);
 }
 
-.wt-dashboard-gantt-chip {
+.wt-dashboard-gantt-bar {
+  position: absolute;
+  z-index: 2;
+  top: calc((var(--wt-row, 0) * (100% / var(--wt-rows, 2))) + 3px);
+  left: calc(var(--wt-left, 0) * 1%);
+  width: calc(var(--wt-width, 8) * 1%);
   min-width: 0;
-  height: 16px;
+  height: calc((100% / var(--wt-rows, 2)) - 6px);
+  min-height: 17px;
+  max-height: 24px;
   display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 3px;
-  border-left: 3px solid #8a9692;
-  background: #f4f6f5;
+  gap: 6px;
+  padding: 0 8px 0 7px;
+  border: 1px solid rgba(29, 47, 43, .14);
+  border-left: 4px solid #87918e;
+  border-radius: 4px;
+  background: #f3f6f5;
   color: var(--flow-ink);
-  font-style: normal;
+  box-shadow: 0 1px 0 rgba(20, 38, 36, .04);
+  cursor: pointer;
   overflow: hidden;
+  text-align: left;
 }
 
-.wt-dashboard-gantt-chip span {
+.wt-dashboard-gantt-bar span {
+  min-width: 0;
   color: var(--flow-muted);
-  font-size: 10px;
+  font-size: 11.5px;
+  font-weight: 600;
   line-height: 1;
-  text-align: center;
+  white-space: nowrap;
 }
 
-.wt-dashboard-gantt-chip b {
+.wt-dashboard-gantt-bar b {
   min-width: 0;
   overflow: hidden;
-  font-size: 10px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   line-height: 1;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
-.wt-dashboard-gantt-chip.wt-event-user {
+.wt-dashboard-gantt-bar.wt-event-user {
   border-left-color: #008a8f;
-  background: #e9f8f7;
+  background: #e7f7f6;
 }
 
-.wt-dashboard-gantt-chip.wt-event-derived {
+.wt-dashboard-gantt-bar.wt-event-derived {
   border-left-color: #5b6ee1;
   background: #eef0ff;
 }
 
-.wt-dashboard-gantt-cell small {
+.wt-dashboard-gantt-empty,
+.wt-dashboard-gantt-overflow {
+  position: absolute;
+  z-index: 2;
+  right: 8px;
   color: var(--flow-muted);
   font-size: 10px;
   line-height: 1;
+}
+
+.wt-dashboard-gantt-empty {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.wt-dashboard-gantt-overflow {
+  bottom: 6px;
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: rgba(244, 246, 245, .92);
 }
 
 .wt-dashboard-calendar-grid {
@@ -6094,7 +6133,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-dashboard {
-  grid-template-rows: minmax(178px, .34fr) minmax(0, 1fr);
+  grid-template-rows: clamp(420px, 40vh, 460px) minmax(0, 1fr);
   gap: 12px;
   padding: 12px;
 }
@@ -6104,8 +6143,12 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
     grid-template-columns: minmax(520px, 1.18fr) minmax(330px, .82fr);
   }
 
-  .wt-dashboard-gantt-chip b {
-    font-size: 9px;
+  .wt-dashboard-gantt-bar {
+    padding-inline: 6px;
+  }
+
+  .wt-dashboard-gantt-bar b {
+    font-size: 12.5px;
   }
 }
 </style>
@@ -7582,7 +7625,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '</div>',
       '<div class="wt-dashboard-gantt-body">',
       dashboardGanttLanes().map(function (lane) {
-        return renderDashboardGanttLane(lane, units, events);
+        return renderDashboardGanttLane(lane, units, events, range);
       }).join(""),
       '</div>',
       '</section>'
@@ -7599,29 +7642,26 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     ];
   }
 
-  function renderDashboardGanttLane(lane, units, events) {
+  function renderDashboardGanttLane(lane, units, events, range) {
+    var rows = 2;
+    var laneEvents = dashboardGanttLaneEvents(lane, events, range);
+    var assigned = dashboardGanttAssignRows(laneEvents, range, rows);
     return [
       '<article class="wt-dashboard-gantt-lane wt-gantt-lane-' + text(lane.id.toLowerCase()) + '">',
       '<div class="wt-dashboard-gantt-label">' + text(lane.label) + '</div>',
-      '<div class="wt-dashboard-gantt-track" style="--wt-cols:' + text(units.length) + '">',
+      '<div class="wt-dashboard-gantt-track" style="--wt-cols:' + text(units.length) + '; --wt-rows:' + text(rows) + '">',
+      '<div class="wt-dashboard-gantt-month-hit-grid" aria-hidden="true">',
       units.map(function (unit) {
-        return renderDashboardGanttCell(lane, unit, events);
+        var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " is-selected-month" : "";
+        return '<button type="button" class="' + selected + '" data-dashboard-month-date="' + text(unit.start) + '" tabindex="-1" aria-label="' + text(lane.label + " " + unit.label + " events") + '"></button>';
       }).join(""),
       '</div>',
+      assigned.items.length ? assigned.items.map(function (item) {
+        return renderDashboardGanttBar(item);
+      }).join("") : "",
+      assigned.overflow ? '<span class="wt-dashboard-gantt-overflow" title="' + text(assigned.overflow + " more milestones in " + lane.label) + '">+' + text(assigned.overflow) + '</span>' : "",
+      '</div>',
       '</article>'
-    ].join("");
-  }
-
-  function renderDashboardGanttCell(lane, unit, events) {
-    var monthEvents = prioritizedEvents(events.filter(function (event) {
-      return eventOverlapsRange(event, unit.start, unit.end) && dashboardGanttEventInLane(event, lane.id);
-    }));
-    var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " is-selected-month" : "";
-    return [
-      '<button type="button" class="wt-dashboard-gantt-cell' + selected + '" data-dashboard-month-date="' + text(unit.start) + '" aria-label="' + text(lane.label + " " + unit.label + " events") + '">',
-      monthEvents.length ? monthEvents.slice(0, 4).map(renderDashboardGanttChip).join("") : '<span class="wt-dashboard-gantt-empty"></span>',
-      monthEvents.length > 4 ? '<small>' + text("+" + (monthEvents.length - 4)) + '</small>' : "",
-      '</button>'
     ].join("");
   }
 
@@ -7630,13 +7670,88 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return !isUserEvent(event) && !isDerivedEvent(event) && event.gate === laneId;
   }
 
-  function renderDashboardGanttChip(event) {
+  function dashboardGanttLaneEvents(lane, events, range) {
+    return events.filter(function (event) {
+      return eventOverlapsRange(event, range.start, range.end) && dashboardGanttEventInLane(event, lane.id) && dashboardGanttIsKeyEvent(event);
+    }).sort(function (a, b) {
+      return (a.date + (a.endDate || "") + a.title).localeCompare(b.date + (b.endDate || "") + b.title);
+    });
+  }
+
+  function dashboardGanttIsKeyEvent(event) {
+    if (isUserEvent(event) || isDerivedEvent(event)) return true;
+    var signature = String((event.title || "") + " " + (event.kind || "")).toLowerCase();
+    return /product freeze|bom ddd|handoff|wt report/.test(signature);
+  }
+
+  function dashboardGanttAssignRows(events, range, rows) {
+    var rowEnds = [];
+    var items = [];
+    var overflow = 0;
+    for (var i = 0; i < rows; i += 1) rowEnds.push(-100);
+    events.forEach(function (event) {
+      var position = dashboardGanttPosition(event, range);
+      var positionStart = Number(position.left);
+      var positionEnd = positionStart + Number(position.width);
+      var row = -1;
+      for (var index = 0; index < rows; index += 1) {
+        if (positionStart >= rowEnds[index] + 1.8) {
+          row = index;
+          break;
+        }
+      }
+      if (row < 0) {
+        overflow += 1;
+        return;
+      }
+      rowEnds[row] = positionEnd;
+      items.push({
+        event: event,
+        position: position,
+        row: row,
+        rows: rows
+      });
+    });
+    return { items: items, overflow: overflow };
+  }
+
+  function dashboardGanttPosition(event, range) {
+    var totalDays = daysBetween(range.start, range.end) + 1;
+    var startDay = Math.max(0, Math.min(totalDays - 1, daysBetween(range.start, event.date)));
+    var endIso = event.endDate || event.date;
+    var endDay = Math.max(startDay, Math.min(totalDays - 1, daysBetween(range.start, endIso)));
+    var left = (startDay / totalDays) * 100;
+    var width = Math.max(((endDay - startDay + 1) / totalDays) * 100, 11.2);
+    if (left + width > 100) left = Math.max(0, 100 - width);
+    return {
+      left: left.toFixed(3),
+      width: width.toFixed(3)
+    };
+  }
+
+  function renderDashboardGanttBar(item) {
+    var event = item.event;
+    var meta = [
+      formatDateShort(event.date),
+      event.modelName || event.gate || event.season || event.kind
+    ].filter(Boolean).join(" · ");
     return [
-      '<i class="wt-dashboard-gantt-chip wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '" title="' + text(eventTooltip(event)) + '">',
-      '<span>' + text(dayOfMonth(event.date)) + '</span>',
-      '<b>' + text(shortTitle(event.modelName || event.title, 18)) + '</b>',
-      '</i>'
+      '<button type="button" class="wt-dashboard-gantt-bar wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '; --wt-rows:' + text(item.rows) + '">',
+      '<span>' + text(meta) + '</span>',
+      '<b>' + text(shortTitle(dashboardGanttBarTitle(event), 24)) + '</b>',
+      '</button>'
     ].join("");
+  }
+
+  function dashboardGanttBarTitle(event) {
+    var title = String(event.modelName || event.title || "");
+    return title
+      .replace(/^\s*(XLT|PR\/PA|PR|GGP|SPA)\s+/i, "")
+      .replace(/\(LTWT\)\s*/ig, "")
+      .replace(/^LTWT\s+/i, "")
+      .replace(/^P\/T\s+/i, "")
+      .replace(/\s+/g, " ")
+      .trim() || title;
   }
 
   function renderDashboardYearStrip() {

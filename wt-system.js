@@ -1461,7 +1461,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '</div>',
       '<div class="wt-dashboard-gantt-body">',
       dashboardGanttLanes().map(function (lane) {
-        return renderDashboardGanttLane(lane, units, events);
+        return renderDashboardGanttLane(lane, units, events, range);
       }).join(""),
       '</div>',
       '</section>'
@@ -1478,29 +1478,26 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     ];
   }
 
-  function renderDashboardGanttLane(lane, units, events) {
+  function renderDashboardGanttLane(lane, units, events, range) {
+    var rows = 2;
+    var laneEvents = dashboardGanttLaneEvents(lane, events, range);
+    var assigned = dashboardGanttAssignRows(laneEvents, range, rows);
     return [
       '<article class="wt-dashboard-gantt-lane wt-gantt-lane-' + text(lane.id.toLowerCase()) + '">',
       '<div class="wt-dashboard-gantt-label">' + text(lane.label) + '</div>',
-      '<div class="wt-dashboard-gantt-track" style="--wt-cols:' + text(units.length) + '">',
+      '<div class="wt-dashboard-gantt-track" style="--wt-cols:' + text(units.length) + '; --wt-rows:' + text(rows) + '">',
+      '<div class="wt-dashboard-gantt-month-hit-grid" aria-hidden="true">',
       units.map(function (unit) {
-        return renderDashboardGanttCell(lane, unit, events);
+        var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " is-selected-month" : "";
+        return '<button type="button" class="' + selected + '" data-dashboard-month-date="' + text(unit.start) + '" tabindex="-1" aria-label="' + text(lane.label + " " + unit.label + " events") + '"></button>';
       }).join(""),
       '</div>',
+      assigned.items.length ? assigned.items.map(function (item) {
+        return renderDashboardGanttBar(item);
+      }).join("") : "",
+      assigned.overflow ? '<span class="wt-dashboard-gantt-overflow" title="' + text(assigned.overflow + " more milestones in " + lane.label) + '">+' + text(assigned.overflow) + '</span>' : "",
+      '</div>',
       '</article>'
-    ].join("");
-  }
-
-  function renderDashboardGanttCell(lane, unit, events) {
-    var monthEvents = prioritizedEvents(events.filter(function (event) {
-      return eventOverlapsRange(event, unit.start, unit.end) && dashboardGanttEventInLane(event, lane.id);
-    }));
-    var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " is-selected-month" : "";
-    return [
-      '<button type="button" class="wt-dashboard-gantt-cell' + selected + '" data-dashboard-month-date="' + text(unit.start) + '" aria-label="' + text(lane.label + " " + unit.label + " events") + '">',
-      monthEvents.length ? monthEvents.slice(0, 4).map(renderDashboardGanttChip).join("") : '<span class="wt-dashboard-gantt-empty"></span>',
-      monthEvents.length > 4 ? '<small>' + text("+" + (monthEvents.length - 4)) + '</small>' : "",
-      '</button>'
     ].join("");
   }
 
@@ -1509,13 +1506,88 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return !isUserEvent(event) && !isDerivedEvent(event) && event.gate === laneId;
   }
 
-  function renderDashboardGanttChip(event) {
+  function dashboardGanttLaneEvents(lane, events, range) {
+    return events.filter(function (event) {
+      return eventOverlapsRange(event, range.start, range.end) && dashboardGanttEventInLane(event, lane.id) && dashboardGanttIsKeyEvent(event);
+    }).sort(function (a, b) {
+      return (a.date + (a.endDate || "") + a.title).localeCompare(b.date + (b.endDate || "") + b.title);
+    });
+  }
+
+  function dashboardGanttIsKeyEvent(event) {
+    if (isUserEvent(event) || isDerivedEvent(event)) return true;
+    var signature = String((event.title || "") + " " + (event.kind || "")).toLowerCase();
+    return /product freeze|bom ddd|handoff|wt report/.test(signature);
+  }
+
+  function dashboardGanttAssignRows(events, range, rows) {
+    var rowEnds = [];
+    var items = [];
+    var overflow = 0;
+    for (var i = 0; i < rows; i += 1) rowEnds.push(-100);
+    events.forEach(function (event) {
+      var position = dashboardGanttPosition(event, range);
+      var positionStart = Number(position.left);
+      var positionEnd = positionStart + Number(position.width);
+      var row = -1;
+      for (var index = 0; index < rows; index += 1) {
+        if (positionStart >= rowEnds[index] + 1.8) {
+          row = index;
+          break;
+        }
+      }
+      if (row < 0) {
+        overflow += 1;
+        return;
+      }
+      rowEnds[row] = positionEnd;
+      items.push({
+        event: event,
+        position: position,
+        row: row,
+        rows: rows
+      });
+    });
+    return { items: items, overflow: overflow };
+  }
+
+  function dashboardGanttPosition(event, range) {
+    var totalDays = daysBetween(range.start, range.end) + 1;
+    var startDay = Math.max(0, Math.min(totalDays - 1, daysBetween(range.start, event.date)));
+    var endIso = event.endDate || event.date;
+    var endDay = Math.max(startDay, Math.min(totalDays - 1, daysBetween(range.start, endIso)));
+    var left = (startDay / totalDays) * 100;
+    var width = Math.max(((endDay - startDay + 1) / totalDays) * 100, 11.2);
+    if (left + width > 100) left = Math.max(0, 100 - width);
+    return {
+      left: left.toFixed(3),
+      width: width.toFixed(3)
+    };
+  }
+
+  function renderDashboardGanttBar(item) {
+    var event = item.event;
+    var meta = [
+      formatDateShort(event.date),
+      event.modelName || event.gate || event.season || event.kind
+    ].filter(Boolean).join(" · ");
     return [
-      '<i class="wt-dashboard-gantt-chip wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '" title="' + text(eventTooltip(event)) + '">',
-      '<span>' + text(dayOfMonth(event.date)) + '</span>',
-      '<b>' + text(shortTitle(event.modelName || event.title, 18)) + '</b>',
-      '</i>'
+      '<button type="button" class="wt-dashboard-gantt-bar wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '; --wt-rows:' + text(item.rows) + '">',
+      '<span>' + text(meta) + '</span>',
+      '<b>' + text(shortTitle(dashboardGanttBarTitle(event), 24)) + '</b>',
+      '</button>'
     ].join("");
+  }
+
+  function dashboardGanttBarTitle(event) {
+    var title = String(event.modelName || event.title || "");
+    return title
+      .replace(/^\s*(XLT|PR\/PA|PR|GGP|SPA)\s+/i, "")
+      .replace(/\(LTWT\)\s*/ig, "")
+      .replace(/^LTWT\s+/i, "")
+      .replace(/^P\/T\s+/i, "")
+      .replace(/\s+/g, " ")
+      .trim() || title;
   }
 
   function renderDashboardYearStrip() {
