@@ -5752,7 +5752,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   margin: 0;
   color: var(--flow-ink);
   font-family: var(--font-text);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 600;
   line-height: 1.1;
 }
@@ -5762,7 +5762,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   display: block;
   margin-top: 2px;
   color: var(--flow-muted);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1;
 }
 
@@ -5771,7 +5771,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   gap: 7px;
   align-items: center;
   color: var(--flow-muted);
-  font-size: 11px;
+  font-size: 12px;
   white-space: nowrap;
 }
 
@@ -5793,12 +5793,12 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-dashboard-gantt-mode button {
   min-width: 52px;
-  height: 24px;
+  height: 26px;
   border: 0;
   border-radius: 999px;
   background: transparent;
   color: #65716d;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
@@ -5878,7 +5878,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-dashboard-gantt-month-row b {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 1;
 }
@@ -5886,7 +5886,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-dashboard-gantt-month-row span {
   margin: 0;
   color: var(--flow-muted);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .wt-dashboard-gantt-body {
@@ -5915,7 +5915,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   border-right: 1px solid var(--flow-border);
   background: #fbfcfb;
   color: var(--flow-ink);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -5960,7 +5960,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   min-width: 0;
   height: calc((100% / var(--wt-rows, 2)) - 4px);
   min-height: 0;
-  max-height: 22px;
+  max-height: 26px;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
@@ -5979,7 +5979,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-dashboard-gantt-bar.is-point {
   width: auto;
-  max-width: 232px;
+  max-width: 268px;
   min-width: 0;
   grid-template-columns: 6px auto minmax(0, 1fr);
   gap: 5px;
@@ -6010,7 +6010,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-dashboard-gantt-bar span {
   min-width: 0;
   color: var(--flow-muted);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
@@ -6019,7 +6019,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-dashboard-gantt-bar b {
   min-width: 0;
   overflow: hidden;
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
@@ -6042,7 +6042,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   z-index: 2;
   right: 8px;
   color: var(--flow-muted);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1;
 }
 
@@ -6093,7 +6093,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   border-radius: 5px;
   background: #ffffff;
   color: var(--flow-ink);
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
 }
 
@@ -6131,11 +6131,11 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-dashboard-month-panel .wt-month-calendar-board.compact .wt-month-day-button span {
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .wt-dashboard-month-panel .wt-month-calendar-board.compact .wt-month-day-button b {
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .wt-dashboard-month-panel .wt-month-calendar-board.compact .wt-month-event {
@@ -6155,8 +6155,8 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-dashboard-month-panel .wt-month-calendar-board.compact .wt-month-event span,
 .wt-dashboard-month-panel .wt-month-calendar-board.compact .wt-month-event i {
-  font-size: 10px;
-  line-height: 12px;
+  font-size: 11px;
+  line-height: 12.5px;
 }
 
 .wt-dashboard-month-panel .wt-month-calendar-board.compact .wt-month-event span {
@@ -6167,8 +6167,8 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-dashboard-month-panel .wt-month-calendar-board.compact .wt-month-event b {
   flex: 1 1 auto;
   display: block;
-  font-size: 11px;
-  line-height: 12px;
+  font-size: 12px;
+  line-height: 12.5px;
   white-space: nowrap;
   -webkit-line-clamp: initial;
 }
@@ -6247,10 +6247,14 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   }
 
   .wt-dashboard-gantt-bar.is-point {
-    max-width: 196px;
+    max-width: 224px;
+  }
+
+  .wt-dashboard-gantt-bar span {
+    font-size: 11.5px;
   }
 
   .wt-dashboard-gantt-bar b {
-    font-size: 11px;
+    font-size: 12px;
   }
 }
