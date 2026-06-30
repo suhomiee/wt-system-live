@@ -37,7 +37,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     { value: "T2 FPT WT Report", kind: "report" },
     { value: "LTWT P/T Sample Actual", kind: "sample" }
   ];
-  var SCHEDULE_SIZE_OPTIONS = ["W5.5", "W7", "M9", "M10"];
+  var SCHEDULE_SIZE_OPTIONS = ["W5.5", "W8", "M9", "M10"];
 
   var EMBEDDED = window.WT_SYSTEM_EMBEDDED || { milestones: [], holidays: [] };
   var SHAREPOINT_SOURCES = {
@@ -1659,7 +1659,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderDashboardGanttBar(item) {
     var event = item.event;
     var pointClass = item.position.isPoint ? " is-point" : " is-duration";
-    var meta = formatDateShort(event.date) + " ";
+    var meta = formatDateSlash(event.date) + " ";
     return [
       '<button type="button" class="wt-dashboard-gantt-bar' + pointClass + ' wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '" data-dashboard-gantt-event data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '; --wt-rows:' + text(item.rows) + '">',
       '<span>' + text(meta) + '</span>',
@@ -4307,6 +4307,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function formatDateShort(date) {
     var d = fromIso(date);
     return titleCaseMonth(d) + " " + d.getDate();
+  }
+
+  function formatDateSlash(date) {
+    var d = fromIso(date);
+    return (d.getMonth() + 1) + "/" + d.getDate();
   }
 
   function formatDateTime(value) {
