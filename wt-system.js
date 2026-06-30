@@ -598,19 +598,38 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '</div>',
       '<button type="button" class="wt-sidebar-create" data-view="edit">' + icon("plus") + '<span>Create Schedule</span></button>',
       '<nav class="wt-primary-nav wt-primary-nav-main" aria-label="Primary">',
-      navItem("dashboard", "Dashboard"),
-      navItem("calendar", "Calendar"),
-      navItem("gameplan", "WT Product Game Plan"),
-      externalNavItem("phkReports", "PHK WT Reports", "phk"),
-      externalNavItem("nikeReports", "Nike Lab Reports", "phk"),
-      externalNavItem("nikeBMethodResult", "NIKE B-Method Result", "lab"),
-      externalNavItem("nikeRows", "Product Test Database", "lab"),
-      copilotNavItem(root, "AI Q&A"),
+      navGroup("Workspace", [
+        navItem("dashboard", "Dashboard"),
+        navItem("calendar", "Calendar")
+      ]),
+      navGroup("Planning", [
+        navItem("gameplan", "WT Product Game Plan")
+      ]),
+      navGroup("Reports & Data", [
+        externalNavItem("phkReports", "PHK WT Reports", "phk"),
+        externalNavItem("nikeReports", "Nike Lab Reports", "phk"),
+        externalNavItem("nikeBMethodResult", "NIKE B-Method Result", "lab"),
+        externalNavItem("nikeRows", "Product Test Database", "lab")
+      ]),
+      navGroup("Assistant", [
+        copilotNavItem(root, "AI Q&A")
+      ]),
       '</nav>',
       '<nav class="wt-primary-nav wt-sidebar-bottom-nav" aria-label="Schedule management">',
-      navItem("manager", "Schedule Manager"),
+      navGroup("Management", [
+        navItem("manager", "Schedule Manager")
+      ]),
       '</nav>',
       '</aside>'
+    ].join("");
+  }
+
+  function navGroup(label, items) {
+    return [
+      '<section class="wt-nav-group" aria-label="' + text(label) + '">',
+      '<p class="wt-nav-group-title">' + text(label) + '</p>',
+      items.join(""),
+      '</section>'
     ].join("");
   }
 
