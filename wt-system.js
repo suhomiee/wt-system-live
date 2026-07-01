@@ -1488,6 +1488,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var range = periodRange(state.selectedDate, "year");
     var units = monthUnits(range);
     var events = filteredEventsForRange(range.start, range.end);
+    var todayIso = dashboardGanttTodayIso();
     var laneItems = dashboardGanttLanes().map(function (lane) {
       var laneEvents = dashboardGanttLaneEvents(lane, events, range);
       return {
@@ -1507,7 +1508,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-dashboard-gantt-month-row" style="--wt-cols:' + text(units.length) + '">',
       units.map(function (unit) {
         var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " active" : "";
-        return '<button type="button" class="' + selected + '" data-dashboard-month-date="' + text(unit.start) + '" aria-label="' + text("Open " + unit.label + " " + unit.caption) + '"><b>' + text(unit.label) + '</b><span>' + text(unit.caption) + '</span></button>';
+        var current = todayIso >= unit.start && todayIso <= unit.end ? " is-current-month" : "";
+        return '<button type="button" class="' + selected + current + '" data-dashboard-month-date="' + text(unit.start) + '" aria-label="' + text("Open " + unit.label + " " + unit.caption) + '"><b>' + text(unit.label) + '</b><span>' + text(unit.caption) + '</span></button>';
       }).join(""),
       '</div>',
       '</div>',
@@ -1515,7 +1517,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         return Math.max(1, item.rows) + "fr";
       }).join(" ")) + '">',
       laneItems.map(function (item) {
-        return renderDashboardGanttLane(item.lane, units, item.events, item.rows);
+        return renderDashboardGanttLane(item.lane, units, item.events, item.rows, todayIso);
       }).join(""),
       '</div>',
       '</section>'
@@ -1527,11 +1529,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       { id: "XLT", label: "XLT" },
       { id: "PR", label: "PR" },
       { id: "GGP", label: "GGP" },
-      { id: "SPA", label: "SPA" }
+      { id: "SPA", label: "SPA" },
+      { id: "model", label: "Model" }
     ];
   }
 
-  function renderDashboardGanttLane(lane, units, laneEvents, rows) {
+  function renderDashboardGanttLane(lane, units, laneEvents, rows, todayIso) {
     var assigned = dashboardGanttAssignRows(laneEvents, periodRange(state.selectedDate, "year"), rows);
     return [
       '<article class="wt-dashboard-gantt-lane wt-gantt-lane-' + text(lane.id.toLowerCase()) + '">',
@@ -1540,11 +1543,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-dashboard-gantt-month-hit-grid" aria-hidden="true">',
       units.map(function (unit) {
         var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " is-selected-month" : "";
-        return '<button type="button" class="' + selected + '" data-dashboard-month-date="' + text(unit.start) + '" tabindex="-1" aria-label="' + text(lane.label + " " + unit.label + " events") + '"></button>';
+        var current = todayIso >= unit.start && todayIso <= unit.end ? " is-current-month" : "";
+        return '<button type="button" class="' + selected + current + '" data-dashboard-month-date="' + text(unit.start) + '" tabindex="-1" aria-label="' + text(lane.label + " " + unit.label + " events") + '"></button>';
       }).join(""),
       '</div>',
       assigned.items.length ? assigned.items.map(function (item) {
-        return renderDashboardGanttBar(item);
+        return renderDashboardGanttBar(item, todayIso);
       }).join("") : "",
       '</div>',
       '</article>'
@@ -1552,7 +1556,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function dashboardGanttEventInLane(event, laneId) {
+    if (laneId === "model") return isUserEvent(event) || isDerivedEvent(event);
     return !isUserEvent(event) && !isDerivedEvent(event) && event.gate === laneId;
+  }
+
+  function dashboardGanttTodayIso() {
+    var configured = queryParam("wt-today");
+    return isIsoDate(configured) ? configured : toIso(new Date());
   }
 
   function dashboardGanttLaneEvents(lane, events, range) {
@@ -1644,12 +1654,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     };
   }
 
-  function renderDashboardGanttBar(item) {
+  function renderDashboardGanttBar(item, todayIso) {
     var event = item.event;
     var pointClass = item.position.isPoint ? " is-point" : " is-duration";
+    var pastClass = (event.endDate || event.date) < todayIso ? " wt-is-past" : "";
     var meta = formatDateSlash(event.date) + " ";
     return [
-      '<button type="button" class="wt-dashboard-gantt-bar' + pointClass + ' wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '" data-dashboard-gantt-event data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '; --wt-rows:' + text(item.rows) + '">',
+      '<button type="button" class="wt-dashboard-gantt-bar' + pointClass + pastClass + ' wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '" data-dashboard-gantt-event data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '; --wt-rows:' + text(item.rows) + '">',
       '<span>' + text(meta) + '</span>',
       '<b>' + text(shortTitle(dashboardGanttBarLabel(event), 32)) + '</b>',
       '</button>'

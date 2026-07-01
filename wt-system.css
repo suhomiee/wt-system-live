@@ -5788,6 +5788,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   grid-template-rows: 38px 34px minmax(0, 1fr);
   padding: 10px 12px 12px;
   --wt-gantt-label-width: 56px;
+  font-family: Inter, var(--font-text);
 }
 
 .wt-dashboard-gantt-head,
@@ -5864,10 +5865,24 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   background: rgba(0, 58, 70, .09);
 }
 
+.wt-dashboard-gantt-month-row button.is-current-month {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  border-left: 2px solid #37bdb7;
+  background: #39bbb5;
+  color: #ffffff;
+}
+
 .wt-dashboard-gantt-month-row b {
   font-size: 14px;
   font-weight: 600;
   line-height: 1;
+}
+
+.wt-dashboard-gantt-month-row button.is-current-month b {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
 }
 
 .wt-dashboard-gantt-month-row span {
@@ -5876,10 +5891,14 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   font-size: 11px;
 }
 
+.wt-dashboard-gantt-month-row button.is-current-month span {
+  display: none;
+}
+
 .wt-dashboard-gantt-body {
   min-height: 0;
   display: grid;
-  grid-template-rows: repeat(4, minmax(38px, 1fr));
+  grid-template-rows: repeat(5, minmax(38px, 1fr));
   border: 1px solid var(--flow-border);
   overflow: hidden;
 }
@@ -5938,6 +5957,11 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   background: rgba(0, 138, 143, .08);
 }
 
+.wt-dashboard-gantt-month-hit-grid button.is-current-month {
+  border-left: 2px solid #37bdb7;
+  background: rgba(57, 187, 181, .12);
+}
+
 .wt-dashboard-gantt-bar {
   position: absolute;
   z-index: 2;
@@ -5973,8 +5997,8 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   padding: 0 6px;
   border: 1px solid rgba(29, 47, 43, .13);
   border-radius: 4px;
-  background: rgba(255, 255, 255, .86);
-  box-shadow: 0 1px 2px rgba(20, 38, 36, .04);
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 1px 3px rgba(20, 38, 36, .11);
   transform: translateX(-3px);
 }
 
@@ -6021,6 +6045,23 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-dashboard-gantt-bar.wt-event-derived {
   border-left-color: #5b6ee1;
   background: #eef0ff;
+}
+
+.wt-dashboard-gantt-bar.wt-is-past {
+  border-color: rgba(123, 132, 128, .22);
+  border-left-color: #b7bfbc;
+  background: #e0e3e1;
+  color: #5f6864;
+  box-shadow: 0 1px 2px rgba(20, 38, 36, .06);
+}
+
+.wt-dashboard-gantt-bar.wt-is-past span,
+.wt-dashboard-gantt-bar.wt-is-past b {
+  color: #5f6864;
+}
+
+.wt-dashboard-gantt-bar.is-point.wt-is-past::before {
+  background: #9aa29e;
 }
 
 .wt-dashboard-gantt-empty,

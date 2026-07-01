@@ -5798,6 +5798,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   grid-template-rows: 38px 34px minmax(0, 1fr);
   padding: 10px 12px 12px;
   --wt-gantt-label-width: 56px;
+  font-family: Inter, var(--font-text);
 }
 
 .wt-dashboard-gantt-head,
@@ -5874,10 +5875,24 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   background: rgba(0, 58, 70, .09);
 }
 
+.wt-dashboard-gantt-month-row button.is-current-month {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  border-left: 2px solid #37bdb7;
+  background: #39bbb5;
+  color: #ffffff;
+}
+
 .wt-dashboard-gantt-month-row b {
   font-size: 14px;
   font-weight: 600;
   line-height: 1;
+}
+
+.wt-dashboard-gantt-month-row button.is-current-month b {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
 }
 
 .wt-dashboard-gantt-month-row span {
@@ -5886,10 +5901,14 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   font-size: 11px;
 }
 
+.wt-dashboard-gantt-month-row button.is-current-month span {
+  display: none;
+}
+
 .wt-dashboard-gantt-body {
   min-height: 0;
   display: grid;
-  grid-template-rows: repeat(4, minmax(38px, 1fr));
+  grid-template-rows: repeat(5, minmax(38px, 1fr));
   border: 1px solid var(--flow-border);
   overflow: hidden;
 }
@@ -5948,6 +5967,11 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   background: rgba(0, 138, 143, .08);
 }
 
+.wt-dashboard-gantt-month-hit-grid button.is-current-month {
+  border-left: 2px solid #37bdb7;
+  background: rgba(57, 187, 181, .12);
+}
+
 .wt-dashboard-gantt-bar {
   position: absolute;
   z-index: 2;
@@ -5983,8 +6007,8 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   padding: 0 6px;
   border: 1px solid rgba(29, 47, 43, .13);
   border-radius: 4px;
-  background: rgba(255, 255, 255, .86);
-  box-shadow: 0 1px 2px rgba(20, 38, 36, .04);
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 1px 3px rgba(20, 38, 36, .11);
   transform: translateX(-3px);
 }
 
@@ -6031,6 +6055,23 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-dashboard-gantt-bar.wt-event-derived {
   border-left-color: #5b6ee1;
   background: #eef0ff;
+}
+
+.wt-dashboard-gantt-bar.wt-is-past {
+  border-color: rgba(123, 132, 128, .22);
+  border-left-color: #b7bfbc;
+  background: #e0e3e1;
+  color: #5f6864;
+  box-shadow: 0 1px 2px rgba(20, 38, 36, .06);
+}
+
+.wt-dashboard-gantt-bar.wt-is-past span,
+.wt-dashboard-gantt-bar.wt-is-past b {
+  color: #5f6864;
+}
+
+.wt-dashboard-gantt-bar.is-point.wt-is-past::before {
+  background: #9aa29e;
 }
 
 .wt-dashboard-gantt-empty,
@@ -7762,6 +7803,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var range = periodRange(state.selectedDate, "year");
     var units = monthUnits(range);
     var events = filteredEventsForRange(range.start, range.end);
+    var todayIso = dashboardGanttTodayIso();
     var laneItems = dashboardGanttLanes().map(function (lane) {
       var laneEvents = dashboardGanttLaneEvents(lane, events, range);
       return {
@@ -7781,7 +7823,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-dashboard-gantt-month-row" style="--wt-cols:' + text(units.length) + '">',
       units.map(function (unit) {
         var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " active" : "";
-        return '<button type="button" class="' + selected + '" data-dashboard-month-date="' + text(unit.start) + '" aria-label="' + text("Open " + unit.label + " " + unit.caption) + '"><b>' + text(unit.label) + '</b><span>' + text(unit.caption) + '</span></button>';
+        var current = todayIso >= unit.start && todayIso <= unit.end ? " is-current-month" : "";
+        return '<button type="button" class="' + selected + current + '" data-dashboard-month-date="' + text(unit.start) + '" aria-label="' + text("Open " + unit.label + " " + unit.caption) + '"><b>' + text(unit.label) + '</b><span>' + text(unit.caption) + '</span></button>';
       }).join(""),
       '</div>',
       '</div>',
@@ -7789,7 +7832,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         return Math.max(1, item.rows) + "fr";
       }).join(" ")) + '">',
       laneItems.map(function (item) {
-        return renderDashboardGanttLane(item.lane, units, item.events, item.rows);
+        return renderDashboardGanttLane(item.lane, units, item.events, item.rows, todayIso);
       }).join(""),
       '</div>',
       '</section>'
@@ -7801,11 +7844,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       { id: "XLT", label: "XLT" },
       { id: "PR", label: "PR" },
       { id: "GGP", label: "GGP" },
-      { id: "SPA", label: "SPA" }
+      { id: "SPA", label: "SPA" },
+      { id: "model", label: "Model" }
     ];
   }
 
-  function renderDashboardGanttLane(lane, units, laneEvents, rows) {
+  function renderDashboardGanttLane(lane, units, laneEvents, rows, todayIso) {
     var assigned = dashboardGanttAssignRows(laneEvents, periodRange(state.selectedDate, "year"), rows);
     return [
       '<article class="wt-dashboard-gantt-lane wt-gantt-lane-' + text(lane.id.toLowerCase()) + '">',
@@ -7814,11 +7858,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-dashboard-gantt-month-hit-grid" aria-hidden="true">',
       units.map(function (unit) {
         var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " is-selected-month" : "";
-        return '<button type="button" class="' + selected + '" data-dashboard-month-date="' + text(unit.start) + '" tabindex="-1" aria-label="' + text(lane.label + " " + unit.label + " events") + '"></button>';
+        var current = todayIso >= unit.start && todayIso <= unit.end ? " is-current-month" : "";
+        return '<button type="button" class="' + selected + current + '" data-dashboard-month-date="' + text(unit.start) + '" tabindex="-1" aria-label="' + text(lane.label + " " + unit.label + " events") + '"></button>';
       }).join(""),
       '</div>',
       assigned.items.length ? assigned.items.map(function (item) {
-        return renderDashboardGanttBar(item);
+        return renderDashboardGanttBar(item, todayIso);
       }).join("") : "",
       '</div>',
       '</article>'
@@ -7826,7 +7871,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function dashboardGanttEventInLane(event, laneId) {
+    if (laneId === "model") return isUserEvent(event) || isDerivedEvent(event);
     return !isUserEvent(event) && !isDerivedEvent(event) && event.gate === laneId;
+  }
+
+  function dashboardGanttTodayIso() {
+    var configured = queryParam("wt-today");
+    return isIsoDate(configured) ? configured : toIso(new Date());
   }
 
   function dashboardGanttLaneEvents(lane, events, range) {
@@ -7918,12 +7969,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     };
   }
 
-  function renderDashboardGanttBar(item) {
+  function renderDashboardGanttBar(item, todayIso) {
     var event = item.event;
     var pointClass = item.position.isPoint ? " is-point" : " is-duration";
+    var pastClass = (event.endDate || event.date) < todayIso ? " wt-is-past" : "";
     var meta = formatDateSlash(event.date) + " ";
     return [
-      '<button type="button" class="wt-dashboard-gantt-bar' + pointClass + ' wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '" data-dashboard-gantt-event data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '; --wt-rows:' + text(item.rows) + '">',
+      '<button type="button" class="wt-dashboard-gantt-bar' + pointClass + pastClass + ' wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '" data-dashboard-gantt-event data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '; --wt-rows:' + text(item.rows) + '">',
       '<span>' + text(meta) + '</span>',
       '<b>' + text(shortTitle(dashboardGanttBarLabel(event), 32)) + '</b>',
       '</button>'
