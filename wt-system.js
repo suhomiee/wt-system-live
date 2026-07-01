@@ -151,6 +151,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     search: "",
     deadlineHighlight: false,
     modelScheduleHighlight: false,
+    backendMode: "local",
+    sharedSubmissionsLoaded: false,
+    sharedSubmissionsLoading: false,
+    sharedSubmissionsError: "",
     sidebarCollapsed: false,
     actionMessage: "",
     season: "All",
@@ -165,12 +169,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var roots = document.querySelectorAll("[data-wt-system]");
     for (var i = 0; i < roots.length; i += 1) {
       roots[i].classList.add("wt-root");
+      configureBackendMode(roots[i]);
       initializeDateState(roots[i]);
       applyViewportFit(roots[i]);
       roots[i].innerHTML = renderApp(roots[i]);
       bind(roots[i]);
       updateClock(roots[i]);
       ensureActiveSourceIndexes(roots[i]);
+      ensureSharedSubmissions(roots[i]);
     }
   }
 
@@ -533,6 +539,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var initialDate = currentDateIso(root);
     state.selectedDate = initialDate;
     state.weekStart = periodAnchor(initialDate, state.period);
+  }
+
+  function configureBackendMode(root) {
+    state.backendMode = root && root.getAttribute("data-wt-backend-mode") === "sharepoint-list" ? "sharepoint-list" : "local";
   }
 
   function currentDateIso(root) {
@@ -3576,6 +3586,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function saveLocalSubmission(payload) {
     state.localSubmissions = dedupeSubmissions(state.localSubmissions.concat([payload]));
+    if (state.backendMode === "sharepoint-list") return;
     var merged = dedupeSubmissions(readStoredSubmissions().concat(state.localSubmissions));
     state.localSubmissions = merged;
     writeStoredSubmissions(merged);
@@ -3633,7 +3644,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function updateLocalSubmission(payload) {
-    var merged = dedupeSubmissions(readStoredSubmissions().concat(state.localSubmissions));
+    var merged = state.backendMode === "sharepoint-list" ? dedupeSubmissions(state.localSubmissions) : dedupeSubmissions(readStoredSubmissions().concat(state.localSubmissions));
     var replaced = false;
     merged = merged.map(function (item, index) {
       if (submissionId(item, index) !== payload.rowKey && item.rowKey !== payload.rowKey) return item;
@@ -3642,24 +3653,92 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     });
     if (!replaced) merged.push(payload);
     state.localSubmissions = dedupeSubmissions(merged);
-    writeStoredSubmissions(state.localSubmissions);
+    if (state.backendMode !== "sharepoint-list") writeStoredSubmissions(state.localSubmissions);
   }
 
   function deleteLocalSubmission(id) {
-    var merged = dedupeSubmissions(readStoredSubmissions().concat(state.localSubmissions)).filter(function (item, index) {
+    var source = state.backendMode === "sharepoint-list" ? state.localSubmissions : readStoredSubmissions().concat(state.localSubmissions);
+    var merged = dedupeSubmissions(source).filter(function (item, index) {
       return submissionId(item, index) !== id && item.rowKey !== id;
     });
     state.localSubmissions = merged;
-    writeStoredSubmissions(merged);
+    if (state.backendMode !== "sharepoint-list") writeStoredSubmissions(merged);
+  }
+
+  function ensureSharedSubmissions(root, force) {
+    if (!root || root.getAttribute("data-wt-backend-mode") !== "sharepoint-list") return;
+    if (state.sharedSubmissionsLoading) return;
+    if (state.sharedSubmissionsLoaded && !force) return;
+    state.sharedSubmissionsLoading = true;
+    loadSharePointSubmissions(root).then(function (items) {
+      state.localSubmissions = dedupeSubmissions(state.localSubmissions.concat(items));
+      state.sharedSubmissionsLoaded = true;
+      state.sharedSubmissionsError = "";
+      state.sharedSubmissionsLoading = false;
+      render(root);
+    }).catch(function (error) {
+      state.sharedSubmissionsError = error.message || String(error);
+      state.sharedSubmissionsLoading = false;
+    });
+  }
+
+  function loadSharePointSubmissions(root) {
+    var listTitle = root.getAttribute("data-wt-sharepoint-list-title") || "WT_Submissions";
+    var endpoint = "";
+    try {
+      endpoint = sharePointListItemsEndpoint(root, listTitle) + "?$select=Id,Title,RowKey,PayloadJson,SubmittedAt,Modified,IsActive&$filter=IsActive eq 1&$orderby=Modified desc&$top=5000";
+    } catch (error) {
+      return Promise.reject(error);
+    }
+    return window.fetch(endpoint, {
+      method: "GET",
+      credentials: sharePointFetchCredentials(getSitePath(root)),
+      headers: { "Accept": "application/json;odata=nometadata" }
+    }).then(function (response) {
+      if (!response.ok) throw new Error("SharePoint load HTTP " + response.status);
+      return response.json();
+    }).then(function (data) {
+      return sharePointListItems(data).map(normalizeSharePointSubmission).filter(Boolean);
+    });
+  }
+
+  function sharePointListItems(data) {
+    if (!data) return [];
+    if (Array.isArray(data.value)) return data.value;
+    if (data.d && Array.isArray(data.d.results)) return data.d.results;
+    return [];
+  }
+
+  function normalizeSharePointSubmission(item) {
+    if (!item) return null;
+    var payload = parseSubmissionPayload(item.PayloadJson || item.payloadJson || item.PayloadJSON || "");
+    if (!payload) return null;
+    payload.rowKey = payload.rowKey || item.RowKey || item.rowKey || "";
+    payload.sharePointItemId = sharePointItemId(item);
+    payload.submittedAt = payload.submittedAt || item.SubmittedAt || item.Created || "";
+    payload.updatedAt = item.Modified || payload.updatedAt || payload.submittedAt || "";
+    payload.source = payload.source || "wt-system-ui";
+    return payload.targetDate ? payload : null;
+  }
+
+  function parseSubmissionPayload(value) {
+    if (!value) return null;
+    if (typeof value === "object") return value;
+    try {
+      var parsed = JSON.parse(String(value));
+      return parsed && typeof parsed === "object" ? parsed : null;
+    } catch (error) {
+      return null;
+    }
   }
 
   function submitToSharePointList(root, payload) {
     var listTitle = root.getAttribute("data-wt-sharepoint-list-title") || "WT_Submissions";
-    var sitePath = getSitePath();
+    var sitePath = getSitePath(root);
     return getDigest(sitePath).then(function (digest) {
-      return window.fetch(sitePath + "/_api/web/lists/getbytitle('" + encodeODataString(listTitle) + "')/items", {
+      return window.fetch(sharePointListItemsEndpoint(root, listTitle), {
         method: "POST",
-        credentials: "same-origin",
+        credentials: sharePointFetchCredentials(sitePath),
         headers: {
           "Accept": "application/json;odata=nometadata",
           "Content-Type": "application/json;odata=nometadata",
@@ -3681,11 +3760,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function updateSharePointListItem(root, itemId, payload) {
     var listTitle = root.getAttribute("data-wt-sharepoint-list-title") || "WT_Submissions";
-    var sitePath = getSitePath();
+    var sitePath = getSitePath(root);
     return getDigest(sitePath).then(function (digest) {
-      return window.fetch(sitePath + "/_api/web/lists/getbytitle('" + encodeODataString(listTitle) + "')/items(" + encodeURIComponent(itemId) + ")", {
+      return window.fetch(sharePointListItemsEndpoint(root, listTitle, itemId), {
         method: "POST",
-        credentials: "same-origin",
+        credentials: sharePointFetchCredentials(sitePath),
         headers: {
           "Accept": "application/json;odata=nometadata",
           "Content-Type": "application/json;odata=nometadata",
@@ -3707,11 +3786,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function deactivateSharePointListItem(root, itemId) {
     var listTitle = root.getAttribute("data-wt-sharepoint-list-title") || "WT_Submissions";
-    var sitePath = getSitePath();
+    var sitePath = getSitePath(root);
     return getDigest(sitePath).then(function (digest) {
-      return window.fetch(sitePath + "/_api/web/lists/getbytitle('" + encodeODataString(listTitle) + "')/items(" + encodeURIComponent(itemId) + ")", {
+      return window.fetch(sharePointListItemsEndpoint(root, listTitle, itemId), {
         method: "POST",
-        credentials: "same-origin",
+        credentials: sharePointFetchCredentials(sitePath),
         headers: {
           "Accept": "application/json;odata=nometadata",
           "Content-Type": "application/json;odata=nometadata",
@@ -3730,10 +3809,18 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return item && (item.ID || item.Id || item.id || "");
   }
 
+  function sharePointListItemsEndpoint(root, listTitle, itemId) {
+    var sitePath = getSitePath(root);
+    if (!sitePath) throw new Error("SharePoint site path unavailable.");
+    var endpoint = sitePath + "/_api/web/lists/getbytitle('" + encodeODataString(listTitle) + "')/items";
+    return itemId ? endpoint + "(" + encodeURIComponent(itemId) + ")" : endpoint;
+  }
+
   function getDigest(sitePath) {
+    if (!sitePath) return Promise.reject(new Error("SharePoint site path unavailable."));
     return window.fetch(sitePath + "/_api/contextinfo", {
       method: "POST",
-      credentials: "same-origin",
+      credentials: sharePointFetchCredentials(sitePath),
       headers: { "Accept": "application/json;odata=nometadata" }
     }).then(function (response) {
       if (!response.ok) throw new Error("Digest HTTP " + response.status);
@@ -3743,9 +3830,20 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     });
   }
 
-  function getSitePath() {
+  function getSitePath(root) {
+    var configured = root && root.getAttribute("data-wt-sharepoint-site-url");
+    if (configured) return configured.replace(/\/$/, "");
     var match = window.location.pathname.match(/^(\/sites\/[^/]+)/);
     return match ? match[1] : "";
+  }
+
+  function sharePointFetchCredentials(sitePath) {
+    try {
+      var target = new URL(sitePath, window.location.href);
+      return target.origin === window.location.origin ? "same-origin" : "include";
+    } catch (error) {
+      return "same-origin";
+    }
   }
 
   function encodeODataString(value) {
@@ -3802,6 +3900,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function loadLocalSubmissions() {
+    if (state.backendMode === "sharepoint-list") return dedupeSubmissions(state.localSubmissions);
     return dedupeSubmissions(readStoredSubmissions().concat(state.localSubmissions));
   }
 
