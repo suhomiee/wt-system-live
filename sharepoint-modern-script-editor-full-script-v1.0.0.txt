@@ -6282,7 +6282,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
-  var WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  var WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   var SEASON_PREFIX_ORDER = ["SP", "SU", "FA", "HO"];
   var SEASONS = ["All", "SP27", "SU27", "FA27", "HO27", "SP28"];
   var GAME_PLAN_SEASONS = SEASONS.filter(function (season) { return season !== "All"; });
@@ -7192,7 +7192,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var limit = compact ? 2 : 4;
     return [
       '<article class="wt-month-cell ' + text(classes) + '" data-day="' + text(date) + '">',
-      '<button type="button" class="wt-month-day-button" data-date="' + text(date) + '" data-month-cell-date aria-label="' + text(formatDateShort(date)) + '">',
+      '<button type="button" class="wt-month-day-button" data-date="' + text(date) + '" data-month-cell-date aria-label="' + text(formatDateNumeric(date)) + '">',
       '<span>' + text(dayNameShort(date)) + '</span><b>' + text(dayOfMonth(date)) + '</b>',
       '</button>',
       '<div class="wt-month-events">',
@@ -7209,7 +7209,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var selected = event.date === state.selectedDate ? " is-selected" : "";
     return [
       '<button type="button" class="wt-month-event wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + selected + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
-      renderEventMetaLine(event, (event.gate || event.kind) + " · " + formatDateShort(event.date), { hideOrigin: true }),
+      renderEventMetaLine(event, (event.gate || event.kind) + " · " + formatDateNumeric(event.date), { hideOrigin: true }),
       '<b>' + text(shortTitle(event.title, 42)) + '</b>',
       '</button>'
     ].join("");
@@ -10435,8 +10435,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var first = new Date(year, monthIndex, 1);
     var total = new Date(year, monthIndex + 1, 0).getDate();
     var days = [];
-    var mondayOffset = (first.getDay() + 6) % 7;
-    for (var i = 0; i < mondayOffset; i += 1) days.push(null);
+    var sundayOffset = first.getDay();
+    for (var i = 0; i < sundayOffset; i += 1) days.push(null);
     for (var day = 1; day <= total; day += 1) days.push(day);
     while (days.length < 35 || days.length % 7) days.push(null);
     return days;
@@ -10448,9 +10448,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var monthIndex = Number(parts[1]) - 1;
     var first = new Date(year, monthIndex, 1);
     var total = new Date(year, monthIndex + 1, 0).getDate();
-    var mondayOffset = (first.getDay() + 6) % 7;
-    var cellCount = Math.max(35, Math.ceil((mondayOffset + total) / 7) * 7);
-    var start = addDays(first, -mondayOffset);
+    var sundayOffset = first.getDay();
+    var cellCount = Math.max(35, Math.ceil((sundayOffset + total) / 7) * 7);
+    var start = addDays(first, -sundayOffset);
     var days = [];
     for (var i = 0; i < cellCount; i += 1) days.push(toIso(addDays(start, i)));
     return days;
@@ -10532,7 +10532,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function dayNameShort(date) {
-    return WEEKDAYS[(fromIso(date).getDay() + 6) % 7];
+    return WEEKDAYS[fromIso(date).getDay()];
   }
 
   function dayNameLong(date) {
@@ -10559,6 +10559,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function formatDateShort(date) {
     var d = fromIso(date);
     return titleCaseMonth(d) + " " + d.getDate();
+  }
+
+  function formatDateNumeric(date) {
+    var d = fromIso(date);
+    return pad(d.getMonth() + 1) + "/" + pad(d.getDate());
   }
 
   function formatDateSlash(date) {
