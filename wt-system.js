@@ -1527,8 +1527,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       { id: "XLT", label: "XLT" },
       { id: "PR", label: "PR" },
       { id: "GGP", label: "GGP" },
-      { id: "SPA", label: "SPA" },
-      { id: "model", label: "Model" }
+      { id: "SPA", label: "SPA" }
     ];
   }
 
@@ -1553,7 +1552,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function dashboardGanttEventInLane(event, laneId) {
-    if (laneId === "model") return isUserEvent(event) || isDerivedEvent(event);
     return !isUserEvent(event) && !isDerivedEvent(event) && event.gate === laneId;
   }
 
