@@ -7020,7 +7020,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var rangeEvents = eventsForCurrentRange();
     var calendarYearOverview = state.calendarView === "calendar" && (state.period === "quarter" || state.period === "year");
     var showEventCount = !calendarYearOverview && state.period !== "month" && state.period !== "quarter";
-    var rangeLabel = calendarYearOverview ? String(fromIso(state.selectedDate).getFullYear()) : formatRange(range);
+    var rangeLabel = calendarYearOverview ? String(fromIso(state.selectedDate).getFullYear()) : formatCalendarRangeLabel(range);
     return [
       '<section class="wt-control-strip wt-flow-control-strip" aria-label="Calendar filters">',
       '<div class="wt-filter-row wt-flow-filter-row">',
@@ -10554,6 +10554,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       return startText + ", " + start.getFullYear() + " - " + endText + ", " + end.getFullYear();
     }
     return startText + " - " + endText;
+  }
+
+  function formatCalendarRangeLabel(range) {
+    if (state.calendarView === "calendar" && state.period === "month") {
+      return formatDateNumeric(range.start) + " - " + formatDateNumeric(range.end);
+    }
+    return formatRange(range);
   }
 
   function formatDateShort(date) {
