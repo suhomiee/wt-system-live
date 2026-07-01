@@ -9680,7 +9680,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
           date: event.date,
           title: event.gate === "M&M Test" ? "M&M Test (G115 / G107 / ETC)" : "T2 FPT WT Report",
           kind: event.kind,
-          label: event.gate === "M&M Test" ? "2 business days" : "5th business day",
+          label: event.gate === "M&M Test" ? "2 business days" : "5 business days",
           previewType: event.gate === "M&M Test" ? "test" : "report"
         });
       });
@@ -10230,7 +10230,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (!isT2FptHandoffSubmission(item)) return [];
     var baseTitle = item.modelName || item.projectName || "WT handoff";
     var testDate = addBusinessDaysIso(item.targetDate, 2);
-    var reportDate = nthBusinessDayFromIso(item.targetDate, 5);
+    var reportDate = addBusinessDaysIso(item.targetDate, 5);
     var common = {
       season: item.season || "All",
       planGate: item.gate || "",
@@ -10260,7 +10260,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         kind: "report",
         gate: "WT Report",
         owner: "T2 FPT",
-        notes: "Linked for the 5th business day from the T2 FPT handoff."
+        notes: "Linked 5 business days after the T2 FPT handoff."
       })
     ];
   }
