@@ -6057,6 +6057,34 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   background: #eef0ff;
 }
 
+.wt-dashboard-gantt-bar.wt-event-user:not(.wt-is-past) {
+  border-color: rgba(19, 128, 123, .32);
+  border-left-color: #2db6b1;
+  background: #38bdb8;
+  color: #ffffff;
+  box-shadow: 0 2px 5px rgba(16, 116, 112, .18);
+}
+
+.wt-dashboard-gantt-bar.wt-event-derived:not(.wt-is-past) {
+  border-color: rgba(69, 87, 207, .3);
+  border-left-color: #4f63de;
+  background: #6377ec;
+  color: #ffffff;
+  box-shadow: 0 2px 5px rgba(50, 65, 173, .16);
+}
+
+.wt-dashboard-gantt-bar.wt-event-user:not(.wt-is-past) span,
+.wt-dashboard-gantt-bar.wt-event-user:not(.wt-is-past) b,
+.wt-dashboard-gantt-bar.wt-event-derived:not(.wt-is-past) span,
+.wt-dashboard-gantt-bar.wt-event-derived:not(.wt-is-past) b {
+  color: #ffffff;
+}
+
+.wt-dashboard-gantt-bar.is-point.wt-event-user:not(.wt-is-past)::before,
+.wt-dashboard-gantt-bar.is-point.wt-event-derived:not(.wt-is-past)::before {
+  background: rgba(255, 255, 255, .92);
+}
+
 .wt-dashboard-gantt-bar.wt-is-past {
   border-color: rgba(123, 132, 128, .22);
   border-left-color: #b7bfbc;
@@ -6296,7 +6324,6 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
     font-size: 12px;
   }
 }
-
 </style>
 <div
   id="wt-system-root"
@@ -10902,5 +10929,4 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     boot();
   }
 })();
-
 </script>
