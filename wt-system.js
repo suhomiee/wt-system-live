@@ -1684,7 +1684,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var endDay = Math.max(startDay, Math.min(totalDays - 1, daysBetween(range.start, endIso)));
     var left = (startDay / totalDays) * 100;
     var isPoint = dashboardGanttIsPointEvent(event);
-    var width = isPoint ? 14.2 : Math.max(((endDay - startDay + 1) / totalDays) * 100, 11.2);
+    var pointWidth = dashboardGanttBarLabel(event).length > 26 ? 21.4 : 14.2;
+    var width = isPoint ? pointWidth : Math.max(((endDay - startDay + 1) / totalDays) * 100, 11.2);
     if (left + width > 100) left = Math.max(0, 100 - width);
     return {
       left: left.toFixed(3),
@@ -1701,7 +1702,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       '<button type="button" class="wt-dashboard-gantt-bar' + pointClass + pastClass + ' wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '" data-dashboard-gantt-event data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '; --wt-rows:' + text(item.rows) + '">',
       '<span>' + text(meta) + '</span>',
-      '<b>' + text(shortTitle(dashboardGanttBarLabel(event), 32)) + '</b>',
+      '<b>' + text(dashboardGanttBarLabel(event)) + '</b>',
       '</button>'
     ].join("");
   }
