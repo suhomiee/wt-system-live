@@ -17,8 +17,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   var SCHEDULE_SEASONS = buildScheduleSeasons(27, 31);
   var GAME_PLAN_GATE_ORDER = ["XLT", "PR", "GGP", "SPA"];
   var CALENDAR_VIEWS = [
-    { id: "timeline", label: "Timeline View" },
     { id: "calendar", label: "Calendar View" },
+    { id: "weekly", label: "Weekly View" },
     { id: "list", label: "List" },
     { id: "season-grid", label: "Season Grid" }
   ];
@@ -305,7 +305,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         var dashboardGanttDate = dashboardGanttEvent && dashboardGanttEvent.date || dashboardGanttEventButton.getAttribute("data-date");
         if (!isIsoDate(dashboardGanttDate)) return;
         state.selectedDate = dashboardGanttDate;
-        state.weekStart = periodAnchor(dashboardGanttDate, "month");
+        if (state.section === "calendar" && state.calendarView === "calendar") {
+          state.period = "month";
+          state.weekStart = periodAnchor(dashboardGanttDate, "month");
+        } else {
+          state.weekStart = periodAnchor(dashboardGanttDate, "month");
+        }
         state.pendingDeleteEventId = "";
         state.activeEventId = "";
         state.actionMessage = "";
@@ -345,6 +350,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         event.preventDefault();
         var dashboardMonthDate = dashboardMonthButton.getAttribute("data-dashboard-month-date");
         if (!isIsoDate(dashboardMonthDate)) return;
+        if (state.section === "calendar" && state.calendarView === "calendar") {
+          state.period = "month";
+        }
         state.selectedDate = dashboardMonthDate;
         state.weekStart = periodAnchor(dashboardMonthDate, "month");
         state.pendingDeleteEventId = "";
@@ -438,7 +446,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
       if (calendarViewButton && root.contains(calendarViewButton)) {
         state.calendarView = normalizeCalendarView(calendarViewButton.getAttribute("data-calendar-view"));
-        if (state.calendarView === "calendar" && CALENDAR_PERIOD_IDS.indexOf(state.period) < 0) {
+        if (state.calendarView === "weekly") {
+          state.period = "week";
+          state.weekStart = periodAnchor(state.selectedDate, state.period);
+        } else if (state.calendarView === "calendar" && CALENDAR_PERIOD_IDS.indexOf(state.period) < 0) {
           state.period = "month";
           state.weekStart = periodAnchor(state.selectedDate, state.period);
         }
@@ -817,6 +828,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function periodOptionsForView() {
+    if (state.calendarView === "weekly") {
+      return PERIODS.filter(function (period) {
+        return period.id === "week";
+      });
+    }
     if (state.calendarView !== "calendar") return PERIODS;
     return PERIODS.filter(function (period) {
       return CALENDAR_PERIOD_IDS.indexOf(period.id) >= 0;
@@ -855,15 +871,24 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderCalendarBoard(compact) {
     state.calendarView = normalizeCalendarView(state.calendarView);
     if (state.calendarView === "calendar") return renderCalendarViewBoard(compact);
+    if (state.calendarView === "weekly") return renderWeekBoard(compact);
     if (state.calendarView === "list") return renderListBoard(compact);
     if (state.calendarView === "season-grid") return renderSeasonGridBoard(compact);
-    return renderTimelineBoard(compact);
+    return renderCalendarViewBoard(compact);
   }
 
   function renderCalendarViewBoard(compact) {
     if (state.period === "month") return renderMonthCalendarBoard(compact);
-    if (state.period === "quarter" || state.period === "year") return renderCalendarYearOverviewBoard(compact);
+    if (state.period === "quarter" || state.period === "year") return renderCalendarGanttBoard(compact);
     return renderHorizontalCalendarBoard(compact);
+  }
+
+  function renderCalendarGanttBoard(compact) {
+    return [
+      '<div class="wt-calendar-gantt-wrap ' + (compact ? "compact" : "") + '">',
+      renderDashboardGanttOverview(),
+      '</div>'
+    ].join("");
   }
 
   function renderCalendarYearOverviewBoard(compact) {
@@ -4433,11 +4458,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function calendarViewLabel(id) {
     var option = calendarViewOption(id);
-    return option ? option.label : "Timeline View";
+    return option ? option.label : "Calendar View";
   }
 
   function normalizeCalendarView(id) {
-    return calendarViewOption(id) ? id : "timeline";
+    return calendarViewOption(id) ? id : "calendar";
   }
 
   function calendarViewOption(id) {
