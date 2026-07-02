@@ -18,7 +18,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   var GAME_PLAN_GATE_ORDER = ["XLT", "PR", "GGP", "SPA"];
   var CALENDAR_VIEWS = [
     { id: "calendar", label: "Calendar View" },
-    { id: "weekly", label: "Weekly View" },
+    { id: "two-month", label: "2M Schedule" },
     { id: "list", label: "List" },
     { id: "season-grid", label: "Season Grid" }
   ];
@@ -458,8 +458,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
       if (calendarViewButton && root.contains(calendarViewButton)) {
         state.calendarView = normalizeCalendarView(calendarViewButton.getAttribute("data-calendar-view"));
-        if (state.calendarView === "weekly") {
-          state.period = "week";
+        if (state.calendarView === "two-month") {
+          state.period = "month";
           state.weekStart = periodAnchor(state.selectedDate, state.period);
         } else if (state.calendarView === "calendar" && CALENDAR_PERIOD_IDS.indexOf(state.period) < 0) {
           state.period = "month";
@@ -781,7 +781,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var rangeEvents = eventsForCurrentRange();
     var calendarYearOverview = state.calendarView === "calendar" && (state.period === "quarter" || state.period === "year");
     var showEventCount = !calendarYearOverview && state.period !== "month" && state.period !== "quarter";
-    var rangeLabel = calendarYearOverview ? String(fromIso(state.selectedDate).getFullYear()) : formatCalendarRangeLabel(range);
+    var rangeLabel = state.calendarView === "two-month" ? calendarTwoMonthRangeLabel() : (calendarYearOverview ? String(fromIso(state.selectedDate).getFullYear()) : formatCalendarRangeLabel(range));
     return [
       '<section class="wt-control-strip wt-flow-control-strip" aria-label="Calendar filters">',
       '<div class="wt-filter-row wt-flow-filter-row">',
@@ -813,6 +813,16 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     ].join("");
   }
 
+  function calendarTwoMonthRangeLabel() {
+    var startMonth = monthRange(fromIso(state.selectedDate));
+    var nextMonthStart = addMonths(fromIso(startMonth.start), 1);
+    var nextMonth = monthRange(nextMonthStart);
+    var startDate = fromIso(startMonth.start);
+    var endDate = fromIso(nextMonth.end);
+    var yearLabel = startDate.getFullYear() === endDate.getFullYear() ? String(endDate.getFullYear()) : String(startDate.getFullYear()) + " - " + String(endDate.getFullYear());
+    return MONTHS[startDate.getMonth()] + " - " + MONTHS[endDate.getMonth()] + " " + yearLabel;
+  }
+
   function renderFlowFilter(label, options, dataName, activeValue) {
     return [
       '<details class="wt-flow-filter">',
@@ -840,9 +850,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function periodOptionsForView() {
-    if (state.calendarView === "weekly") {
+    if (state.calendarView === "two-month") {
       return PERIODS.filter(function (period) {
-        return period.id === "week";
+        return period.id === "month";
       });
     }
     if (state.calendarView !== "calendar") return PERIODS;
@@ -883,10 +893,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderCalendarBoard(compact) {
     state.calendarView = normalizeCalendarView(state.calendarView);
     if (state.calendarView === "calendar") return renderCalendarViewBoard(compact);
-    if (state.calendarView === "weekly") return renderWeekBoard(compact);
+    if (state.calendarView === "two-month") return renderCalendarTwoMonthBoard();
     if (state.calendarView === "list") return renderListBoard(compact);
     if (state.calendarView === "season-grid") return renderSeasonGridBoard(compact);
     return renderCalendarViewBoard(compact);
+  }
+
+  function renderCalendarTwoMonthBoard() {
+    return '<div class="wt-calendar-running-wrap">' + renderDashboardRunningPanel({ hideHeader: true }) + '</div>';
   }
 
   function renderCalendarViewBoard(compact) {
@@ -1825,7 +1839,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     });
   }
 
-  function renderDashboardRunningPanel() {
+  function renderDashboardRunningPanel(options) {
+    var hideHeader = options && options.hideHeader;
     var startMonth = monthRange(fromIso(state.selectedDate));
     var nextMonthStart = addMonths(fromIso(startMonth.start), 1);
     var nextMonth = monthRange(nextMonthStart);
@@ -1840,10 +1855,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       };
     });
     return [
-      '<section class="wt-dashboard-running-panel" aria-label="' + text("Two-month schedule " + formatDateNumeric(range.start) + " - " + formatDateNumeric(range.end)) + '">',
-      '<header class="wt-dashboard-panel-head">',
-      '<div><h2>' + text(MONTHS[fromIso(range.start).getMonth()] + " - " + MONTHS[fromIso(range.end).getMonth()]) + '</h2><span>2M Schedule</span></div>',
-      '</header>',
+      '<section class="wt-dashboard-running-panel ' + (hideHeader ? "is-headerless" : "") + '" aria-label="' + text("Two-month schedule " + formatDateNumeric(range.start) + " - " + formatDateNumeric(range.end)) + '">',
+      hideHeader ? "" : '<header class="wt-dashboard-panel-head"><div><h2>' + text(MONTHS[fromIso(range.start).getMonth()] + " - " + MONTHS[fromIso(range.end).getMonth()]) + '</h2><span>2M Schedule</span></div></header>',
       '<div class="wt-dashboard-running-board" style="--wt-running-days:' + text(days.length) + '">',
       renderDashboardRunningMonthRow([startMonth, nextMonth]),
       renderDashboardRunningDayRow(days),
