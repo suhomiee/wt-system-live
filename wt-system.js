@@ -1861,6 +1861,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderDashboardRunningMonthRow(months) {
     return [
       '<div class="wt-running-month-row">',
+      '<span class="wt-running-header-spacer" aria-hidden="true"></span>',
       months.map(function (month) {
         var span = daysBetween(month.start, month.end) + 1;
         var label = MONTHS[fromIso(month.start).getMonth()];
@@ -1874,6 +1875,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var todayIso = dashboardGanttTodayIso();
     return [
       '<div class="wt-running-day-row">',
+      '<span class="wt-running-header-spacer" aria-hidden="true"></span>',
       days.map(function (date) {
         var day = fromIso(date).getDay();
         var classes = [
