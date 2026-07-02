@@ -156,6 +156,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     sharedSubmissionsLoading: false,
     sharedSubmissionsError: "",
     sidebarCollapsed: false,
+    dashboardRunningView: false,
     actionMessage: "",
     season: "All",
     localSubmissions: [],
@@ -190,6 +191,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var dashboardMonthShiftButton = event.target.closest("[data-dashboard-month-shift]");
       var dashboardWeekShiftButton = event.target.closest("[data-dashboard-week-shift]");
       var dashboardTodayButton = event.target.closest("[data-dashboard-today]");
+      var dashboardRunningToggle = event.target.closest("[data-dashboard-running-toggle]");
       var dashboardGanttEventButton = event.target.closest("[data-dashboard-gantt-event]");
       var todayButton = event.target.closest("[data-today]");
       var seasonButton = event.target.closest("[data-season]");
@@ -394,6 +396,16 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         var dashboardTodayIso = currentDateIso(root);
         state.selectedDate = dashboardTodayIso;
         state.weekStart = periodAnchor(dashboardTodayIso, state.period);
+        state.pendingDeleteEventId = "";
+        state.activeEventId = "";
+        state.actionMessage = "";
+        render(root);
+        return;
+      }
+
+      if (dashboardRunningToggle && root.contains(dashboardRunningToggle)) {
+        event.preventDefault();
+        state.dashboardRunningView = !state.dashboardRunningView;
         state.pendingDeleteEventId = "";
         state.activeEventId = "";
         state.actionMessage = "";
@@ -1499,11 +1511,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderDashboard() {
+    var runningClass = state.dashboardRunningView ? "is-running-split" : "is-month-only";
     return [
-      '<section class="wt-dashboard">',
+      '<section class="wt-dashboard ' + (state.dashboardRunningView ? "has-running-view" : "") + '">',
       renderDashboardGanttOverview(),
-      '<div class="wt-dashboard-calendar-grid is-month-only">',
+      '<div class="wt-dashboard-calendar-grid ' + runningClass + '">',
       renderDashboardMonthPanel(),
+      state.dashboardRunningView ? renderDashboardRunningPanel() : "",
       '</div>',
       '</section>'
     ].join("");
@@ -1799,6 +1813,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         '<button type="button" data-dashboard-month-shift="-1" aria-label="Previous month">' + icon("chevron-left") + '</button>',
         '<button type="button" data-dashboard-today>Today</button>',
         '<button type="button" data-dashboard-month-shift="1" aria-label="Next month">' + icon("chevron-right") + '</button>',
+        '<button type="button" class="wt-dashboard-running-toggle ' + (state.dashboardRunningView ? "active" : "") + '" data-dashboard-running-toggle aria-pressed="' + text(state.dashboardRunningView ? "true" : "false") + '" title="Toggle 2-month schedule">' + icon("calendar") + '<span>2M Schedule</span></button>',
         '</div>',
         '</header>',
         '<div class="wt-dashboard-month-board">',
@@ -1807,6 +1822,199 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         '</section>'
       ].join("");
     });
+  }
+
+  function renderDashboardRunningPanel() {
+    var startMonth = monthRange(fromIso(state.selectedDate));
+    var nextMonthStart = addMonths(fromIso(startMonth.start), 1);
+    var nextMonth = monthRange(nextMonthStart);
+    var range = { start: startMonth.start, end: nextMonth.end };
+    var days = dashboardRunningDays(range.start, range.end);
+    var lanes = dashboardRunningLanes().map(function (lane) {
+      var events = dashboardRunningLaneEvents(lane, range);
+      return {
+        lane: lane,
+        events: events,
+        rows: dashboardRunningRequiredRows(events, range)
+      };
+    });
+    return [
+      '<section class="wt-dashboard-running-panel" aria-label="' + text("Two-month schedule " + formatDateNumeric(range.start) + " - " + formatDateNumeric(range.end)) + '">',
+      '<header class="wt-dashboard-panel-head">',
+      '<div><h2>' + text(MONTHS[fromIso(range.start).getMonth()] + " - " + MONTHS[fromIso(range.end).getMonth()]) + '</h2><span>2M Schedule</span></div>',
+      '</header>',
+      '<div class="wt-dashboard-running-board" style="--wt-running-days:' + text(days.length) + '">',
+      renderDashboardRunningMonthRow([startMonth, nextMonth]),
+      renderDashboardRunningDayRow(days),
+      '<div class="wt-dashboard-running-body" style="grid-template-rows:' + text(lanes.map(function (item) {
+        return Math.max(1, item.rows) + "fr";
+      }).join(" ")) + '">',
+      lanes.map(function (item) {
+        return renderDashboardRunningLane(item.lane, days, item.events, item.rows, range);
+      }).join(""),
+      '</div>',
+      '</div>',
+      '</section>'
+    ].join("");
+  }
+
+  function renderDashboardRunningMonthRow(months) {
+    return [
+      '<div class="wt-running-month-row">',
+      months.map(function (month) {
+        var span = daysBetween(month.start, month.end) + 1;
+        var label = MONTHS[fromIso(month.start).getMonth()];
+        return '<span style="grid-column:span ' + text(span) + '"><b>' + text(label) + '</b></span>';
+      }).join(""),
+      '</div>'
+    ].join("");
+  }
+
+  function renderDashboardRunningDayRow(days) {
+    var todayIso = dashboardGanttTodayIso();
+    return [
+      '<div class="wt-running-day-row">',
+      days.map(function (date) {
+        var day = fromIso(date).getDay();
+        var classes = [
+          date === state.selectedDate ? "active" : "",
+          date === todayIso ? "is-today" : "",
+          day === 0 || day === 6 ? "is-weekend" : ""
+        ].filter(Boolean).join(" ");
+        return '<button type="button" class="' + text(classes) + '" data-date="' + text(date) + '" aria-label="' + text(formatDateNumeric(date)) + '"><small>' + text(dayNameShort(date).slice(0, 1)) + '</small><b>' + text(dayOfMonth(date)) + '</b></button>';
+      }).join(""),
+      '</div>'
+    ].join("");
+  }
+
+  function renderDashboardRunningLane(lane, days, laneEvents, rows, range) {
+    var assigned = dashboardRunningAssignRows(laneEvents, range, rows);
+    return [
+      '<article class="wt-dashboard-running-lane wt-running-lane-' + text(lane.id.toLowerCase()) + '">',
+      '<div class="wt-dashboard-running-label">' + text(lane.label) + '</div>',
+      '<div class="wt-dashboard-running-track" style="--wt-running-rows:' + text(rows) + '">',
+      '<div class="wt-dashboard-running-day-grid" aria-hidden="true">',
+      days.map(function (date) {
+        var day = fromIso(date).getDay();
+        var classes = [
+          day === 0 || day === 6 ? "is-weekend" : "",
+          date === state.selectedDate ? "active" : ""
+        ].filter(Boolean).join(" ");
+        return '<span class="' + text(classes) + '"></span>';
+      }).join(""),
+      '</div>',
+      assigned.items.length ? assigned.items.map(renderDashboardRunningBar).join("") : "",
+      '</div>',
+      '</article>'
+    ].join("");
+  }
+
+  function renderDashboardRunningBar(item) {
+    var event = item.event;
+    var pointClass = item.position.isPoint ? " is-point" : " is-duration";
+    var selected = event.date === state.selectedDate ? " is-selected" : "";
+    return [
+      '<button type="button" class="wt-dashboard-running-bar' + pointClass + selected + ' wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '">',
+      '<span>' + text(formatDateSlash(event.date)) + '</span>',
+      '<b>' + text(shortTitle(dashboardGanttBarLabel(event), 34)) + '</b>',
+      '</button>'
+    ].join("");
+  }
+
+  function dashboardRunningDays(startIso, endIso) {
+    var days = [];
+    var cursor = fromIso(startIso);
+    while (toIso(cursor) <= endIso) {
+      days.push(toIso(cursor));
+      cursor = addDays(cursor, 1);
+    }
+    return days;
+  }
+
+  function dashboardRunningLanes() {
+    return [
+      { id: "XLT", label: "XLT" },
+      { id: "PR", label: "PR" },
+      { id: "GGP", label: "GGP" },
+      { id: "SPA", label: "SPA" },
+      { id: "model", label: "Model" }
+    ];
+  }
+
+  function dashboardRunningLaneEvents(lane, range) {
+    return normalizedEvents().filter(function (event) {
+      return eventOverlapsRange(event, range.start, range.end) && dashboardRunningEventInLane(event, lane.id);
+    }).sort(function (a, b) {
+      return (a.date + (a.endDate || "") + a.title).localeCompare(b.date + (b.endDate || "") + b.title);
+    });
+  }
+
+  function dashboardRunningEventInLane(event, laneId) {
+    if (laneId === "model") return isUserEvent(event) || isDerivedEvent(event);
+    return event.source === "schedule.pdf" && event.gate === laneId;
+  }
+
+  function dashboardRunningRequiredRows(events, range) {
+    var rowEnds = [];
+    events.forEach(function (event) {
+      var position = dashboardRunningPosition(event, range);
+      var positionStart = Number(position.left);
+      var positionEnd = positionStart + Number(position.width);
+      var row = -1;
+      for (var index = 0; index < rowEnds.length; index += 1) {
+        if (positionStart >= rowEnds[index] + .7) {
+          row = index;
+          break;
+        }
+      }
+      if (row < 0) {
+        rowEnds.push(positionEnd);
+      } else {
+        rowEnds[row] = positionEnd;
+      }
+    });
+    return Math.max(1, rowEnds.length);
+  }
+
+  function dashboardRunningAssignRows(events, range, rows) {
+    var rowEnds = [];
+    var items = [];
+    for (var i = 0; i < rows; i += 1) rowEnds.push(-100);
+    events.forEach(function (event) {
+      var position = dashboardRunningPosition(event, range);
+      var positionStart = Number(position.left);
+      var positionEnd = positionStart + Number(position.width);
+      var row = 0;
+      for (var index = 0; index < rows; index += 1) {
+        if (positionStart >= rowEnds[index] + .7) {
+          row = index;
+          break;
+        }
+      }
+      rowEnds[row] = positionEnd;
+      items.push({
+        event: event,
+        position: position,
+        row: row
+      });
+    });
+    return { items: items };
+  }
+
+  function dashboardRunningPosition(event, range) {
+    var totalDays = daysBetween(range.start, range.end) + 1;
+    var startDay = Math.max(0, Math.min(totalDays - 1, daysBetween(range.start, event.date)));
+    var endIso = event.endDate || event.date;
+    var endDay = Math.max(startDay, Math.min(totalDays - 1, daysBetween(range.start, endIso)));
+    var isPoint = dashboardGanttIsPointEvent(event);
+    var left = (startDay / totalDays) * 100;
+    var width = isPoint ? Math.max(100 / totalDays, 10.4) : Math.max(((endDay - startDay + 1) / totalDays) * 100, 7.2);
+    if (left + width > 100) left = Math.max(0, 100 - width);
+    return {
+      left: left.toFixed(3),
+      width: width.toFixed(3),
+      isPoint: isPoint
+    };
   }
 
   function renderDashboardWeekPanel() {
