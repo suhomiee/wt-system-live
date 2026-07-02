@@ -1918,9 +1918,22 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       '<button type="button" class="wt-dashboard-running-bar' + pointClass + selected + ' wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '">',
       '<span>' + text(formatDateSlash(event.date)) + '</span>',
-      '<b>' + text(shortTitle(dashboardGanttBarLabel(event), 34)) + '</b>',
+      '<b>' + text(dashboardRunningBarLabel(event)) + '</b>',
       '</button>'
     ].join("");
+  }
+
+  function dashboardRunningBarLabel(event) {
+    if (isUserEvent(event) || isDerivedEvent(event)) {
+      return [
+        event.season,
+        event.modelName || dashboardGanttBarTitle(event)
+      ].filter(Boolean).join(" ");
+    }
+    return [
+      event.season,
+      dashboardGanttBarTitle(event)
+    ].filter(Boolean).join(" ");
   }
 
   function dashboardRunningDays(startIso, endIso) {
@@ -2010,7 +2023,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var endDay = Math.max(startDay, Math.min(totalDays - 1, daysBetween(range.start, endIso)));
     var isPoint = dashboardGanttIsPointEvent(event);
     var left = (startDay / totalDays) * 100;
-    var width = isPoint ? Math.max(100 / totalDays, 10.4) : Math.max(((endDay - startDay + 1) / totalDays) * 100, 7.2);
+    var width = isPoint ? Math.max(100 / totalDays, 18.4) : Math.max(((endDay - startDay + 1) / totalDays) * 100, 14.2);
     if (left + width > 100) left = Math.max(0, 100 - width);
     return {
       left: left.toFixed(3),

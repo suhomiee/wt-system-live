@@ -5840,6 +5840,10 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   overflow: hidden;
 }
 
+.wt-app.is-dashboard .wt-dashboard.has-running-view {
+  grid-template-rows: clamp(400px, 44vh, 540px) minmax(0, 1fr);
+}
+
 .wt-dashboard-gantt,
 .wt-dashboard-month-panel,
 .wt-dashboard-week-panel {
@@ -6222,7 +6226,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-dashboard-calendar-grid.is-running-split {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr);
 }
 
 .wt-dashboard-month-panel,
@@ -6539,16 +6543,16 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   z-index: 2;
   top: calc((var(--wt-row, 0) * (100% / var(--wt-running-rows, 1))) + 2px);
   left: calc(var(--wt-left, 0) * 1%);
-  width: calc(var(--wt-width, 5.2) * 1%);
+  width: calc(var(--wt-width, 14.2) * 1%);
   height: calc((100% / var(--wt-running-rows, 1)) - 4px);
   min-width: 0;
-  min-height: 17px;
-  max-height: 24px;
+  min-height: 34px;
+  max-height: 44px;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 4px;
-  padding: 0 5px;
+  gap: 6px;
+  padding: 2px 7px;
   border: 1px solid rgba(29, 47, 43, .13);
   border-left: 3px solid #87918e;
   border-radius: 4px;
@@ -6580,13 +6584,14 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   align-self: stretch;
   align-items: center;
   justify-content: center;
-  min-width: 24px;
-  margin: -1px 0 -1px -5px;
-  padding: 0 4px;
+  min-width: 33px;
+  height: auto;
+  margin: -1px 0 -1px -7px;
+  padding: 0 5px;
   border-radius: 4px 0 0 4px;
   background: #e2e8e6;
   color: #4d5b57;
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 700;
   line-height: 1;
   white-space: nowrap;
@@ -6604,13 +6609,14 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-dashboard-running-bar b {
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   color: var(--flow-ink);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 600;
-  line-height: 1;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  line-height: 1.08;
+  white-space: normal;
+  overflow-wrap: break-word;
+  text-overflow: clip;
 }
 
 .wt-dashboard-running-empty {
@@ -6681,6 +6687,10 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   grid-template-rows: clamp(560px, 52vh, 620px) minmax(0, 1fr);
   gap: 12px;
   padding: 12px;
+}
+
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-dashboard.has-running-view {
+  grid-template-rows: clamp(400px, 44vh, 540px) minmax(0, 1fr);
 }
 
 @media (max-width: 1380px) {
@@ -8644,9 +8654,22 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       '<button type="button" class="wt-dashboard-running-bar' + pointClass + selected + ' wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event)) + '" data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '">',
       '<span>' + text(formatDateSlash(event.date)) + '</span>',
-      '<b>' + text(shortTitle(dashboardGanttBarLabel(event), 34)) + '</b>',
+      '<b>' + text(dashboardRunningBarLabel(event)) + '</b>',
       '</button>'
     ].join("");
+  }
+
+  function dashboardRunningBarLabel(event) {
+    if (isUserEvent(event) || isDerivedEvent(event)) {
+      return [
+        event.season,
+        event.modelName || dashboardGanttBarTitle(event)
+      ].filter(Boolean).join(" ");
+    }
+    return [
+      event.season,
+      dashboardGanttBarTitle(event)
+    ].filter(Boolean).join(" ");
   }
 
   function dashboardRunningDays(startIso, endIso) {
@@ -8736,7 +8759,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var endDay = Math.max(startDay, Math.min(totalDays - 1, daysBetween(range.start, endIso)));
     var isPoint = dashboardGanttIsPointEvent(event);
     var left = (startDay / totalDays) * 100;
-    var width = isPoint ? Math.max(100 / totalDays, 10.4) : Math.max(((endDay - startDay + 1) / totalDays) * 100, 7.2);
+    var width = isPoint ? Math.max(100 / totalDays, 18.4) : Math.max(((endDay - startDay + 1) / totalDays) * 100, 14.2);
     if (left + width > 100) left = Math.max(0, 100 - width);
     return {
       left: left.toFixed(3),
