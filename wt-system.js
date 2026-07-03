@@ -40,6 +40,68 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   var SCHEDULE_SIZE_OPTIONS = ["W5.5", "W8", "M9", "M10"];
 
   var EMBEDDED = window.WT_SYSTEM_EMBEDDED || { milestones: [], holidays: [] };
+
+  function ensureTcmsMilestones(root) {
+    if (!root || state.tcmsMilestonesLoaded || state.tcmsMilestonesLoading) return;
+    var url = (root.getAttribute("data-wt-tcms-events-url") || "").trim();
+    if (!url) return;
+    state.tcmsMilestonesLoading = true;
+    window.fetch(cacheBustUrl(url), { cache: "no-store" }).then(function (response) {
+      if (response.status === 404) return [];
+      if (!response.ok) throw new Error("TCMS events HTTP " + response.status);
+      return response.json();
+    }).then(function (items) {
+      mergeTcmsMilestones(Array.isArray(items) ? items : []);
+      state.tcmsMilestonesLoaded = true;
+      state.tcmsMilestonesLoading = false;
+      render(root);
+    }).catch(function (error) {
+      state.tcmsMilestonesLoaded = true;
+      state.tcmsMilestonesLoading = false;
+      state.tcmsMilestonesError = error.message || String(error);
+    });
+  }
+
+  function mergeTcmsMilestones(items) {
+    var normalized = items.map(normalizeTcmsMilestone).filter(Boolean);
+    var base = (EMBEDDED.milestones || []).filter(function (item) {
+      return item && item.source !== "tcms";
+    });
+    EMBEDDED.milestones = base.concat(normalized).sort(function (a, b) {
+      var dateSort = String(a.date || "").localeCompare(String(b.date || ""));
+      if (dateSort) return dateSort;
+      return String(a.id || "").localeCompare(String(b.id || ""));
+    });
+  }
+
+  function normalizeTcmsMilestone(item, index) {
+    if (!item || !isIsoDate(item.date || item.manufacturingPlanDate)) return null;
+    var planDate = item.date || item.manufacturingPlanDate;
+    var workOrderNo = String(item.tcmsWorkOrderNo || item.workOrderNo || item.id || index);
+    var season = String(item.season || "All");
+    var modelName = String(item.modelName || item.model || "");
+    return {
+      id: String(item.id || ("TCMS-WT-" + workOrderNo)),
+      date: planDate,
+      season: season,
+      gate: String(item.gate || "WT"),
+      task: String(item.task || ("WT Order - " + season + (modelName ? " / " + modelName : "") + " / MFG Plan " + planDate)),
+      kind: "tcms_wt_order",
+      week: String(item.week || ""),
+      source: "tcms",
+      source_line: String(item.source_line || ("TCMS Running incomplete WT | WO=" + workOrderNo + " | manufacturingPlanDate=" + planDate)),
+      modelName: modelName,
+      tcmsWorkOrderNo: workOrderNo,
+      tcmsStatus: String(item.tcmsStatus || item.status || ""),
+      manufacturingPlanDate: planDate,
+      updatedAt: String(item.updatedAt || "")
+    };
+  }
+
+  function cacheBustUrl(url) {
+    return url + (url.indexOf("?") >= 0 ? "&" : "?") + "v=" + Date.now();
+  }
+
   var SHAREPOINT_SOURCES = {
     nikeRows: {
       title: "Product Test Database",
@@ -155,6 +217,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     sharedSubmissionsLoaded: false,
     sharedSubmissionsLoading: false,
     sharedSubmissionsError: "",
+    tcmsMilestonesLoaded: false,
+    tcmsMilestonesLoading: false,
+    tcmsMilestonesError: "",
     sidebarCollapsed: false,
     dashboardRunningView: false,
     actionMessage: "",
@@ -178,6 +243,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       updateClock(roots[i]);
       ensureActiveSourceIndexes(roots[i]);
       ensureSharedSubmissions(roots[i]);
+      ensureTcmsMilestones(roots[i]);
     }
   }
 
@@ -556,6 +622,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     root.innerHTML = renderApp(root);
     updateClock(root);
     ensureActiveSourceIndexes(root);
+    ensureTcmsMilestones(root);
   }
 
   function initializeDateState(root) {
@@ -4124,7 +4191,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function normalizedEvents() {
     var events = [];
     (EMBEDDED.milestones || []).forEach(function (item) {
-      if (!item.date || item.source !== "schedule.pdf") return;
+      if (!item.date || (item.source !== "schedule.pdf" && item.source !== "tcms")) return;
       events.push({
         id: item.id,
         date: item.date,
@@ -4134,8 +4201,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         season: item.season || "All",
         gate: item.gate || "",
         owner: item.gate || "WT",
+        modelName: item.modelName || "",
+        notes: item.source_line || item.notes || "",
         time: "",
-        source: "schedule.pdf"
+        source: item.source || "schedule.pdf"
       });
     });
     loadLocalSubmissions().forEach(function (item, index) {
@@ -4365,6 +4434,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (kind === "design_revisions_due" || kind === "revisions_ddd") return "deadline";
     if (kind === "scrutiny" || kind === "x_fty") return "review";
     if (kind === "bom_ddd" || kind === "product_freeze") return "creation";
+    if (kind === "tcms_wt_order") return "deadline";
     return "deadline";
   }
 
