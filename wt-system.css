@@ -583,6 +583,28 @@ textarea:focus-visible {
   line-height: 1;
 }
 
+.wt-tcms-count {
+  min-width: 116px;
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  color: var(--ink);
+}
+
+.wt-tcms-count small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.wt-tcms-count b {
+  font-family: var(--font-display);
+  font-size: 28px;
+  line-height: 1;
+}
+
 .wt-manager-create,
 .wt-manager-empty button {
   min-height: 38px;
@@ -937,6 +959,18 @@ textarea:focus-visible {
   border-radius: 999px;
   background: #f8faf9;
   padding: 0 9px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.wt-tcms-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 0 9px;
+  color: #0a5961;
   font-size: 12px;
   font-weight: 850;
 }

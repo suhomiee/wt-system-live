@@ -1,18 +1,1 @@
-[
-  {
-    "id": "TCMS-WT-VALIDATION-20260721",
-    "date": "2026-07-21",
-    "season": "SU27",
-    "gate": "WT",
-    "task": "WT Order - SU27 / Pegasus 42 / MFG Plan 2026-07-21",
-    "kind": "tcms_wt_order",
-    "week": "",
-    "source": "tcms",
-    "source_line": "TCMS Running incomplete WT | WO=VALIDATION-20260721 | status=Registered | manufacturingPlanDate=2026-07-21",
-    "modelName": "Pegasus 42",
-    "tcmsWorkOrderNo": "VALIDATION-20260721",
-    "tcmsStatus": "Registered",
-    "manufacturingPlanDate": "2026-07-21",
-    "updatedAt": "2026-07-03T09:00:00+09:00"
-  }
-]
+[]
