@@ -1,0 +1,85 @@
+name: Refresh TCMS Running WT events
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+    inputs:
+      source_url:
+        description: "Optional one-time TCMS Running WT JSON/XML source URL"
+        required: false
+        type: string
+      min_count:
+        description: "Minimum accepted WT order count"
+        required: false
+        default: "1"
+        type: string
+  repository_dispatch:
+    types:
+      - tcms-running-wt-refresh
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tcms-running-wt-refresh
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    env:
+      DISPATCH_SOURCE_URL: ${{ github.event.client_payload.source_url }}
+      INPUT_SOURCE_URL: ${{ inputs.source_url }}
+      SECRET_SOURCE_URL: ${{ secrets.TCMS_RUNNING_WT_SOURCE_URL }}
+      INPUT_MIN_COUNT: ${{ inputs.min_count }}
+      SECRET_MIN_COUNT: ${{ secrets.TCMS_RUNNING_WT_MIN_COUNT }}
+      TCMS_RUNNING_WT_YEAR: "2026"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve TCMS source
+        id: source
+        shell: bash
+        run: |
+          source_url="${DISPATCH_SOURCE_URL:-${INPUT_SOURCE_URL:-${SECRET_SOURCE_URL:-}}}"
+          min_count="${INPUT_MIN_COUNT:-${SECRET_MIN_COUNT:-1}}"
+          if [ -z "$source_url" ]; then
+            echo "::notice::TCMS_RUNNING_WT_SOURCE_URL is not configured, so the scheduled refresh is a no-op."
+            echo "has_source=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "has_source=true" >> "$GITHUB_OUTPUT"
+          echo "source_url=$source_url" >> "$GITHUB_OUTPUT"
+          echo "min_count=$min_count" >> "$GITHUB_OUTPUT"
+
+      - name: Normalize TCMS Running WT data
+        if: steps.source.outputs.has_source == 'true'
+        run: |
+          node tools/normalize-tcms-running-wt.mjs \
+            --input "${{ steps.source.outputs.source_url }}" \
+            --output tcms-wt-events.json \
+            --year "$TCMS_RUNNING_WT_YEAR" \
+            --min-count "${{ steps.source.outputs.min_count }}"
+
+      - name: Validate refreshed data
+        if: steps.source.outputs.has_source == 'true'
+        run: |
+          node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('tcms-wt-events.json','utf8')); if(!Array.isArray(data)) throw new Error('tcms-wt-events.json must be an array'); if(data.some(x=>x.source!=='tcms'||x.kind!=='tcms_wt_order'||!x.tcmsWorkOrderNo||!x.date)) throw new Error('Invalid TCMS WT event item'); console.log('TCMS WT events:', data.length);"
+
+      - name: Commit refreshed TCMS events
+        if: steps.source.outputs.has_source == 'true'
+        shell: bash
+        run: |
+          if git diff --quiet -- tcms-wt-events.json; then
+            echo "No TCMS WT event changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tcms-wt-events.json
+          git commit -m "Refresh TCMS Running WT events"
+          git push

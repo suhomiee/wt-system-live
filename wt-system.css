@@ -605,6 +605,12 @@ textarea:focus-visible {
   line-height: 1;
 }
 
+.wt-tcms-count span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
 .wt-manager-create,
 .wt-manager-empty button {
   min-height: 38px;
@@ -947,6 +953,12 @@ textarea:focus-visible {
   font-weight: 900;
 }
 
+.wt-manager-table td > time,
+.wt-manager-table td > b,
+.wt-manager-table td > small {
+  display: block;
+}
+
 .wt-manager-table small {
   color: var(--muted);
 }
@@ -973,6 +985,30 @@ textarea:focus-visible {
   color: #0a5961;
   font-size: 12px;
   font-weight: 850;
+}
+
+.wt-tcms-table {
+  min-width: 1440px;
+}
+
+.wt-tcms-table td {
+  vertical-align: top;
+}
+
+.wt-tcms-model {
+  max-width: 330px;
+  overflow-wrap: anywhere;
+}
+
+.wt-tcms-code {
+  overflow-wrap: anywhere;
+}
+
+.wt-tcms-empty-row {
+  height: 120px;
+  color: var(--muted);
+  text-align: center !important;
+  vertical-align: middle !important;
 }
 
 .wt-manager-actions {

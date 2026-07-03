@@ -87,7 +87,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       date: planDate,
       season: season,
       gate: String(item.gate || "WT"),
-      task: String(item.task || ("WT Order - " + season + (modelName ? " / " + modelName : "") + " / MFG Plan " + planDate)),
+      task: String(item.task || ("WT " + workOrderNo + " - " + season + (modelName ? " / " + modelName : "") + " / MFG Plan " + planDate)),
       kind: "tcms_wt_order",
       week: String(item.week || ""),
       source: "tcms",
@@ -98,6 +98,16 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       tcmsStatus: tcmsStatus,
       tcmsCompletionStatus: String(item.tcmsCompletionStatus || item.completionStatus || ""),
       manufacturingPlanDate: planDate,
+      manufacturingPlanRaw: String(item.manufacturingPlanRaw || item.manufacturingPlan || ""),
+      tcmsBomNo: String(item.tcmsBomNo || item.bomNo || item.bom || ""),
+      tcmsTdCode: String(item.tcmsTdCode || item.tdCode || item.td || ""),
+      tcmsGender: String(item.tcmsGender || item.gender || ""),
+      tcmsQuantity: String(item.tcmsQuantity || item.quantity || item.qty || ""),
+      tcmsOrderReceivedDate: String(item.tcmsOrderReceivedDate || item.orderReceivedDate || item.orderReceived || ""),
+      tcmsEtsDate: String(item.tcmsEtsDate || item.etsDate || ""),
+      tcmsEtsRaw: String(item.tcmsEtsRaw || item.ets || ""),
+      tcmsOwner: String(item.tcmsOwner || item.owner || ""),
+      tcmsImportantNote: String(item.tcmsImportantNote || item.importantNote || item.notes || ""),
       updatedAt: String(item.updatedAt || "")
     };
   }
@@ -4449,6 +4459,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderTcmsRunningPage() {
     var orders = tcmsRunningOrders();
+    var latestSync = latestTcmsSync(orders);
     return [
       '<section class="wt-manager-page wt-tcms-page">',
       '<header class="wt-manager-head">',
@@ -4456,9 +4467,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<small>TCMS Running Category</small>',
       '<h2>TCMS Running WT</h2>',
       '</div>',
-      '<div class="wt-tcms-count"><small>Open WT orders</small><b>' + text(orders.length) + '</b></div>',
+      '<div class="wt-tcms-count"><small>Open WT orders</small><b>' + text(orders.length) + '</b>' + (latestSync ? '<span>Last sync ' + text(formatDateTime(latestSync)) + '</span>' : '') + '</div>',
       '</header>',
-      orders.length ? renderTcmsRunningTable(orders) : renderTcmsRunningEmptyState(),
+      renderTcmsRunningTable(orders),
       '</section>'
     ].join("");
   }
@@ -4477,10 +4488,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var category = String(item.tcmsCategory || item.category || "Running").toLowerCase();
     var status = String(item.tcmsStatus || item.tcmsCompletionStatus || item.status || "").toLowerCase();
     var isRunningCategory = !category || category.indexOf("running") >= 0;
-    var isKoreanIncomplete = status.indexOf("미완료") >= 0;
+    var isKoreanIncomplete = status.indexOf("\ubbf8\uc644\ub8cc") >= 0;
     var isCompleteStatus = /\b(completed|complete|done|closed|cancelled|canceled)\b/.test(status) ||
-      (!isKoreanIncomplete && status.indexOf("완료") >= 0) ||
-      status.indexOf("취소") >= 0;
+      (!isKoreanIncomplete && status.indexOf("\uc644\ub8cc") >= 0) ||
+      status.indexOf("\ucde8\uc18c") >= 0;
     return isRunningCategory && !isCompleteStatus;
   }
 
@@ -4488,9 +4499,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       '<div class="wt-manager-table-wrap wt-tcms-table-wrap">',
       '<table class="wt-manager-table wt-tcms-table" aria-label="TCMS Running WT work orders">',
-      '<thead><tr><th>Plan Date</th><th>Season</th><th>Model</th><th>Work Order</th><th>Status</th><th>Updated</th><th>Event</th></tr></thead>',
+      '<thead><tr><th>Plan Date</th><th>WT No.</th><th>Season</th><th>Model</th><th>BOM</th><th>TD</th><th>Qty</th><th>ETS</th><th>Owner</th><th>Status</th></tr></thead>',
       '<tbody>',
-      orders.map(renderTcmsRunningRow).join(""),
+      orders.length ? orders.map(renderTcmsRunningRow).join("") : renderTcmsRunningEmptyRow(),
       '</tbody>',
       '</table>',
       '</div>'
@@ -4501,25 +4512,29 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var planDate = item.manufacturingPlanDate || item.date || "";
     return [
       '<tr>',
-      '<td><time>' + text(formatGamePlanDate(planDate)) + '</time></td>',
+      '<td><time>' + text(formatGamePlanDate(planDate)) + '</time><small>' + text(item.manufacturingPlanRaw || "") + '</small></td>',
+      '<td><b class="wt-tcms-code">' + text(item.tcmsWorkOrderNo || item.id || "-") + '</b></td>',
       '<td><span class="wt-manager-season">' + text(item.season || "All") + '</span></td>',
-      '<td><b>' + text(item.modelName || "-") + '</b></td>',
-      '<td><small>' + text(item.tcmsWorkOrderNo || item.id || "-") + '</small></td>',
-      '<td><span class="wt-tcms-status">' + text(item.tcmsStatus || "Running") + '</span></td>',
-      '<td><small>' + text(item.updatedAt ? formatDateTime(item.updatedAt) : "-") + '</small></td>',
-      '<td><small>' + text(item.task || "WT Order") + '</small></td>',
+      '<td><b class="wt-tcms-model">' + text(item.modelName || "-") + '</b><small>' + text(item.tcmsGender || "") + '</small></td>',
+      '<td><small class="wt-tcms-code">' + text(item.tcmsBomNo || "-") + '</small></td>',
+      '<td><small>' + text(item.tcmsTdCode || "-") + '</small></td>',
+      '<td><small>' + text(item.tcmsQuantity || "-") + '</small></td>',
+      '<td><small>' + text(item.tcmsEtsDate ? formatGamePlanDate(item.tcmsEtsDate) : item.tcmsEtsRaw || "-") + '</small></td>',
+      '<td><small>' + text(item.tcmsOwner || "-") + '</small></td>',
+      '<td><span class="wt-tcms-status">' + text(item.tcmsStatus || item.tcmsCompletionStatus || "Running") + '</span></td>',
       '</tr>'
     ].join("");
   }
 
-  function renderTcmsRunningEmptyState() {
-    return [
-      '<section class="wt-manager-empty wt-tcms-empty">',
-      icon("tcms-running"),
-      '<b>No Running WT orders</b>',
-      '<span>No open WT orders are currently published from TCMS.</span>',
-      '</section>'
-    ].join("");
+  function renderTcmsRunningEmptyRow() {
+    return '<tr><td colspan="10" class="wt-tcms-empty-row">No Running WT orders are currently published from TCMS.</td></tr>';
+  }
+
+  function latestTcmsSync(orders) {
+    return orders.reduce(function (latest, item) {
+      var value = item && item.updatedAt || "";
+      return value && (!latest || value > latest) ? value : latest;
+    }, "");
   }
 
   function matchesFilters(event) {
