@@ -987,8 +987,20 @@ textarea:focus-visible {
   font-weight: 850;
 }
 
+.wt-tcms-category {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border: 1px solid #bfdbd5;
+  background: #f2fbf8;
+  padding: 0 9px;
+  color: #0a5961;
+  font-size: 12px;
+  font-weight: 900;
+}
+
 .wt-tcms-table {
-  min-width: 1440px;
+  min-width: 1520px;
 }
 
 .wt-tcms-table td {

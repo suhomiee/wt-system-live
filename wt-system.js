@@ -42,24 +42,63 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   var EMBEDDED = window.WT_SYSTEM_EMBEDDED || { milestones: [], holidays: [] };
 
   function ensureTcmsMilestones(root) {
-    if (!root || state.tcmsMilestonesLoaded || state.tcmsMilestonesLoading) return;
+    if (!root) return;
     var url = (root.getAttribute("data-wt-tcms-events-url") || "").trim();
     if (!url) return;
+    scheduleTcmsMilestoneRefresh(root, url);
+    if (state.tcmsMilestonesLoaded || state.tcmsMilestonesLoading) return;
+    fetchTcmsMilestones(root, url, false);
+  }
+
+  function scheduleTcmsMilestoneRefresh(root, url) {
+    var refreshMs = Number(root.getAttribute("data-wt-tcms-refresh-ms") || 60000);
+    if (!refreshMs || refreshMs < 15000) return;
+    if (state.tcmsMilestonesRefreshTimer && state.tcmsMilestonesUrl === url && state.tcmsMilestonesRefreshMs === refreshMs) return;
+    if (state.tcmsMilestonesRefreshTimer) window.clearInterval(state.tcmsMilestonesRefreshTimer);
+    state.tcmsMilestonesUrl = url;
+    state.tcmsMilestonesRefreshMs = refreshMs;
+    state.tcmsMilestonesRefreshTimer = window.setInterval(function () {
+      fetchTcmsMilestones(root, url, true);
+    }, refreshMs);
+  }
+
+  function fetchTcmsMilestones(root, url, refreshOnly) {
+    if (state.tcmsMilestonesLoading) return;
     state.tcmsMilestonesLoading = true;
     window.fetch(cacheBustUrl(url), { cache: "no-store" }).then(function (response) {
       if (response.status === 404) return [];
       if (!response.ok) throw new Error("TCMS events HTTP " + response.status);
       return response.json();
     }).then(function (items) {
-      mergeTcmsMilestones(Array.isArray(items) ? items : []);
+      var sourceItems = Array.isArray(items) ? items : [];
+      var signature = stableTcmsSignature(sourceItems);
+      var changed = signature !== state.tcmsMilestonesSignature;
+      if (changed || !state.tcmsMilestonesLoaded) {
+        mergeTcmsMilestones(sourceItems);
+        state.tcmsMilestonesSignature = signature;
+      }
       state.tcmsMilestonesLoaded = true;
       state.tcmsMilestonesLoading = false;
-      render(root);
+      if (changed || !refreshOnly) render(root);
     }).catch(function (error) {
       state.tcmsMilestonesLoaded = true;
       state.tcmsMilestonesLoading = false;
       state.tcmsMilestonesError = error.message || String(error);
     });
+  }
+
+  function stableTcmsSignature(items) {
+    return JSON.stringify(items.map(function (item) {
+      return [
+        item && (item.tcmsWorkOrderNo || item.workOrderNo || item.id || ""),
+        item && (item.tcmsCategory || item.category || ""),
+        item && (item.tcmsStatus || item.tcmsCompletionStatus || item.status || ""),
+        item && (item.date || item.manufacturingPlanDate || ""),
+        item && (item.manufacturingPlanRaw || item.manufacturingPlan || ""),
+        item && (item.season || ""),
+        item && (item.modelName || item.model || "")
+      ];
+    }));
   }
 
   function mergeTcmsMilestones(items) {
@@ -80,7 +119,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var workOrderNo = String(item.tcmsWorkOrderNo || item.workOrderNo || item.id || index);
     var season = String(item.season || "All");
     var modelName = String(item.modelName || item.model || "");
-    var tcmsCategory = String(item.tcmsCategory || item.category || "Running");
+    var tcmsCategory = String(item.tcmsCategory || item.category || "");
+    if (!tcmsCategory) return null;
     var tcmsStatus = String(item.tcmsStatus || item.status || item.completionStatus || "");
     return {
       id: String(item.id || ("TCMS-WT-" + workOrderNo)),
@@ -234,6 +274,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     tcmsMilestonesLoaded: false,
     tcmsMilestonesLoading: false,
     tcmsMilestonesError: "",
+    tcmsMilestonesUrl: "",
+    tcmsMilestonesRefreshMs: 0,
+    tcmsMilestonesRefreshTimer: 0,
+    tcmsMilestonesSignature: "",
     sidebarCollapsed: false,
     dashboardRunningView: false,
     actionMessage: "",
@@ -717,7 +761,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         navItem("calendar", "Calendar")
       ]),
       navGroup("Planning", [
-        navItem("gameplan", "WT Product Game Plan")
+        navItem("gameplan", "WT Product Game Plan"),
+        navItem("tcms-running", "WT Worksheet")
       ]),
       navGroup("Reports & Data", [
         externalNavItem("phkReports", "PHK WT Reports", "phk"),
@@ -731,7 +776,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '</nav>',
       '<nav class="wt-primary-nav wt-sidebar-bottom-nav" aria-label="Schedule management">',
       navGroup("Management", [
-        navItem("tcms-running", "TCMS Running WT"),
         navItem("manager", "Schedule Manager")
       ]),
       '</nav>',
@@ -834,7 +878,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (state.section === "creation") return "Creation Plan";
     if (state.section === "assistant") return "AI Q&A";
     if (state.section === "gameplan") return "WT Product Game Plan";
-    if (state.section === "tcms-running") return "TCMS Running WT";
+    if (state.section === "tcms-running") return "WT Worksheet";
     if (state.section === "manager") return "Schedule Manager";
     return "Calendar";
   }
@@ -4465,7 +4509,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<header class="wt-manager-head">',
       '<div>',
       '<small>TCMS Running Category</small>',
-      '<h2>TCMS Running WT</h2>',
+      '<h2>WT Worksheet</h2>',
       '</div>',
       '<div class="wt-tcms-count"><small>Open WT orders</small><b>' + text(orders.length) + '</b>' + (latestSync ? '<span>Last sync ' + text(formatDateTime(latestSync)) + '</span>' : '') + '</div>',
       '</header>',
@@ -4485,9 +4529,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function isTcmsRunningWtOrder(item) {
     if (!item || item.source !== "tcms" || !item.date) return false;
     if (item.kind !== "tcms_wt_order" && item.gate !== "WT") return false;
-    var category = String(item.tcmsCategory || item.category || "Running").toLowerCase();
+    var category = String(item.tcmsCategory || item.category || "").toLowerCase();
     var status = String(item.tcmsStatus || item.tcmsCompletionStatus || item.status || "").toLowerCase();
-    var isRunningCategory = !category || category.indexOf("running") >= 0;
+    var isRunningCategory = category.indexOf("running") >= 0;
     var isKoreanIncomplete = status.indexOf("\ubbf8\uc644\ub8cc") >= 0;
     var isCompleteStatus = /\b(completed|complete|done|closed|cancelled|canceled)\b/.test(status) ||
       (!isKoreanIncomplete && status.indexOf("\uc644\ub8cc") >= 0) ||
@@ -4499,7 +4543,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       '<div class="wt-manager-table-wrap wt-tcms-table-wrap">',
       '<table class="wt-manager-table wt-tcms-table" aria-label="TCMS Running WT work orders">',
-      '<thead><tr><th>Plan Date</th><th>WT No.</th><th>Season</th><th>Model</th><th>BOM</th><th>TD</th><th>Qty</th><th>ETS</th><th>Owner</th><th>Status</th></tr></thead>',
+      '<thead><tr><th>Plan Date</th><th>Category</th><th>WT No.</th><th>Season</th><th>Model</th><th>BOM</th><th>TD</th><th>Qty</th><th>ETS</th><th>Owner</th><th>Status</th></tr></thead>',
       '<tbody>',
       orders.length ? orders.map(renderTcmsRunningRow).join("") : renderTcmsRunningEmptyRow(),
       '</tbody>',
@@ -4513,6 +4557,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       '<tr>',
       '<td><time>' + text(formatGamePlanDate(planDate)) + '</time><small>' + text(item.manufacturingPlanRaw || "") + '</small></td>',
+      '<td><span class="wt-tcms-category">' + text(item.tcmsCategory || item.category || "-") + '</span></td>',
       '<td><b class="wt-tcms-code">' + text(item.tcmsWorkOrderNo || item.id || "-") + '</b></td>',
       '<td><span class="wt-manager-season">' + text(item.season || "All") + '</span></td>',
       '<td><b class="wt-tcms-model">' + text(item.modelName || "-") + '</b><small>' + text(item.tcmsGender || "") + '</small></td>',
@@ -4527,7 +4572,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderTcmsRunningEmptyRow() {
-    return '<tr><td colspan="10" class="wt-tcms-empty-row">No Running WT orders are currently published from TCMS.</td></tr>';
+    return '<tr><td colspan="11" class="wt-tcms-empty-row">No Running WT orders are currently published from TCMS.</td></tr>';
   }
 
   function latestTcmsSync(orders) {

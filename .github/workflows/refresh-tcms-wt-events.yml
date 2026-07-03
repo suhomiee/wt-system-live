@@ -14,6 +14,11 @@ on:
         required: false
         default: "1"
         type: string
+      source_category:
+        description: "TCMS category to apply when the source does not include a category column"
+        required: false
+        default: "Running"
+        type: string
   repository_dispatch:
     types:
       - tcms-running-wt-refresh
@@ -30,8 +35,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DISPATCH_SOURCE_URL: ${{ github.event.client_payload.source_url }}
+      DISPATCH_SOURCE_CATEGORY: ${{ github.event.client_payload.source_category }}
       INPUT_SOURCE_URL: ${{ inputs.source_url }}
+      INPUT_SOURCE_CATEGORY: ${{ inputs.source_category }}
       SECRET_SOURCE_URL: ${{ secrets.TCMS_RUNNING_WT_SOURCE_URL }}
+      SECRET_SOURCE_CATEGORY: ${{ secrets.TCMS_RUNNING_WT_CATEGORY }}
       INPUT_MIN_COUNT: ${{ inputs.min_count }}
       SECRET_MIN_COUNT: ${{ secrets.TCMS_RUNNING_WT_MIN_COUNT }}
       TCMS_RUNNING_WT_YEAR: "2026"
@@ -47,6 +55,7 @@ jobs:
         run: |
           source_url="${DISPATCH_SOURCE_URL:-${INPUT_SOURCE_URL:-${SECRET_SOURCE_URL:-}}}"
           min_count="${INPUT_MIN_COUNT:-${SECRET_MIN_COUNT:-1}}"
+          source_category="${DISPATCH_SOURCE_CATEGORY:-${INPUT_SOURCE_CATEGORY:-${SECRET_SOURCE_CATEGORY:-Running}}}"
           if [ -z "$source_url" ]; then
             echo "::notice::TCMS_RUNNING_WT_SOURCE_URL is not configured, so the scheduled refresh is a no-op."
             echo "has_source=false" >> "$GITHUB_OUTPUT"
@@ -55,6 +64,7 @@ jobs:
           echo "has_source=true" >> "$GITHUB_OUTPUT"
           echo "source_url=$source_url" >> "$GITHUB_OUTPUT"
           echo "min_count=$min_count" >> "$GITHUB_OUTPUT"
+          echo "source_category=$source_category" >> "$GITHUB_OUTPUT"
 
       - name: Normalize TCMS Running WT data
         if: steps.source.outputs.has_source == 'true'
@@ -63,7 +73,8 @@ jobs:
             --input "${{ steps.source.outputs.source_url }}" \
             --output tcms-wt-events.json \
             --year "$TCMS_RUNNING_WT_YEAR" \
-            --min-count "${{ steps.source.outputs.min_count }}"
+            --min-count "${{ steps.source.outputs.min_count }}" \
+            --category "${{ steps.source.outputs.source_category }}"
 
       - name: Validate refreshed data
         if: steps.source.outputs.has_source == 'true'

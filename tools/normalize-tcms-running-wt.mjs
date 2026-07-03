@@ -20,6 +20,7 @@ async function main() {
   const output = args.output || "tcms-wt-events.json";
   const year = Number(args.year || DEFAULT_YEAR);
   const minCount = Number(args["min-count"] || process.env.TCMS_RUNNING_WT_MIN_COUNT || 0);
+  const sourceCategory = clean(args.category || process.env.TCMS_RUNNING_WT_CATEGORY || "");
 
   if (!input) {
     throw new Error("Missing TCMS source. Pass --input or set TCMS_RUNNING_WT_SOURCE_URL.");
@@ -28,7 +29,7 @@ async function main() {
   const payload = await readInput(input);
   const rows = parseSource(payload);
   const updatedAt = args["updated-at"] || process.env.TCMS_RUNNING_WT_SYNC_TIMESTAMP || new Date().toISOString();
-  const events = rows.map((row) => normalizeRow(row, year, updatedAt)).filter(Boolean);
+  const events = rows.map((row) => normalizeRow(row, year, updatedAt, sourceCategory)).filter(Boolean);
   events.sort((a, b) => {
     const dateSort = String(a.date).localeCompare(String(b.date));
     if (dateSort) return dateSort;
@@ -100,7 +101,7 @@ function parseTcmsXmlLines(xml) {
   return rows;
 }
 
-function normalizeRow(row, year, updatedAt) {
+function normalizeRow(row, year, updatedAt, sourceCategory) {
   const isArray = Array.isArray(row);
   const workOrderNo = clean(isArray ? row[0] : pick(row, ["tcmsWorkOrderNo", "workOrderNo", "work_order", "orderNo", "\uc811\uc218\ubc88\ud638"]));
   if (!WORK_ORDER_RE.test(workOrderNo)) return null;
@@ -116,7 +117,8 @@ function normalizeRow(row, year, updatedAt) {
   const manufacturingRaw = clean(isArray ? row[48] : pick(row, ["manufacturingPlanRaw", "manufacturingPlanDate", "manufacturingPlan", "mfgPlan", "\uc81c\uc870 \uc644\ub8cc"]));
   const owner = clean(isArray ? row[55] : pick(row, ["tcmsOwner", "owner", "\ub2f4\ub2f9\uc790"]));
   const season = clean(isArray ? row[56] : pick(row, ["season", "SEASON"])) || "All";
-  const category = clean(isArray ? "" : pick(row, ["tcmsCategory", "category"])) || "Running";
+  const rowCategory = clean(isArray ? "" : pick(row, ["tcmsCategory", "category", "categoryName", "tcmsCategoryName", "workCategory", "\uce74\ud14c\uace0\ub9ac"]));
+  const category = rowCategory || sourceCategory;
   const status = clean(isArray ? "" : pick(row, ["tcmsStatus", "tcmsCompletionStatus", "completionStatus", "status"])) || INCOMPLETE;
 
   if (!isRunningCategory(category) || isCompleteStatus(status)) return null;
