@@ -1,0 +1,56 @@
+name: Deploy static site to Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare static site
+        shell: bash
+        run: |
+          rm -rf dist
+          mkdir -p dist
+          cp index.html dist/
+          cp local-harness.html dist/
+          cp modern-script-editor-snippet.html dist/
+          cp schedule-milestones.json dist/
+          cp sharepoint-modern-script-editor-full-script-v1.0.0.txt dist/
+          cp tcms-wt-events.json dist/
+          cp wt-system.css dist/
+          cp wt-system.js dist/
+          cp -R fonts dist/fonts
+          touch dist/.nojekyll
+          find dist -type d -exec chmod 755 {} \;
+          find dist -type f -exec chmod 644 {} \;
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
