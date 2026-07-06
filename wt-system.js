@@ -102,7 +102,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function mergeTcmsMilestones(items) {
-    var normalized = items.map(normalizeTcmsMilestone).filter(Boolean);
+    var normalized = items.map(normalizeTcmsMilestone).filter(Boolean).filter(isAllowedWtWorkOrderSubmission);
     var base = (EMBEDDED.milestones || []).filter(function (item) {
       return item && item.source !== "tcms";
     });
@@ -267,6 +267,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     search: "",
     deadlineHighlight: false,
     modelScheduleHighlight: false,
+    wtWorkOrderVisible: true,
     backendMode: "local",
     sharedSubmissionsLoaded: false,
     sharedSubmissionsLoading: false,
@@ -326,6 +327,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var quarterMonthButton = event.target.closest("[data-quarter-month]");
       var deadlineButton = event.target.closest("[data-deadline-toggle]");
       var modelScheduleButton = event.target.closest("[data-model-schedule-toggle]");
+      var workOrderButton = event.target.closest("[data-work-order-toggle]");
       var clearSearchButton = event.target.closest("[data-clear-search]");
       var eventButton = event.target.closest("[data-event-id]");
       var editEventButton = event.target.closest("[data-edit-event-id]");
@@ -608,6 +610,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
       if (modelScheduleButton && root.contains(modelScheduleButton)) {
         state.modelScheduleHighlight = !state.modelScheduleHighlight;
+        state.actionMessage = "";
+        render(root);
+      }
+
+      if (workOrderButton && root.contains(workOrderButton)) {
+        state.wtWorkOrderVisible = !state.wtWorkOrderVisible;
         state.actionMessage = "";
         render(root);
       }
@@ -919,6 +927,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       renderFlowFilter("Season", availableSeasons(), "season", state.season),
       '<button class="wt-deadline-toggle wt-flow-pill ' + (state.deadlineHighlight ? "active" : "") + '" type="button" data-deadline-toggle>' + icon("flag") + '<span>Deadline</span></button>',
       '<button class="wt-model-highlight-toggle wt-flow-pill ' + (state.modelScheduleHighlight ? "active" : "") + '" type="button" data-model-schedule-toggle>' + icon("model") + '<span>Model Schedule</span></button>',
+      renderWorkOrderToggle(),
       '</div>',
       '<div class="wt-action-buttons wt-flow-actions">',
       '<button type="button" data-view="edit" aria-label="Create Schedule">' + icon("plus") + '<span>Create Schedule</span></button>',
@@ -991,6 +1000,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function filterButton(type, value, active) {
     return '<button class="' + (active ? "active" : "") + '" type="button" data-' + text(type) + '="' + text(value) + '">' + text(value) + '</button>';
+  }
+
+  function renderWorkOrderToggle() {
+    return '<button class="wt-work-order-toggle wt-flow-pill ' + (state.wtWorkOrderVisible ? "active" : "") + '" type="button" data-work-order-toggle aria-pressed="' + text(state.wtWorkOrderVisible ? "true" : "false") + '">' + icon("calendar") + '<span>WT 작업지시서</span></button>';
   }
 
   function icon(name) {
@@ -1685,6 +1698,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<section class="wt-dashboard-gantt" aria-label="' + text(year + " schedule overview") + '">',
       '<header class="wt-dashboard-gantt-head">',
       '<div><b>' + text(year) + '</b><span>Year schedule</span></div>',
+      '<div class="wt-dashboard-gantt-actions">' + renderWorkOrderToggle() + '</div>',
       '</header>',
       '<div class="wt-dashboard-gantt-months">',
       '<span class="wt-dashboard-gantt-month-spacer" aria-hidden="true"></span>',
@@ -4251,10 +4265,82 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return String(value).replace(/'/g, "''");
   }
 
+  function workOrderText(item) {
+    return [
+      item && item.projectName,
+      item && item.title,
+      item && item.task,
+      item && item.modelName,
+      item && item.milestoneType,
+      item && item.kind,
+      item && item.category,
+      item && item.tcmsCategory,
+      item && item.productLine,
+      item && item.productFamily,
+      item && item.gender,
+      item && item.tcmsGender,
+      item && item.notes,
+      item && item.source_line,
+      item && item.tcmsWorkOrderNo,
+      item && item.workOrderNo,
+      item && item.tcmsBomNo,
+      item && item.tcmsTdCode,
+      item && item.tcmsImportantNote,
+      item && item.source,
+      item && item.sourceType,
+      item && item.origin,
+      item && item.importSource,
+      item && item.listName,
+      item && item.formName
+    ].join(" ");
+  }
+
+  function workOrderOwnerText(item) {
+    return [
+      item && item.owner,
+      item && item.developer,
+      item && item.pccDeveloper,
+      item && item.createdBy,
+      item && item.submitter,
+      item && item.requester,
+      item && item.assignee,
+      item && item.pic,
+      item && item.manager,
+      item && item.tcmsOwner,
+      item && item["PCC Developer (English Name)"],
+      item && item["담당자"],
+      item && item["등록자"]
+    ].join(" ");
+  }
+
+  function isWtWorkOrderSubmission(item) {
+    if (!item) return false;
+    if (item.workOrder || item.wtWorkOrder || item.isWorkOrder) return true;
+    if (item.source === "tcms" && (item.kind === "tcms_wt_order" || item.gate === "WT")) return true;
+    var sourceText = workOrderText(item).toLowerCase();
+    return /작업\s*지시서|작업지시서|work\s*order|work-order|wt\s*order|wear\s*test\s*order/.test(sourceText);
+  }
+
+  function isAllowedWtWorkOrderSubmission(item) {
+    if (!isWtWorkOrderSubmission(item)) return true;
+    var ownerText = workOrderOwnerText(item);
+    if (/김민정|김영권/.test(ownerText)) return false;
+    var searchable = workOrderText(item);
+    if (/\bAIR\s*MAX\b|AIRMAX/i.test(searchable)) return false;
+    return /\bACG\b|RUNNING|러닝|PEGASUS|VOMERO|STRUCTURE|WINFLO|QUEST|INVINCIBLE|INFINITY|VAPORFLY|ALPHAFLY|STREAKFLY|ULTRAFLY|KIGER|ZEGAMA|WILDHORSE|ZOOM\s*FLY|ZOOMX|TRAIL/i.test(searchable);
+  }
+
+  function isWtWorkOrderEvent(event) {
+    if (!event) return false;
+    return !!event.workOrder || isWtWorkOrderSubmission(event);
+  }
+
   function normalizedEvents() {
     var events = [];
     (EMBEDDED.milestones || []).forEach(function (item) {
       if (!item.date || (item.source !== "schedule.pdf" && item.source !== "tcms")) return;
+      var workOrder = isWtWorkOrderSubmission(item);
+      if (workOrder && !isAllowedWtWorkOrderSubmission(item)) return;
       events.push({
         id: item.id,
         date: item.date,
@@ -4263,15 +4349,18 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         kind: mapMilestoneKind(item.kind),
         season: item.season || "All",
         gate: item.gate || "",
-        owner: item.gate || "WT",
+        owner: item.tcmsOwner || item.gate || "WT",
         modelName: item.modelName || "",
         notes: item.source_line || item.notes || "",
         time: "",
-        source: item.source || "schedule.pdf"
+        source: item.source || "schedule.pdf",
+        workOrder: workOrder
       });
     });
     loadLocalSubmissions().forEach(function (item, index) {
       if (!item || !item.targetDate) return;
+      var workOrder = isWtWorkOrderSubmission(item);
+      if (workOrder && !isAllowedWtWorkOrderSubmission(item)) return;
       var parentId = submissionId(item, index);
       events.push({
         id: parentId,
@@ -4288,7 +4377,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         sampleQuantity: item.sampleQuantity || "",
         notes: item.notes || "",
         time: "",
-        source: item.source || "wt-system-ui"
+        source: item.source || "wt-system-ui",
+        workOrder: workOrder
       });
       deriveHandoffEvents(item, parentId).forEach(function (event) {
         events.push(event);
@@ -4368,7 +4458,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       sampleQuantity: item.sampleQuantity || "",
       time: "",
       source: "wt-system-derived",
-      parentId: parentId
+      parentId: parentId,
+      workOrder: isWtWorkOrderSubmission(item)
     };
     return [
       extendEvent(common, {
@@ -4585,7 +4676,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function matchesFilters(event) {
     var seasonMatch = state.season === "All" || event.season === state.season || event.season === "All";
     var searchMatch = matchesSearch(event);
-    return seasonMatch && searchMatch;
+    var workOrderMatch = state.wtWorkOrderVisible || !isWtWorkOrderEvent(event);
+    return seasonMatch && searchMatch && workOrderMatch;
   }
 
   function matchesSearch(event) {

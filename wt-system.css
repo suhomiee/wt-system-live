@@ -1152,6 +1152,7 @@ textarea:focus-visible {
 .wt-action-buttons button,
 .wt-deadline-toggle,
 .wt-model-highlight-toggle,
+.wt-work-order-toggle,
 .wt-filter-note button {
   min-height: 34px;
   border: 1px solid var(--line);
@@ -1163,7 +1164,8 @@ textarea:focus-visible {
 
 .wt-filter-group button.active,
 .wt-deadline-toggle.active,
-.wt-model-highlight-toggle.active {
+.wt-model-highlight-toggle.active,
+.wt-work-order-toggle.active {
   border-color: var(--teal);
   background: rgba(33,174,176,.12);
   color: var(--teal-dark);
@@ -4284,8 +4286,15 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   color: #ffffff;
 }
 
+.wt-work-order-toggle.wt-flow-pill.active {
+  border-color: #0b5d59;
+  background: #0b5d59;
+  color: #ffffff;
+}
+
 .wt-deadline-toggle.wt-flow-pill::after,
-.wt-model-highlight-toggle.wt-flow-pill::after {
+.wt-model-highlight-toggle.wt-flow-pill::after,
+.wt-work-order-toggle.wt-flow-pill::after {
   content: none;
   display: none;
 }
@@ -5974,6 +5983,21 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   color: var(--flow-muted);
   font-size: 12px;
   line-height: 1;
+}
+
+.wt-dashboard-gantt-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.wt-dashboard-gantt-actions .wt-flow-pill {
+  min-height: 38px;
+  padding: 0 18px;
+  font-size: 15px;
+  line-height: 20px;
+  white-space: nowrap;
 }
 
 .wt-dashboard-gantt-month-row,
