@@ -5995,21 +5995,6 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   line-height: 1;
 }
 
-.wt-dashboard-gantt-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  min-width: 0;
-}
-
-.wt-dashboard-gantt-actions .wt-flow-pill {
-  min-height: 38px;
-  padding: 0 18px;
-  font-size: 15px;
-  line-height: 20px;
-  white-space: nowrap;
-}
-
 .wt-dashboard-gantt-month-row,
 .wt-dashboard-gantt-month-hit-grid {
   display: grid;
@@ -6386,13 +6371,31 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   margin-left: 4px;
 }
 
+.wt-dashboard-panel-actions .wt-work-order-toggle {
+  min-height: 28px;
+  display: grid;
+  grid-template-columns: auto minmax(0, auto);
+  gap: 5px;
+  margin-left: 4px;
+  border-radius: 5px;
+  padding: 0 9px;
+  font-size: 13px;
+}
+
 .wt-dashboard-panel-actions .wt-dashboard-running-toggle.active {
   border-color: #004f5d;
   background: #004f5d;
   color: #ffffff;
 }
 
-.wt-dashboard-panel-actions .wt-dashboard-running-toggle span {
+.wt-dashboard-panel-actions .wt-work-order-toggle.active {
+  border-color: #0b5d59;
+  background: #0b5d59;
+  color: #ffffff;
+}
+
+.wt-dashboard-panel-actions .wt-dashboard-running-toggle span,
+.wt-dashboard-panel-actions .wt-work-order-toggle span {
   line-height: 1;
   white-space: nowrap;
 }
@@ -7863,7 +7866,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderWorkOrderToggle() {
-    return '<button class="wt-work-order-toggle wt-flow-pill ' + (state.wtWorkOrderVisible ? "active" : "") + '" type="button" data-work-order-toggle aria-pressed="' + text(state.wtWorkOrderVisible ? "true" : "false") + '">' + icon("calendar") + '<span>WT 작업지시서</span></button>';
+    return '<button class="wt-work-order-toggle wt-flow-pill ' + (state.wtWorkOrderVisible ? "active" : "") + '" type="button" data-work-order-toggle aria-pressed="' + text(state.wtWorkOrderVisible ? "true" : "false") + '">' + icon("calendar") + '<span>WT Worksheet</span></button>';
   }
 
   function icon(name) {
@@ -8558,7 +8561,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<section class="wt-dashboard-gantt" aria-label="' + text(year + " schedule overview") + '">',
       '<header class="wt-dashboard-gantt-head">',
       '<div><b>' + text(year) + '</b><span>Year schedule</span></div>',
-      '<div class="wt-dashboard-gantt-actions">' + renderWorkOrderToggle() + '</div>',
       '</header>',
       '<div class="wt-dashboard-gantt-months">',
       '<span class="wt-dashboard-gantt-month-spacer" aria-hidden="true"></span>',
@@ -8833,6 +8835,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         '<button type="button" data-dashboard-today>Today</button>',
         '<button type="button" data-dashboard-month-shift="1" aria-label="Next month">' + icon("chevron-right") + '</button>',
         '<button type="button" class="wt-dashboard-running-toggle ' + (state.dashboardRunningView ? "active" : "") + '" data-dashboard-running-toggle aria-pressed="' + text(state.dashboardRunningView ? "true" : "false") + '" title="Toggle 2-month schedule">' + icon("calendar") + '<span>2M Schedule</span></button>',
+        renderWorkOrderToggle(),
         '</div>',
         '</header>',
         '<div class="wt-dashboard-month-board">',

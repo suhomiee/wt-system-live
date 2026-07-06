@@ -1008,7 +1008,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderWorkOrderToggle() {
-    return '<button class="wt-work-order-toggle wt-flow-pill ' + (state.wtWorkOrderVisible ? "active" : "") + '" type="button" data-work-order-toggle aria-pressed="' + text(state.wtWorkOrderVisible ? "true" : "false") + '">' + icon("calendar") + '<span>WT 작업지시서</span></button>';
+    return '<button class="wt-work-order-toggle wt-flow-pill ' + (state.wtWorkOrderVisible ? "active" : "") + '" type="button" data-work-order-toggle aria-pressed="' + text(state.wtWorkOrderVisible ? "true" : "false") + '">' + icon("calendar") + '<span>WT Worksheet</span></button>';
   }
 
   function icon(name) {
@@ -1703,7 +1703,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<section class="wt-dashboard-gantt" aria-label="' + text(year + " schedule overview") + '">',
       '<header class="wt-dashboard-gantt-head">',
       '<div><b>' + text(year) + '</b><span>Year schedule</span></div>',
-      '<div class="wt-dashboard-gantt-actions">' + renderWorkOrderToggle() + '</div>',
       '</header>',
       '<div class="wt-dashboard-gantt-months">',
       '<span class="wt-dashboard-gantt-month-spacer" aria-hidden="true"></span>',
@@ -1978,6 +1977,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         '<button type="button" data-dashboard-today>Today</button>',
         '<button type="button" data-dashboard-month-shift="1" aria-label="Next month">' + icon("chevron-right") + '</button>',
         '<button type="button" class="wt-dashboard-running-toggle ' + (state.dashboardRunningView ? "active" : "") + '" data-dashboard-running-toggle aria-pressed="' + text(state.dashboardRunningView ? "true" : "false") + '" title="Toggle 2-month schedule">' + icon("calendar") + '<span>2M Schedule</span></button>',
+        renderWorkOrderToggle(),
         '</div>',
         '</header>',
         '<div class="wt-dashboard-month-board">',

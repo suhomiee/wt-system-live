@@ -5985,21 +5985,6 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   line-height: 1;
 }
 
-.wt-dashboard-gantt-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  min-width: 0;
-}
-
-.wt-dashboard-gantt-actions .wt-flow-pill {
-  min-height: 38px;
-  padding: 0 18px;
-  font-size: 15px;
-  line-height: 20px;
-  white-space: nowrap;
-}
-
 .wt-dashboard-gantt-month-row,
 .wt-dashboard-gantt-month-hit-grid {
   display: grid;
@@ -6376,13 +6361,31 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   margin-left: 4px;
 }
 
+.wt-dashboard-panel-actions .wt-work-order-toggle {
+  min-height: 28px;
+  display: grid;
+  grid-template-columns: auto minmax(0, auto);
+  gap: 5px;
+  margin-left: 4px;
+  border-radius: 5px;
+  padding: 0 9px;
+  font-size: 13px;
+}
+
 .wt-dashboard-panel-actions .wt-dashboard-running-toggle.active {
   border-color: #004f5d;
   background: #004f5d;
   color: #ffffff;
 }
 
-.wt-dashboard-panel-actions .wt-dashboard-running-toggle span {
+.wt-dashboard-panel-actions .wt-work-order-toggle.active {
+  border-color: #0b5d59;
+  background: #0b5d59;
+  color: #ffffff;
+}
+
+.wt-dashboard-panel-actions .wt-dashboard-running-toggle span,
+.wt-dashboard-panel-actions .wt-work-order-toggle span {
   line-height: 1;
   white-space: nowrap;
 }
