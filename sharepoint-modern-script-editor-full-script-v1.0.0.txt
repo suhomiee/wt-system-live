@@ -3336,15 +3336,34 @@ textarea:focus-visible {
 }
 
 .wt-edit-card-modal {
+  min-height: 0;
+  align-self: stretch;
   border: 0;
   background: transparent;
   padding: 0 22px 22px;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .wt-edit-form {
   display: grid;
   gap: 12px;
+}
+
+.wt-edit-form-body {
+  min-height: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.wt-edit-card-modal .wt-edit-form {
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+.wt-edit-card-modal .wt-edit-form-body {
+  overflow: auto;
+  padding-right: 6px;
 }
 
 .wt-submission-notice {
@@ -3730,6 +3749,8 @@ textarea:focus-visible {
 
 .wt-schedule-panel {
   width: min(1040px, 100%);
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
 }
 
 .wt-approval-review-panel {
@@ -3950,6 +3971,18 @@ textarea:focus-visible {
 
 .wt-schedule-panel .wt-modal-header {
   padding-bottom: 0;
+}
+
+.wt-edit-card-modal .wt-form-actions {
+  border-top: 1px solid var(--line);
+  background: #fbfcfb;
+  padding-top: 12px;
+}
+
+.wt-edit-card-modal .wt-form-actions .primary {
+  border-color: #1f5b61;
+  background: #073f47;
+  color: #fff;
 }
 
 .wt-edit-form .danger {
@@ -13305,6 +13338,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<aside class="wt-edit-card' + (inModal ? " wt-edit-card-modal" : "") + '">',
       inModal ? "" : '<h2>' + text(editingItem ? "Edit Schedule" : "New Schedule") + '</h2>',
       '<form class="wt-edit-form">',
+      '<div class="wt-edit-form-body">',
       '<section class="wt-submission-notice">' + icon("flag") + '<div><b>Approval required</b><span>Submitting sends an Outlook review request. The schedule appears in calendars only after approval.</span></div></section>',
       editingItem ? '<input type="hidden" name="rowKey" value="' + text(editingItem.rowKey || state.editingEventId) + '">' : "",
       '<div class="wt-schedule-primary-fields">',
@@ -13320,6 +13354,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       renderScheduleLogicPreview(draft),
       '<label>Memo<textarea name="notes" rows="5" placeholder="Report file, shipment note, blocker, or extra context">' + text(editingItem ? editingItem.notes : "") + '</textarea></label>',
       '<p class="wt-form-message" aria-live="polite">' + text(confirmingDelete ? "Click Confirm Delete to remove this schedule." : "") + '</p>',
+      '</div>',
       '<div class="wt-form-actions">',
       '<button class="primary" type="submit">' + text(editingItem ? "Resubmit for Approval" : "Submit for Approval") + '</button>',
       editingItem ? '<button class="danger ' + (confirmingDelete ? "is-confirming" : "") + '" type="button" data-delete-event-id="' + text(state.editingEventId) + '">' + text(confirmingDelete ? "Confirm Delete" : "Delete Schedule") + '</button>' : "",

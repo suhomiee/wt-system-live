@@ -3328,15 +3328,34 @@ textarea:focus-visible {
 }
 
 .wt-edit-card-modal {
+  min-height: 0;
+  align-self: stretch;
   border: 0;
   background: transparent;
   padding: 0 22px 22px;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .wt-edit-form {
   display: grid;
   gap: 12px;
+}
+
+.wt-edit-form-body {
+  min-height: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.wt-edit-card-modal .wt-edit-form {
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+.wt-edit-card-modal .wt-edit-form-body {
+  overflow: auto;
+  padding-right: 6px;
 }
 
 .wt-submission-notice {
@@ -3722,6 +3741,8 @@ textarea:focus-visible {
 
 .wt-schedule-panel {
   width: min(1040px, 100%);
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
 }
 
 .wt-approval-review-panel {
@@ -3942,6 +3963,18 @@ textarea:focus-visible {
 
 .wt-schedule-panel .wt-modal-header {
   padding-bottom: 0;
+}
+
+.wt-edit-card-modal .wt-form-actions {
+  border-top: 1px solid var(--line);
+  background: #fbfcfb;
+  padding-top: 12px;
+}
+
+.wt-edit-card-modal .wt-form-actions .primary {
+  border-color: #1f5b61;
+  background: #073f47;
+  color: #fff;
 }
 
 .wt-edit-form .danger {
