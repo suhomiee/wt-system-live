@@ -38,6 +38,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     { value: "LTWT P/T Sample Actual", kind: "sample" }
   ];
   var SCHEDULE_SIZE_OPTIONS = ["W5.5", "W8", "M9", "M10"];
+  var PROJECT_ACTUAL_FIELDS = [
+    { key: "revisionDdd", input: "actualRevisionDdd", label: "Revision DDD", shortLabel: "Revision DDD", kind: "deadline" },
+    { key: "handoff", input: "actualHandoff", label: "Sample Handoff", shortLabel: "Handoff", kind: "handoff" },
+    { key: "bomDdd", input: "actualBomDdd", label: "BOM DDD", shortLabel: "BOM DDD", kind: "creation" },
+    { key: "productFreeze", input: "actualProductFreeze", label: "(LTWT) Product Freeze", shortLabel: "Product Freeze", kind: "deadline" },
+    { key: "ltwtXfty", input: "actualLtwtXfty", label: "(LTWT) X-FTY", shortLabel: "LTWT X-FTY", kind: "review" }
+  ];
 
   var EMBEDDED = window.WT_SYSTEM_EMBEDDED || { milestones: [], holidays: [] };
 
@@ -286,13 +293,15 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     tcmsMilestonesSignature: "",
     sidebarCollapsed: false,
     dashboardRunningView: false,
+    dashboardYear: 0,
     actionMessage: "",
     season: "All",
     localSubmissions: [],
     editingEventId: "",
     pendingDeleteEventId: "",
     returnSectionAfterEdit: "",
-    activeEventId: ""
+    activeEventId: "",
+    activeProjectKey: ""
   };
 
   function boot() {
@@ -322,7 +331,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var dashboardWeekShiftButton = event.target.closest("[data-dashboard-week-shift]");
       var dashboardTodayButton = event.target.closest("[data-dashboard-today]");
       var dashboardRunningToggle = event.target.closest("[data-dashboard-running-toggle]");
+      var dashboardYearShiftButton = event.target.closest("[data-dashboard-year-shift]");
       var dashboardGanttEventButton = event.target.closest("[data-dashboard-gantt-event]");
+      var dashboardActualProjectButton = event.target.closest("[data-dashboard-actual-project]");
+      var closeProjectDrawerButton = event.target.closest("[data-close-project-drawer]");
       var todayButton = event.target.closest("[data-today]");
       var seasonButton = event.target.closest("[data-season]");
       var calendarViewButton = event.target.closest("[data-calendar-view]");
@@ -375,7 +387,15 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         state.pendingDeleteEventId = "";
         state.returnSectionAfterEdit = "";
         state.activeEventId = "";
+        state.activeProjectKey = "";
         render(root);
+      }
+
+      if (closeProjectDrawerButton && root.contains(closeProjectDrawerButton)) {
+        event.preventDefault();
+        state.activeProjectKey = "";
+        render(root);
+        return;
       }
 
       if (closeModalButton && root.contains(closeModalButton)) {
@@ -427,6 +447,26 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         state.actionMessage = "";
         state.pendingDeleteEventId = "";
         state.activeEventId = "";
+        state.activeProjectKey = "";
+        render(root);
+        return;
+      }
+
+      if (dashboardActualProjectButton && root.contains(dashboardActualProjectButton)) {
+        event.preventDefault();
+        state.activeProjectKey = dashboardActualProjectButton.getAttribute("data-dashboard-actual-project") || "";
+        state.activeEventId = "";
+        state.pendingDeleteEventId = "";
+        state.actionMessage = "";
+        render(root);
+        return;
+      }
+
+      if (dashboardYearShiftButton && root.contains(dashboardYearShiftButton)) {
+        event.preventDefault();
+        state.dashboardYear += Number(dashboardYearShiftButton.getAttribute("data-dashboard-year-shift")) || 0;
+        state.activeProjectKey = "";
+        state.actionMessage = "";
         render(root);
         return;
       }
@@ -700,6 +740,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var initialDate = currentDateIso(root);
     state.selectedDate = initialDate;
     state.weekStart = periodAnchor(initialDate, state.period);
+    state.dashboardYear = fromIso(initialDate).getFullYear();
   }
 
   function configureBackendMode(root) {
@@ -1583,6 +1624,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var event = state.activeEventId ? findEventById(state.activeEventId) : null;
     if (!event || state.view === "edit") return "";
     var isUser = isUserEvent(event);
+    var editableEventId = event.parentId || event.id;
     var confirmingDelete = state.pendingDeleteEventId === event.id;
     var productDetail = eventProductDetails(event);
     var readonlyMessage = isDerivedEvent(event) ? "Linked from the handoff schedule. Update the original handoff to change this event." : "";
@@ -1614,7 +1656,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       }).join(""),
       '</div>',
       scheduleWarning ? '<p class="wt-modal-caution">' + text(scheduleWarning) + '</p>' : "",
-      isUser ? '<div class="wt-modal-actions"><button type="button" data-edit-event-id="' + text(event.id) + '" data-date="' + text(event.date) + '">Edit</button><button type="button" class="danger ' + (confirmingDelete ? "is-confirming" : "") + '" data-delete-event-id="' + text(event.id) + '">' + text(confirmingDelete ? "Confirm Delete" : "Delete") + '</button></div>' : (readonlyMessage ? '<p class="wt-modal-readonly">' + text(readonlyMessage) + '</p>' : ""),
+      isUser ? '<div class="wt-modal-actions"><button type="button" data-edit-event-id="' + text(editableEventId) + '" data-date="' + text(event.date) + '">Edit</button><button type="button" class="danger ' + (confirmingDelete ? "is-confirming" : "") + '" data-delete-event-id="' + text(editableEventId) + '">' + text(confirmingDelete ? "Confirm Delete" : "Delete") + '</button></div>' : (readonlyMessage ? '<p class="wt-modal-readonly">' + text(readonlyMessage) + '</p>' : ""),
       confirmingDelete ? '<p class="wt-modal-warning">Click Confirm Delete to remove this user schedule.</p>' : "",
       '</article>',
       '</section>'
@@ -1681,200 +1723,452 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       renderDashboardMonthPanel(),
       state.dashboardRunningView ? renderDashboardRunningPanel() : "",
       '</div>',
-      '</section>'
+      '</section>',
+      renderDashboardProjectDrawer()
     ].join("");
   }
 
   function renderDashboardGanttOverview() {
-    var range = periodRange(state.selectedDate, "year");
+    var year = state.dashboardYear || fromIso(state.selectedDate).getFullYear();
+    var range = periodRange(year + "-07-01", "year");
     var units = monthUnits(range);
-    var events = filteredEventsForRange(range.start, range.end);
     var todayIso = dashboardGanttTodayIso();
-    var laneItems = dashboardGanttLanes().map(function (lane) {
-      var laneEvents = dashboardGanttLaneEvents(lane, events, range);
-      return {
-        lane: lane,
-        events: laneEvents,
-        rows: dashboardGanttRequiredRows(laneEvents, range)
-      };
+    var planEvents = normalizedEvents().filter(matchesFilters).filter(function (event) {
+      return event.source === "schedule.pdf" && eventOverlapsRange(event, range.start, range.end);
     });
-    var year = fromIso(state.selectedDate).getFullYear();
+    var projects = dashboardActualProjectsForYear(year);
+    var seasons = unique(planEvents.map(function (event) {
+      return event.season;
+    }).concat(projects.map(function (project) {
+      return project.season;
+    })).filter(function (season) {
+      return season && season !== "All";
+    })).sort(compareSeasonLabels);
     return [
-      '<section class="wt-dashboard-gantt" aria-label="' + text(year + " schedule overview") + '">',
+      '<section class="wt-dashboard-gantt wt-dashboard-season-schedule" aria-label="' + text(year + " schedule overview") + '">',
       '<header class="wt-dashboard-gantt-head">',
-      '<div><b>' + text(year) + '</b><span>Year schedule</span></div>',
+      '<div class="wt-dashboard-year-title"><b>' + text(year) + '</b><span>Year schedule</span></div>',
+      '<div class="wt-dashboard-gate-legend" aria-label="Gate colors">',
+      GAME_PLAN_GATE_ORDER.map(function (gate) {
+        return '<span class="wt-gate-legend wt-gate-' + text(gate.toLowerCase()) + '"><i></i>' + text(gate) + '</span>';
+      }).join(""),
+      '<span class="wt-gate-legend wt-gate-milestone"><i></i>Milestone</span>',
+      '</div>',
+      '<div class="wt-dashboard-year-nav">',
+      '<button type="button" data-dashboard-year-shift="-1" aria-label="Previous year">' + icon("chevron-left") + '</button>',
+      '<button type="button" data-dashboard-year-shift="1" aria-label="Next year">' + icon("chevron-right") + '</button>',
+      '</div>',
       '</header>',
       '<div class="wt-dashboard-gantt-months">',
-      '<span class="wt-dashboard-gantt-month-spacer" aria-hidden="true"></span>',
+      '<span class="wt-dashboard-gantt-month-spacer" aria-hidden="true">Season / project</span>',
       '<div class="wt-dashboard-gantt-month-row" style="--wt-cols:' + text(units.length) + '">',
       units.map(function (unit) {
         var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " active" : "";
         var current = todayIso >= unit.start && todayIso <= unit.end ? " is-current-month" : "";
-        return '<button type="button" class="' + selected + current + '" data-dashboard-month-date="' + text(unit.start) + '" aria-label="' + text("Open " + unit.label + " " + unit.caption) + '"><b>' + text(unit.label) + '</b><span>' + text(unit.caption) + '</span></button>';
+        return '<button type="button" class="' + selected + current + '" data-dashboard-month-date="' + text(unit.start) + '" aria-label="' + text("Open " + unit.label + " " + unit.caption) + '"><b>' + text(unit.label) + '</b></button>';
       }).join(""),
       '</div>',
       '</div>',
-      '<div class="wt-dashboard-gantt-body" style="grid-template-rows:' + text(laneItems.map(function (item) {
-        return Math.max(1, item.rows) + "fr";
-      }).join(" ")) + '">',
-      laneItems.map(function (item) {
-        return renderDashboardGanttLane(item.lane, units, item.events, item.rows, todayIso);
-      }).join(""),
+      '<div class="wt-dashboard-gantt-body">',
+      seasons.length ? seasons.map(function (season) {
+        return renderDashboardSeasonSchedule(season, planEvents.filter(function (event) {
+          return event.season === season;
+        }), projects.filter(function (project) {
+          return project.season === season;
+        }), range, units, todayIso);
+      }).join("") : '<p class="wt-dashboard-gantt-empty">No WT PGP milestones in ' + text(year) + '.</p>',
       '</div>',
       '</section>'
     ].join("");
   }
 
-  function dashboardGanttLanes() {
+  function renderDashboardSeasonSchedule(season, planEvents, projects, range, units, todayIso) {
+    var flows = dashboardSeasonPlanFlows(season, range);
+    var standaloneEvents = planEvents.filter(function (event) {
+      return !dashboardPlanEventCoveredByFlow(event, flows);
+    });
+    var planLayout = dashboardPointLayout(dashboardGroupedPlanEvents(standaloneEvents), range, "plan");
+    var actualRows = projects.map(function (project) {
+      return renderDashboardActualProjectRow(project, range, units, todayIso);
+    }).join("");
     return [
-      { id: "XLT", label: "XLT" },
-      { id: "PR", label: "PR" },
-      { id: "GGP", label: "GGP" },
-      { id: "SPA", label: "SPA" },
-      { id: "model", label: "Model" }
-    ];
-  }
-
-  function renderDashboardGanttLane(lane, units, laneEvents, rows, todayIso) {
-    var assigned = dashboardGanttAssignRows(laneEvents, periodRange(state.selectedDate, "year"), rows);
-    return [
-      '<article class="wt-dashboard-gantt-lane wt-gantt-lane-' + text(lane.id.toLowerCase()) + '">',
-      '<div class="wt-dashboard-gantt-label">' + text(lane.label) + '</div>',
-      '<div class="wt-dashboard-gantt-track" style="--wt-cols:' + text(units.length) + '; --wt-rows:' + text(rows) + '">',
-      '<div class="wt-dashboard-gantt-month-hit-grid" aria-hidden="true">',
-      units.map(function (unit) {
-        var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " is-selected-month" : "";
-        var current = todayIso >= unit.start && todayIso <= unit.end ? " is-current-month" : "";
-        return '<button type="button" class="' + selected + current + '" data-dashboard-month-date="' + text(unit.start) + '" tabindex="-1" aria-label="' + text(lane.label + " " + unit.label + " events") + '"></button>';
+      '<article class="wt-dashboard-season-group">',
+      '<div class="wt-dashboard-season-label"><b>' + text(season) + '</b><span>' + text(projects.length ? projects.length + " actual" : "PGP") + '</span></div>',
+      '<div class="wt-dashboard-season-rows">',
+      '<div class="wt-dashboard-season-row wt-dashboard-plan-row">',
+      '<div class="wt-dashboard-row-label"><b>PGP plan</b><span>WT master schedule</span></div>',
+      '<div class="wt-dashboard-season-track" style="--wt-point-rows:' + text(planLayout.rows) + '">',
+      renderDashboardMonthHitGrid(units, season, todayIso),
+      flows.map(renderDashboardFlowBand).join(""),
+      planLayout.items.map(function (item) {
+        return renderDashboardPlanPoint(item, todayIso);
       }).join(""),
       '</div>',
-      assigned.items.length ? assigned.items.map(function (item) {
-        return renderDashboardGanttBar(item, todayIso);
-      }).join("") : "",
+      '</div>',
+      actualRows,
       '</div>',
       '</article>'
     ].join("");
   }
 
-  function dashboardGanttEventInLane(event, laneId) {
-    if (laneId === "model") return isUserEvent(event) || isDerivedEvent(event);
-    return !isUserEvent(event) && !isDerivedEvent(event) && event.gate === laneId;
+  function dashboardPlanEventCoveredByFlow(event, flows) {
+    return flows.some(function (flow) {
+      return event.gate === flow.gate && event.date >= flow.start && event.date <= flow.end;
+    });
+  }
+
+  function dashboardGroupedPlanEvents(events) {
+    var grouped = {};
+    events.forEach(function (event) {
+      var key = [event.date, event.gate].join("|");
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(event);
+    });
+    return Object.keys(grouped).map(function (key) {
+      var items = grouped[key];
+      if (items.length === 1) return items[0];
+      var first = items[0];
+      var labels = unique(items.map(dashboardPlanPointLabel));
+      return extendEvent(first, {
+        id: first.id,
+        title: items.map(function (event) { return event.title; }).join(" / "),
+        displayLabel: labels.join(" + "),
+        groupedEventCount: items.length
+      });
+    });
+  }
+
+  function renderDashboardMonthHitGrid(units, label, todayIso) {
+    return [
+      '<div class="wt-dashboard-gantt-month-hit-grid" aria-hidden="true">',
+      units.map(function (unit) {
+        var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " is-selected-month" : "";
+        var current = todayIso >= unit.start && todayIso <= unit.end ? " is-current-month" : "";
+        return '<button type="button" class="' + selected + current + '" data-dashboard-month-date="' + text(unit.start) + '" tabindex="-1" aria-label="' + text(label + " " + unit.label) + '"></button>';
+      }).join(""),
+      '</div>'
+    ].join("");
+  }
+
+  function dashboardPointLayout(events, range, mode) {
+    var rowEnds = [];
+    var items = [];
+    events.slice().sort(function (a, b) {
+      return (a.date + a.gate + a.title).localeCompare(b.date + b.gate + b.title);
+    }).forEach(function (event) {
+      var position = dashboardPointPosition(event, range, mode);
+      var start = Number(position.left);
+      var end = start + Number(position.width);
+      var row = -1;
+      for (var index = 0; index < rowEnds.length; index += 1) {
+        if (start >= rowEnds[index] + .12) {
+          row = index;
+          break;
+        }
+      }
+      if (row < 0) {
+        row = rowEnds.length;
+        rowEnds.push(end);
+      } else {
+        rowEnds[row] = end;
+      }
+      items.push({ event: event, position: position, row: row });
+    });
+    return { items: items, rows: Math.max(1, rowEnds.length) };
+  }
+
+  function dashboardPointPosition(event, range, mode) {
+    var totalDays = daysBetween(range.start, range.end) + 1;
+    var day = Math.max(0, Math.min(totalDays - 1, daysBetween(range.start, event.date)));
+    var label = mode === "actual" ? dashboardActualPointLabel(event) : dashboardPlanPointLabel(event);
+    var width = mode === "actual" ? (label.length > 14 ? 5.8 : 5.2) : (label.length > 18 ? 4.8 : 4.2);
+    var left = (day / totalDays) * 100;
+    if (left + width > 100) left = Math.max(0, 100 - width);
+    return { left: left.toFixed(3), width: width.toFixed(3) };
+  }
+
+  function dashboardSeasonPlanFlows(season, range) {
+    var allSeasonEvents = normalizedEvents().filter(function (event) {
+      return event.source === "schedule.pdf" && event.season === season;
+    });
+    var flows = [];
+    GAME_PLAN_GATE_ORDER.forEach(function (gate) {
+      var gateEvents = allSeasonEvents.filter(function (event) {
+        return event.gate === gate;
+      }).sort(function (a, b) {
+        return a.date.localeCompare(b.date);
+      });
+      gateEvents.filter(function (event) {
+        return dashboardSourceKind(event) === "x_fty";
+      }).forEach(function (endEvent) {
+        var starts = gateEvents.filter(function (event) {
+          var kind = dashboardSourceKind(event);
+          return (kind === "design_revisions_due" || kind === "revisions_ddd") && event.date <= endEvent.date;
+        });
+        var startEvent = starts[starts.length - 1];
+        if (!startEvent || endEvent.date < range.start || startEvent.date > range.end) return;
+        var start = startEvent.date < range.start ? range.start : startEvent.date;
+        var end = endEvent.date > range.end ? range.end : endEvent.date;
+        var position = dashboardRangePosition(start, end, range);
+        flows.push({
+          gate: gate,
+          start: start,
+          end: end,
+          startEvent: startEvent,
+          endEvent: endEvent,
+          events: gateEvents.filter(function (event) {
+            return event.date >= start && event.date <= end;
+          }),
+          position: position
+        });
+      });
+    });
+    return flows;
+  }
+
+  function dashboardRangePosition(startIso, endIso, range) {
+    var totalDays = daysBetween(range.start, range.end) + 1;
+    var startDay = Math.max(0, daysBetween(range.start, startIso));
+    var endDay = Math.min(totalDays - 1, daysBetween(range.start, endIso));
+    return {
+      left: ((startDay / totalDays) * 100).toFixed(3),
+      width: (Math.max(1.2, ((endDay - startDay + 1) / totalDays) * 100)).toFixed(3)
+    };
+  }
+
+  function renderDashboardFlowBand(flow) {
+    return [
+      '<div class="wt-dashboard-flow-band wt-gate-' + text(flow.gate.toLowerCase()) + '" style="--wt-left:' + text(flow.position.left) + '; --wt-width:' + text(flow.position.width) + '" title="' + text(flow.gate + " Revision DDD to (LTWT) X-FTY") + '">',
+      '<span>' + text(flow.gate + " Revision DDD → LTWT X-FTY") + '</span>',
+      flow.events.map(function (event) {
+        return renderDashboardFlowMilestone(event, flow);
+      }).join(""),
+      '</div>'
+    ].join("");
+  }
+
+  function renderDashboardFlowMilestone(event, flow) {
+    var totalDays = Math.max(1, daysBetween(flow.start, flow.end));
+    var offsetDays = Math.max(0, Math.min(totalDays, daysBetween(flow.start, event.date)));
+    var position = (offsetDays / totalDays) * 100;
+    return '<button type="button" class="wt-dashboard-flow-milestone wt-flow-kind-' + text(dashboardSourceKind(event)) + '" data-dashboard-gantt-event data-event-id="' + text(event.id) + '" data-date="' + text(event.date) + '" aria-label="' + text(eventTooltip(event)) + '" title="' + text(eventTooltip(event)) + '" style="--wt-flow-position:' + text(position.toFixed(3)) + '"></button>';
+  }
+
+  function renderDashboardPlanPoint(item, todayIso) {
+    var event = item.event;
+    var pastClass = event.date < todayIso ? " wt-is-past" : "";
+    var gateClass = " wt-gate-" + String(event.gate || "WT").toLowerCase();
+    return [
+      '<button type="button" class="wt-dashboard-plan-point' + pastClass + gateClass + '" data-dashboard-gantt-event data-event-id="' + text(event.id) + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '">',
+      '<span>' + text(formatDateSlash(event.date)) + '</span>',
+      '<b>' + text(dashboardPointVisualLabel(event, false)) + '</b>',
+      '</button>'
+    ].join("");
+  }
+
+  function dashboardPlanPointLabel(event) {
+    if (event.displayLabel) return event.displayLabel;
+    var title = dashboardGanttBarTitle(event);
+    var kind = dashboardSourceKind(event);
+    if (kind === "design_revisions_due" || kind === "revisions_ddd") return "Revision DDD";
+    if (kind === "handoff") return "Handoff";
+    if (kind === "sample_to_fpt") return "P/T to FPT";
+    if (kind === "sample_ddd") return "P/T DDD";
+    if (kind === "bom_ddd") return "BOM DDD";
+    if (kind === "product_freeze") return "Product Freeze";
+    if (kind === "x_fty") return "LTWT X-FTY";
+    if (kind === "results_ready") return "Results Ready";
+    return shortTitle(title, 22);
+  }
+
+  function dashboardSourceKind(event) {
+    return String(event && (event.sourceKind || event.kind) || "").toLowerCase();
+  }
+
+  function dashboardActualPointLabel(event) {
+    if (event.actualLabel) return event.actualLabel;
+    if (event.gate === "M&M Test") return "M&M Test";
+    if (event.gate === "WT Report") return "WT Report";
+    return dashboardPlanPointLabel(event);
+  }
+
+  function dashboardPointVisualLabel(event, actual) {
+    var label = actual ? dashboardActualPointLabel(event) : dashboardPlanPointLabel(event);
+    var value = String(label || "").toLowerCase();
+    if (value.indexOf("m&m") >= 0) return "M&M";
+    if (value.indexOf("wt report") >= 0) return "RPT";
+    if (value.indexOf("revision") >= 0) return "REV";
+    if (value.indexOf("handoff") >= 0) return "H/O";
+    if (value.indexOf("bom") >= 0 || value.indexOf("ddd") >= 0) return "DDD";
+    if (value.indexOf("freeze") >= 0) return "PF";
+    if (value.indexOf("x-fty") >= 0) return "XFY";
+    if (value.indexOf("results") >= 0) return "R/R";
+    if (value.indexOf("scrutiny") >= 0) return "SCR";
+    if (value.indexOf("fpt") >= 0) return "FPT";
+    return shortTitle(label, 3).toUpperCase();
+  }
+
+  function dashboardActualProjectsForYear(year) {
+    var range = periodRange(year + "-07-01", "year");
+    return dashboardAllActualProjects().filter(function (project) {
+      return project.events.some(function (event) {
+        return eventOverlapsRange(event, range.start, range.end);
+      });
+    });
+  }
+
+  function dashboardAllActualProjects() {
+    var grouped = {};
+    loadLocalSubmissions().forEach(function (item, index) {
+      var key = projectKeyForSubmission(item);
+      if (!grouped[key]) {
+        grouped[key] = {
+          key: key,
+          season: item.season || "All",
+          modelName: item.modelName || item.projectName || "Untitled project",
+          owner: item.owner || "-",
+          cadImageUrl: item.cadImageUrl || "",
+          submissions: [],
+          events: []
+        };
+      }
+      grouped[key].submissions.push({ item: item, id: submissionId(item, index) });
+      if (!grouped[key].cadImageUrl && item.cadImageUrl) grouped[key].cadImageUrl = item.cadImageUrl;
+    });
+    normalizedEvents().filter(function (event) {
+      return isUserEvent(event) || isDerivedEvent(event);
+    }).forEach(function (event) {
+      if (event.projectKey && grouped[event.projectKey]) grouped[event.projectKey].events.push(event);
+    });
+    return Object.keys(grouped).map(function (key) {
+      var project = grouped[key];
+      project.events.sort(function (a, b) {
+        return (a.date + a.title).localeCompare(b.date + b.title);
+      });
+      return project;
+    }).sort(function (a, b) {
+      return (a.season + a.modelName + a.owner).localeCompare(b.season + b.modelName + b.owner);
+    });
+  }
+
+  function renderDashboardActualProjectRow(project, range, units, todayIso) {
+    var events = project.events.filter(function (event) {
+      return eventOverlapsRange(event, range.start, range.end);
+    });
+    var layout = dashboardPointLayout(events, range, "actual");
+    var period = dashboardActualPeriod(events, range);
+    var gate = dashboardProjectGate(project);
+    return [
+      '<div class="wt-dashboard-season-row wt-dashboard-actual-row">',
+      '<button type="button" class="wt-dashboard-row-label wt-dashboard-project-label" data-dashboard-actual-project="' + text(project.key) + '" aria-label="' + text("Open " + project.modelName + " project schedule") + '">',
+      renderDashboardCadThumb(project),
+      '<span><b>' + text(project.modelName) + '</b><small>' + text(project.owner) + '</small></span>',
+      '</button>',
+      '<div class="wt-dashboard-season-track wt-dashboard-actual-track wt-gate-' + text(gate.toLowerCase()) + '" style="--wt-point-rows:' + text(layout.rows) + '">',
+      renderDashboardMonthHitGrid(units, project.modelName, todayIso),
+      period ? '<span class="wt-dashboard-actual-period" style="--wt-left:' + text(period.left) + '; --wt-width:' + text(period.width) + '"></span>' : "",
+      layout.items.map(function (item) {
+        return renderDashboardActualPoint(item, project, todayIso);
+      }).join(""),
+      '</div>',
+      '</div>'
+    ].join("");
+  }
+
+  function renderDashboardCadThumb(project) {
+    if (project.cadImageUrl) {
+      return '<span class="wt-dashboard-cad-thumb"><img src="' + text(project.cadImageUrl) + '" alt="' + text(project.modelName + " CAD") + '"></span>';
+    }
+    return '<span class="wt-dashboard-cad-thumb is-placeholder" aria-label="CAD image pending"><small>CAD</small></span>';
+  }
+
+  function dashboardActualPeriod(events, range) {
+    if (!events.length) return null;
+    var dates = events.map(function (event) { return event.date; }).sort();
+    return dashboardRangePosition(dates[0], dates[dates.length - 1], range);
+  }
+
+  function dashboardProjectGate(project) {
+    var gates = project.submissions.map(function (entry) {
+      return String(entry.item.gate || "").toUpperCase();
+    }).filter(Boolean);
+    return gates[0] || "GGP";
+  }
+
+  function renderDashboardActualPoint(item, project, todayIso) {
+    var event = item.event;
+    var pastClass = event.date < todayIso ? " wt-is-past" : "";
+    return [
+      '<button type="button" class="wt-dashboard-actual-point' + pastClass + '" data-dashboard-actual-project="' + text(project.key) + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '">',
+      '<span>' + text(formatDateSlash(event.date)) + '</span>',
+      '<b>' + text(dashboardPointVisualLabel(event, true)) + '</b>',
+      '</button>'
+    ].join("");
+  }
+
+  function renderDashboardProjectDrawer() {
+    if (!state.activeProjectKey) return "";
+    var project = dashboardAllActualProjects().filter(function (item) {
+      return item.key === state.activeProjectKey;
+    })[0];
+    if (!project) return "";
+    var firstSubmission = project.submissions[0];
+    return [
+      '<section class="wt-project-drawer-shell" role="dialog" aria-modal="true" aria-label="' + text(project.modelName + " project schedule") + '">',
+      '<button type="button" class="wt-project-drawer-backdrop" data-close-project-drawer aria-label="Close project schedule"></button>',
+      '<aside class="wt-project-drawer">',
+      '<header class="wt-project-drawer-head">',
+      renderDashboardCadThumb(project),
+      '<div><small>' + text(project.season + " · Project actual") + '</small><h2>' + text(project.modelName) + '</h2><p>' + text(project.owner) + '</p></div>',
+      '<button type="button" class="wt-modal-close" data-close-project-drawer aria-label="Close">&times;</button>',
+      '</header>',
+      '<div class="wt-project-drawer-gates">',
+      ["PR", "GGP", "SPA"].map(function (gate) {
+        return renderDashboardProjectGate(project, gate);
+      }).join(""),
+      '</div>',
+      firstSubmission ? '<footer><button type="button" class="primary" data-edit-event-id="' + text(firstSubmission.id) + '" data-date="' + text(firstSubmission.item.targetDate || state.selectedDate) + '">' + icon("edit") + '<span>Edit project</span></button></footer>' : "",
+      '</aside>',
+      '</section>'
+    ].join("");
+  }
+
+  function renderDashboardProjectGate(project, gate) {
+    var planEvents = normalizedEvents().filter(function (event) {
+      return event.source === "schedule.pdf" && event.season === project.season && event.gate === gate;
+    }).sort(function (a, b) {
+      return a.date.localeCompare(b.date);
+    });
+    var actualEvents = project.events.filter(function (event) {
+      return String(event.planGate || "").toUpperCase() === gate;
+    });
+    return [
+      '<section class="wt-project-gate-section wt-gate-' + text(gate.toLowerCase()) + '">',
+      '<header><i></i><b>' + text(gate) + '</b></header>',
+      '<div class="wt-project-gate-columns">',
+      '<div><small>PGP plan</small>' + (planEvents.length ? planEvents.map(function (event) {
+        return renderDashboardProjectDrawerEvent(event, false);
+      }).join("") : '<p>No PGP milestones.</p>') + '</div>',
+      '<div><small>Project actual</small>' + (actualEvents.length ? actualEvents.map(function (event) {
+        return renderDashboardProjectDrawerEvent(event, true);
+      }).join("") : '<p>No actual dates registered.</p>') + '</div>',
+      '</div>',
+      '</section>'
+    ].join("");
+  }
+
+  function renderDashboardProjectDrawerEvent(event, actual) {
+    return [
+      '<article class="wt-project-drawer-event ' + (actual ? "is-actual" : "is-plan") + '">',
+      '<time>' + text(formatDateSlash(event.date)) + '</time>',
+      '<span>' + text(actual ? dashboardActualPointLabel(event) : dashboardPlanPointLabel(event)) + '</span>',
+      '</article>'
+    ].join("");
   }
 
   function dashboardGanttTodayIso() {
     var configured = queryParam("wt-today");
     return isIsoDate(configured) ? configured : toIso(new Date());
-  }
-
-  function dashboardGanttLaneEvents(lane, events, range) {
-    return events.filter(function (event) {
-      return eventOverlapsRange(event, range.start, range.end) && dashboardGanttEventInLane(event, lane.id) && dashboardGanttShouldShowEvent(event);
-    }).sort(function (a, b) {
-      return (a.date + (a.endDate || "") + a.title).localeCompare(b.date + (b.endDate || "") + b.title);
-    });
-  }
-
-  function dashboardGanttShouldShowEvent(event) {
-    if (isUserEvent(event) || isDerivedEvent(event)) return true;
-    return dashboardGanttIsFocusEvent(event);
-  }
-
-  function dashboardGanttIsFocusEvent(event) {
-    if (!event) return false;
-    if (["handoff", "product_freeze", "bom_ddd", "x_fty"].indexOf(event.kind) >= 0) return true;
-    var signature = String((event.title || "") + " " + (event.kind || "")).toLowerCase();
-    return /product freeze|bom ddd|handoff|wt report|x[-_ ]?fty/.test(signature);
-  }
-
-  function dashboardGanttRequiredRows(events, range) {
-    var rowEnds = [];
-    events.forEach(function (event) {
-      var position = dashboardGanttPosition(event, range);
-      var positionStart = Number(position.left);
-      var positionEnd = positionStart + Number(position.width);
-      var row = -1;
-      for (var index = 0; index < rowEnds.length; index += 1) {
-        if (positionStart >= rowEnds[index] + 1.8) {
-          row = index;
-          break;
-        }
-      }
-      if (row < 0) {
-        rowEnds.push(positionEnd);
-      } else {
-        rowEnds[row] = positionEnd;
-      }
-    });
-    return Math.max(1, rowEnds.length);
-  }
-
-  function dashboardGanttAssignRows(events, range, rows) {
-    var rowEnds = [];
-    var items = [];
-    var overflow = 0;
-    for (var i = 0; i < rows; i += 1) rowEnds.push(-100);
-    events.forEach(function (event) {
-      var position = dashboardGanttPosition(event, range);
-      var positionStart = Number(position.left);
-      var positionEnd = positionStart + Number(position.width);
-      var row = -1;
-      for (var index = 0; index < rows; index += 1) {
-        if (positionStart >= rowEnds[index] + 1.8) {
-          row = index;
-          break;
-        }
-      }
-      if (row < 0) {
-        overflow += 1;
-        return;
-      }
-      rowEnds[row] = positionEnd;
-      items.push({
-        event: event,
-        position: position,
-        row: row,
-        rows: rows
-      });
-    });
-    return { items: items, overflow: overflow };
-  }
-
-  function dashboardGanttPosition(event, range) {
-    var totalDays = daysBetween(range.start, range.end) + 1;
-    var startDay = Math.max(0, Math.min(totalDays - 1, daysBetween(range.start, event.date)));
-    var endIso = event.endDate || event.date;
-    var endDay = Math.max(startDay, Math.min(totalDays - 1, daysBetween(range.start, endIso)));
-    var left = (startDay / totalDays) * 100;
-    var isPoint = dashboardGanttIsPointEvent(event);
-    var pointWidth = dashboardGanttBarLabel(event).length > 26 ? 21.4 : 14.2;
-    var width = isPoint ? pointWidth : Math.max(((endDay - startDay + 1) / totalDays) * 100, 11.2);
-    if (left + width > 100) left = Math.max(0, 100 - width);
-    return {
-      left: left.toFixed(3),
-      width: width.toFixed(3),
-      isPoint: isPoint
-    };
-  }
-
-  function renderDashboardGanttBar(item, todayIso) {
-    var event = item.event;
-    var pointClass = item.position.isPoint ? " is-point" : " is-duration";
-    var pastClass = (event.endDate || event.date) < todayIso ? " wt-is-past" : "";
-    var meta = formatDateSlash(event.date) + " ";
-    return [
-      '<button type="button" class="wt-dashboard-gantt-bar' + pointClass + pastClass + ' wt-kind-' + text(event.kind) + ' ' + text(eventOriginClass(event) + " " + eventHighlightClass(event)) + '" data-dashboard-gantt-event data-date="' + text(event.date) + '" ' + userEventAttributes(event) + ' title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '; --wt-rows:' + text(item.rows) + '">',
-      '<span>' + text(meta) + '</span>',
-      '<b>' + text(dashboardGanttBarLabel(event)) + '</b>',
-      '</button>'
-    ].join("");
-  }
-
-  function dashboardGanttBarLabel(event) {
-    return [
-      event.season,
-      event.gate,
-      dashboardGanttBarTitle(event)
-    ].filter(Boolean).join(" ");
   }
 
   function dashboardGanttIsPointEvent(event) {
@@ -3683,6 +3977,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       modelName: editingItem ? editingItem.modelName : "",
       size: scheduleSizeValue(editingItem ? editingItem.size : ""),
       owner: editingItem ? editingItem.owner : "",
+      cadImageUrl: editingItem ? editingItem.cadImageUrl : "",
+      actualSchedule: editingItem ? editingItem.actualSchedule : null,
       notes: editingItem ? editingItem.notes : "",
       submittedAt: editingItem ? editingItem.submittedAt : "",
       sharePointItemId: editingItem ? editingItem.sharePointItemId : ""
@@ -3698,9 +3994,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<label>Date<input name="targetDate" type="date" value="' + text(draft.targetDate) + '" required data-schedule-priority="date"></label>',
       select("Type", SCHEDULE_TYPE_OPTIONS, "type", draft.milestoneType, " required data-schedule-priority=\"type\""),
       '</div>',
-      field("Model Name", "Pegasus 42 / style code", "modelName", editingItem ? editingItem.modelName : ""),
+      field("Model Name", "Pegasus 42 / style code", "modelName", editingItem ? editingItem.modelName : "", " required"),
       select("Size", SCHEDULE_SIZE_OPTIONS, "size", scheduleSizeValue(editingItem ? editingItem.size : "")),
-      field("PCC Developer (English Name)", "Leo Park", "owner", editingItem ? editingItem.owner : ""),
+      field("PCC Developer (English Name)", "Leo Park", "owner", editingItem ? editingItem.owner : "", " required"),
+      renderProjectActualFields(draft),
       renderScheduleLogicPreview(draft),
       '<label>Memo<textarea name="notes" rows="5" placeholder="Report file, shipment note, blocker, or extra context">' + text(editingItem ? editingItem.notes : "") + '</textarea></label>',
       '<p class="wt-form-message" aria-live="polite">' + text(confirmingDelete ? "Click Confirm Delete to remove this schedule." : "") + '</p>',
@@ -3717,7 +4014,23 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function field(label, placeholder) {
     var name = arguments.length > 2 && arguments[2] ? arguments[2] : label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     var value = arguments.length > 3 ? arguments[3] : "";
-    return '<label>' + text(label) + '<input name="' + text(name) + '" type="text" placeholder="' + text(placeholder) + '" value="' + text(value || "") + '"></label>';
+    var attributes = arguments.length > 4 ? arguments[4] : "";
+    return '<label>' + text(label) + '<input name="' + text(name) + '" type="text" placeholder="' + text(placeholder) + '" value="' + text(value || "") + '"' + attributes + '></label>';
+  }
+
+  function renderProjectActualFields(draft) {
+    return [
+      '<section class="wt-project-actual-fields">',
+      '<header><small>Project actual schedule</small><b>Agreed WT dates</b></header>',
+      '<div class="wt-project-actual-date-grid">',
+      PROJECT_ACTUAL_FIELDS.map(function (fieldDefinition) {
+        return '<label>' + text(fieldDefinition.label) + '<input type="date" name="' + text(fieldDefinition.input) + '" value="' + text(draft.actualSchedule[fieldDefinition.key] || "") + '"></label>';
+      }).join(""),
+      '</div>',
+      '<label>Model CAD image URL <input type="url" name="cadImageUrl" placeholder="SharePoint or image URL" value="' + text(draft.cadImageUrl || "") + '"></label>',
+      '<p>CAD 이미지는 전달 전까지 자리표시자로 보이며, URL을 입력하면 Year Schedule과 프로젝트 상세에 바로 반영됩니다.</p>',
+      '</section>'
+    ].join("");
   }
 
   function select(label, options) {
@@ -3743,6 +4056,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       modelName: formValue(form, "modelName"),
       size: formValue(form, "size"),
       owner: formValue(form, "owner"),
+      cadImageUrl: formValue(form, "cadImageUrl"),
+      actualSchedule: {
+        revisionDdd: formValue(form, "actualRevisionDdd"),
+        handoff: formValue(form, "actualHandoff"),
+        bomDdd: formValue(form, "actualBomDdd"),
+        productFreeze: formValue(form, "actualProductFreeze"),
+        ltwtXfty: formValue(form, "actualLtwtXfty")
+      },
       notes: formValue(form, "notes")
     });
   }
@@ -3765,9 +4086,20 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       sampleQuantity: "",
       source: "wt-system-ui",
       owner: values.owner || "",
+      cadImageUrl: values.cadImageUrl || "",
+      actualSchedule: normalizeProjectActualSchedule(values.actualSchedule),
       notes: values.notes || "",
       sharePointItemId: values.sharePointItemId || ""
     };
+  }
+
+  function normalizeProjectActualSchedule(value) {
+    var source = value && typeof value === "object" ? value : {};
+    var result = {};
+    PROJECT_ACTUAL_FIELDS.forEach(function (fieldDefinition) {
+      result[fieldDefinition.key] = isIsoDate(source[fieldDefinition.key]) ? source[fieldDefinition.key] : "";
+    });
+    return result;
   }
 
   function refreshScheduleLogicPreview(form) {
@@ -4352,6 +4684,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         endDate: item.endDate || item.date,
         title: item.task || item.gate || "Milestone",
         kind: mapMilestoneKind(item.kind),
+        sourceKind: item.kind || "",
         season: item.season || "All",
         gate: item.gate || "",
         owner: item.tcmsOwner || item.gate || "WT",
@@ -4367,6 +4700,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var workOrder = isWtWorkOrderSubmission(item);
       if (workOrder && !isAllowedWtWorkOrderSubmission(item)) return;
       var parentId = submissionId(item, index);
+      var projectKey = projectKeyForSubmission(item);
       events.push({
         id: parentId,
         date: item.targetDate,
@@ -4383,9 +4717,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         notes: item.notes || "",
         time: "",
         source: item.source || "wt-system-ui",
+        projectKey: projectKey,
         workOrder: workOrder
       });
       deriveHandoffEvents(item, parentId).forEach(function (event) {
+        events.push(event);
+      });
+      deriveProjectActualEvents(item, parentId).forEach(function (event) {
         events.push(event);
       });
     });
@@ -4412,6 +4750,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function submissionId(item, index) {
     return item && item.rowKey ? item.rowKey : "WT-LOCAL-" + index;
+  }
+
+  function projectKeyForSubmission(item) {
+    return [
+      String(item && item.season || "All").toUpperCase(),
+      String(item && (item.modelName || item.projectName) || "Untitled project").trim().toLowerCase(),
+      String(item && item.owner || "-").trim().toLowerCase()
+    ].join("|");
   }
 
   function readStoredSubmissions() {
@@ -4464,6 +4810,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       time: "",
       source: "wt-system-derived",
       parentId: parentId,
+      projectKey: projectKeyForSubmission(item),
       workOrder: isWtWorkOrderSubmission(item)
     };
     return [
@@ -4488,6 +4835,37 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         notes: "Linked 5 business days after the T2 FPT handoff."
       })
     ];
+  }
+
+  function deriveProjectActualEvents(item, parentId) {
+    var actualSchedule = normalizeProjectActualSchedule(item && item.actualSchedule);
+    var primaryKind = scheduleTypeKind(item && (item.milestoneType || item.kind));
+    return PROJECT_ACTUAL_FIELDS.map(function (fieldDefinition) {
+      var date = actualSchedule[fieldDefinition.key];
+      if (!date) return null;
+      if (date === item.targetDate && fieldDefinition.kind === primaryKind) return null;
+      return {
+        id: parentId + "-actual-" + fieldDefinition.key,
+        parentId: parentId,
+        projectKey: projectKeyForSubmission(item),
+        date: date,
+        endDate: date,
+        title: fieldDefinition.label + " - " + (item.modelName || item.projectName || "WT project"),
+        actualLabel: fieldDefinition.shortLabel,
+        kind: fieldDefinition.kind,
+        sourceKind: fieldDefinition.key,
+        season: item.season || "All",
+        gate: fieldDefinition.shortLabel,
+        planGate: item.gate || "",
+        owner: item.owner || "WT",
+        modelName: item.modelName || "",
+        size: item.size || "",
+        notes: item.notes || "",
+        time: "",
+        source: "wt-system-actual",
+        workOrder: isWtWorkOrderSubmission(item)
+      };
+    }).filter(Boolean);
   }
 
   function extendEvent(base, values) {
