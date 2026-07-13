@@ -913,16 +913,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function applyViewportFit(root) {
     if (root.getAttribute("data-wt-standalone") !== "true") return;
-    var baseWidth = 1920;
-    var baseHeight = 1080;
-    var scale = Math.min(1, window.innerWidth / baseWidth, window.innerHeight / baseHeight);
-    var designWidth = Math.max(baseWidth, Math.round(window.innerWidth / scale));
-    var designHeight = Math.max(baseHeight, Math.round(window.innerHeight / scale));
     root.setAttribute("data-wt-fit", "viewport");
-    root.style.setProperty("--wt-fit-scale", String(scale));
-    root.style.setProperty("--wt-fit-width", designWidth + "px");
-    root.style.setProperty("--wt-fit-height", designHeight + "px");
-    root.style.setProperty("--wt-sidebar-edge", Math.round(256 * scale) + "px");
+    root.style.setProperty("--wt-fit-scale", "1");
+    root.style.setProperty("--wt-fit-width", window.innerWidth + "px");
+    root.style.setProperty("--wt-fit-height", window.innerHeight + "px");
+    root.style.setProperty("--wt-sidebar-edge", "clamp(220px, 18vw, 256px)");
   }
 
   function renderApp(root) {
@@ -1052,7 +1047,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderShell(root) {
-    var noToolbar = state.section === "dashboard" || state.section === "gameplan" || state.section === "manager" || state.section === "tcms-running";
+    var noToolbar = state.section === "dashboard" || state.section === "calendar" || state.section === "gameplan" || state.section === "manager" || state.section === "tcms-running";
     return [
       '<main class="wt-main ' + (noToolbar ? "wt-main-no-toolbar" : "") + '" aria-label="WT System workspace">',
       noToolbar ? "" : renderToolbar(),

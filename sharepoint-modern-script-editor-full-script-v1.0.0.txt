@@ -132,11 +132,11 @@ textarea:focus-visible {
 .wt-app {
   position: relative;
   width: 100vw;
-  min-width: 1240px;
+  min-width: 0;
   height: 100dvh;
-  min-height: 760px;
+  min-height: 0;
   display: grid;
-  grid-template-columns: 288px minmax(0, 1fr);
+  grid-template-columns: var(--wt-sidebar-width, 256px) minmax(0, 1fr);
   background: var(--canvas);
   overflow: hidden;
 }
@@ -4193,16 +4193,15 @@ textarea:focus-visible {
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app {
   position: absolute;
-  inset: 0 auto auto 0;
-  width: var(--wt-fit-width, 1920px);
-  min-width: var(--wt-fit-width, 1920px);
-  height: var(--wt-fit-height, 1080px);
-  min-height: var(--wt-fit-height, 1080px);
+  inset: 0;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
   display: grid;
-  grid-template-columns: 288px minmax(0, 1fr);
+  grid-template-columns: var(--wt-sidebar-width, 256px) minmax(0, 1fr);
   overflow: hidden;
-  transform: scale(var(--wt-fit-scale, 1));
-  transform-origin: top left;
+  transform: none;
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-workspace {
@@ -4296,7 +4295,7 @@ textarea:focus-visible {
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-main {
-  height: var(--wt-fit-height, 1080px);
+  height: 100%;
   min-height: 0;
   grid-template-rows: 74px minmax(0, 1fr);
   overflow: hidden;
@@ -6171,7 +6170,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-app {
-  grid-template-columns: 256px minmax(0, 1fr);
+  grid-template-columns: var(--wt-sidebar-width, 256px) minmax(0, 1fr);
 }
 
 #wt-system-root[data-wt-fit="viewport"] .wt-sidebar {
@@ -6193,7 +6192,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 #wt-system-root[data-wt-fit="viewport"] .wt-calendar-page {
   height: auto;
-  min-height: 1031px;
+  min-height: 100%;
   overflow: visible;
 }
 
@@ -6249,7 +6248,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-app {
-  --wt-sidebar-width: 256px;
+  --wt-sidebar-width: clamp(220px, 18vw, 256px);
   transition: grid-template-columns .24s cubic-bezier(.2,.72,.2,1);
 }
 
@@ -6271,10 +6270,10 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   --wt-sidebar-width: 256px;
   position: fixed;
   top: 50%;
-  left: calc(var(--wt-sidebar-edge, var(--wt-sidebar-width)) - 16px);
+  left: calc(var(--wt-sidebar-edge, var(--wt-sidebar-width)) - 12px);
   z-index: 120;
-  width: 32px;
-  height: 52px;
+  width: 24px;
+  height: 42px;
   display: grid;
   place-items: center;
   padding: 0;
@@ -6297,8 +6296,8 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-sidebar-toggle .wt-icon {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
 }
 
 .wt-sidebar-toggle:hover,
@@ -8019,7 +8018,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   --wt-gate-ggp: #3f67c6;
   --wt-gate-spa: #d45a55;
   height: 100%;
-  grid-template-rows: 280px 360px minmax(0, 1fr);
+  grid-template-rows: clamp(210px, 24vh, 260px) clamp(220px, 27vh, 300px) minmax(240px, 1fr);
   gap: 10px;
   padding: 10px 12px 12px;
   overflow: hidden;
@@ -8682,6 +8681,269 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   .wt-dashboard-master-units,
   .wt-dashboard-master-row {
     grid-template-columns: 148px minmax(0, 1fr);
+  }
+}
+
+@media (max-height: 800px) {
+  .wt-dashboard-calendar-grid.is-running-split .wt-running-month-row,
+  .wt-dashboard-calendar-grid.is-running-split .wt-running-day-row {
+    grid-template-columns: var(--wt-running-label-width) repeat(var(--wt-running-days, 62), minmax(0, 1fr));
+  }
+
+  .wt-dashboard-calendar-grid.is-running-split .wt-dashboard-running-day-grid {
+    grid-template-columns: repeat(var(--wt-running-days, 62), minmax(0, 1fr));
+  }
+
+  .wt-dashboard-calendar-grid.is-running-split .wt-running-day-row button {
+    grid-template-rows: minmax(0, 1fr);
+    padding: 0;
+  }
+
+  .wt-dashboard-calendar-grid.is-running-split .wt-running-day-row small {
+    display: none;
+  }
+
+  .wt-dashboard-calendar-grid.is-running-split .wt-running-day-row b {
+    font-size: 7px;
+    line-height: 1;
+  }
+
+  .wt-dashboard-calendar-grid.is-running-split .wt-dashboard-running-bar {
+    min-height: 0;
+    max-height: none;
+    gap: 3px;
+    padding: 1px 4px;
+  }
+
+  .wt-dashboard-calendar-grid.is-running-split .wt-dashboard-running-bar span {
+    min-width: 24px;
+    margin-left: -4px;
+    padding-inline: 3px;
+    font-size: 8px;
+  }
+
+  .wt-dashboard-calendar-grid.is-running-split .wt-dashboard-running-bar b {
+    overflow: hidden;
+    font-size: 9px;
+    line-height: 1;
+  }
+
+  #wt-system-root[data-wt-fit="viewport"] .wt-flow-calendar-page {
+    height: 100%;
+    min-height: 0;
+    grid-template-rows: 116px minmax(0, 1fr);
+    padding: 16px 24px 16px 48px;
+    overflow: hidden;
+  }
+
+  .wt-flow-control-strip {
+    min-height: 116px;
+  }
+
+  .wt-flow-filter-row {
+    top: 0;
+    gap: 8px;
+  }
+
+  .wt-flow-actions {
+    top: 40px;
+  }
+
+  .wt-flow-range-row {
+    bottom: 0;
+  }
+
+  .wt-range-title strong {
+    font-size: 28px;
+  }
+
+  .wt-flow-calendar-page .wt-month-calendar-grid {
+    grid-template-rows: repeat(var(--wt-week-rows, 5), minmax(0, 1fr));
+  }
+
+  .wt-flow-calendar-page .wt-month-cell {
+    grid-template-rows: 28px minmax(0, 1fr);
+  }
+
+  .wt-flow-calendar-page .wt-month-day-button {
+    height: 28px;
+    padding: 3px 7px 0;
+  }
+
+  .wt-flow-calendar-page .wt-month-day-button b {
+    width: 22px;
+    height: 22px;
+    font-size: 16px;
+  }
+
+  .wt-flow-calendar-page .wt-month-events {
+    gap: 3px;
+    padding: 2px 6px 5px;
+  }
+
+  .wt-flow-calendar-page .wt-month-event {
+    min-height: 30px;
+    gap: 0;
+    padding: 2px 6px;
+    border-left-width: 3px;
+    border-radius: 5px;
+  }
+
+  .wt-flow-calendar-page .wt-month-event span {
+    font-size: 10px;
+    line-height: 11px;
+  }
+
+  .wt-flow-calendar-page .wt-month-event b {
+    font-size: 12px;
+    line-height: 13px;
+    -webkit-line-clamp: 1;
+  }
+
+  .wt-app.is-dashboard .wt-dashboard.wt-dashboard-scale-stack,
+  #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-dashboard.wt-dashboard-scale-stack {
+    grid-template-rows: 175px 185px minmax(300px, 1fr);
+  }
+
+  .wt-dashboard-macro-plan,
+  .wt-dashboard-master-plan {
+    grid-template-rows: 38px 26px minmax(0, 1fr);
+  }
+
+  .wt-dashboard-scale-head {
+    min-height: 38px;
+    padding-inline: 10px;
+  }
+
+  .wt-dashboard-scale-title h2,
+  .wt-dashboard-panel-head .wt-dashboard-scale-title h2 {
+    font-size: 16px;
+  }
+
+  .wt-dashboard-scale-title > small {
+    min-width: 54px;
+    padding-block: 4px;
+    font-size: 9px;
+  }
+
+  .wt-dashboard-macro-months > span,
+  .wt-dashboard-master-units > span {
+    font-size: 8px;
+  }
+
+  .wt-dashboard-macro-months b,
+  .wt-dashboard-master-units b {
+    font-size: 10px;
+  }
+
+  .wt-dashboard-macro-season {
+    min-height: 22px;
+  }
+
+  .wt-dashboard-macro-season-label b {
+    font-size: 12px;
+  }
+
+  .wt-dashboard-macro-flow {
+    top: calc(1px + (var(--wt-flow-row, 0) * 5px));
+    height: 4px;
+  }
+
+  .wt-dashboard-macro-flow > span {
+    display: none;
+  }
+
+  .wt-dashboard-macro-flow .wt-dashboard-flow-milestone {
+    top: -1px;
+    width: 4px;
+    height: 5px;
+    border-left-width: 1px;
+  }
+
+  .wt-dashboard-macro-intro {
+    bottom: 2px;
+    height: 12px;
+  }
+
+  .wt-dashboard-macro-intro span,
+  .wt-dashboard-macro-intro b {
+    font-size: 7.5px;
+  }
+
+  .wt-dashboard-master-row-label {
+    min-height: 46px;
+  }
+
+  .wt-dashboard-master-pgp-row .wt-dashboard-master-row-label,
+  .wt-dashboard-master-pgp-row .wt-dashboard-master-track {
+    min-height: calc((var(--wt-point-rows, 1) * 18px) + (var(--wt-flow-rows, 1) * 10px) + 4px);
+  }
+
+  .wt-dashboard-master-flow {
+    top: calc((var(--wt-point-rows, 1) * 18px) + (var(--wt-flow-row, 0) * 10px) + 1px);
+    height: 9px;
+  }
+
+  .wt-dashboard-master-flow > span {
+    font-size: 7.5px;
+    line-height: 7px;
+  }
+
+  .wt-dashboard-master-flow .wt-dashboard-flow-milestone {
+    top: 3px;
+    height: 5px;
+  }
+
+  .wt-dashboard-master-point {
+    top: calc((var(--wt-row, 0) * 18px) + 1px);
+    height: 16px;
+  }
+
+  .wt-dashboard-master-point > span,
+  .wt-dashboard-master-point > b {
+    font-size: 8.5px;
+  }
+
+  .wt-dashboard-master-project-label {
+    min-height: 46px;
+  }
+
+  .wt-dashboard-master-actual-track {
+    min-height: calc((var(--wt-point-rows, 1) * 18px) + 2px);
+  }
+
+  .wt-dashboard-scale-stack .wt-dashboard-month-panel {
+    grid-template-rows: 40px minmax(0, 1fr);
+  }
+
+  .wt-dashboard-month-panel .wt-month-calendar-board.compact .wt-month-cell {
+    grid-template-rows: 18px minmax(0, 1fr);
+  }
+
+  .wt-dashboard-month-panel .wt-month-calendar-board.compact .wt-month-day-button {
+    height: 18px;
+    padding-top: 1px;
+  }
+
+  .wt-dashboard-month-panel .wt-month-calendar-board.compact .wt-month-events {
+    gap: 1px;
+    padding-bottom: 1px;
+  }
+
+  .wt-dashboard-month-panel .wt-month-calendar-board.compact .wt-month-event {
+    height: 14px;
+  }
+
+  .wt-dashboard-month-panel .wt-month-calendar-board.compact .wt-month-calendar-grid[style*="--wt-week-rows:6"] .wt-month-cell {
+    grid-template-rows: 16px minmax(0, 1fr);
+  }
+
+  .wt-dashboard-month-panel .wt-month-calendar-board.compact .wt-month-calendar-grid[style*="--wt-week-rows:6"] .wt-month-day-button {
+    height: 16px;
+  }
+
+  .wt-dashboard-month-panel .wt-month-calendar-board.compact .wt-month-calendar-grid[style*="--wt-week-rows:6"] .wt-month-event {
+    height: 12px;
   }
 }
 </style>
@@ -9616,16 +9878,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function applyViewportFit(root) {
     if (root.getAttribute("data-wt-standalone") !== "true") return;
-    var baseWidth = 1920;
-    var baseHeight = 1080;
-    var scale = Math.min(1, window.innerWidth / baseWidth, window.innerHeight / baseHeight);
-    var designWidth = Math.max(baseWidth, Math.round(window.innerWidth / scale));
-    var designHeight = Math.max(baseHeight, Math.round(window.innerHeight / scale));
     root.setAttribute("data-wt-fit", "viewport");
-    root.style.setProperty("--wt-fit-scale", String(scale));
-    root.style.setProperty("--wt-fit-width", designWidth + "px");
-    root.style.setProperty("--wt-fit-height", designHeight + "px");
-    root.style.setProperty("--wt-sidebar-edge", Math.round(256 * scale) + "px");
+    root.style.setProperty("--wt-fit-scale", "1");
+    root.style.setProperty("--wt-fit-width", window.innerWidth + "px");
+    root.style.setProperty("--wt-fit-height", window.innerHeight + "px");
+    root.style.setProperty("--wt-sidebar-edge", "clamp(220px, 18vw, 256px)");
   }
 
   function renderApp(root) {
@@ -9755,7 +10012,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderShell(root) {
-    var noToolbar = state.section === "dashboard" || state.section === "gameplan" || state.section === "manager" || state.section === "tcms-running";
+    var noToolbar = state.section === "dashboard" || state.section === "calendar" || state.section === "gameplan" || state.section === "manager" || state.section === "tcms-running";
     return [
       '<main class="wt-main ' + (noToolbar ? "wt-main-no-toolbar" : "") + '" aria-label="WT System workspace">',
       noToolbar ? "" : renderToolbar(),
