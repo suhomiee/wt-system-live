@@ -2096,7 +2096,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       });
     });
     return [
-      '<section class="wt-dashboard-master-plan" aria-label="' + text(dashboardMasterRangeLabel(range) + " master plan") + '">',
+      '<section class="wt-dashboard-master-plan' + (projects.length ? '' : ' has-no-actuals') + '" aria-label="' + text(dashboardMasterRangeLabel(range) + " master plan") + '">',
       '<header class="wt-dashboard-scale-head">',
       '<div class="wt-dashboard-scale-title"><small>MEDIUM</small><div><h2>Master Plan</h2><span>' + text(dashboardMasterRangeLabel(range)) + ' · PGP detail &amp; actual</span></div></div>',
       '<div class="wt-dashboard-master-nav">',

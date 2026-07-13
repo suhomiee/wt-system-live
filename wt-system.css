@@ -8797,6 +8797,11 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
     grid-template-rows: 175px 185px minmax(300px, 1fr);
   }
 
+  .wt-app.is-dashboard .wt-dashboard.wt-dashboard-scale-stack:has(.wt-dashboard-master-plan.has-no-actuals),
+  #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-dashboard.wt-dashboard-scale-stack:has(.wt-dashboard-master-plan.has-no-actuals) {
+    grid-template-rows: 175px 145px minmax(340px, 1fr);
+  }
+
   .wt-dashboard-macro-plan,
   .wt-dashboard-master-plan {
     grid-template-rows: 38px 26px minmax(0, 1fr);
