@@ -12,6 +12,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   ];
   var WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   var SEASON_PREFIX_ORDER = ["SP", "SU", "FA", "HO"];
+  var SEASON_INTRO_MONTH_DAY = {
+    SP: "03-01",
+    SU: "06-01",
+    FA: "09-01",
+    HO: "12-01"
+  };
   var SEASONS = ["All", "SP27", "SU27", "FA27", "HO27", "SP28"];
   var GAME_PLAN_SEASONS = SEASONS.filter(function (season) { return season !== "All"; });
   var SCHEDULE_SEASONS = buildScheduleSeasons(27, 31);
@@ -1881,7 +1887,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var totalDays = daysBetween(range.start, range.end) + 1;
     var day = Math.max(0, Math.min(totalDays - 1, daysBetween(range.start, event.date)));
     var label = mode === "actual" ? dashboardActualPointLabel(event) : dashboardPlanPointLabel(event);
-    var width = mode === "actual" ? (label.length > 14 ? 5.8 : 5.2) : (label.length > 18 ? 4.8 : 4.2);
+    var introWidth = dashboardSourceKind(event) === "intro" ? 5.2 : 0;
+    var width = mode === "actual" ? (label.length > 14 ? 5.8 : 5.2) : (introWidth || (label.length > 18 ? 4.8 : 4.2));
     var left = (day / totalDays) * 100;
     if (left + width > 100) left = Math.max(0, 100 - width);
     return { left: left.toFixed(3), width: width.toFixed(3) };
@@ -1978,6 +1985,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (kind === "product_freeze") return "Product Freeze";
     if (kind === "x_fty") return "LTWT X-FTY";
     if (kind === "results_ready") return "Results Ready";
+    if (kind === "intro") return "Intro (Launch)";
     return shortTitle(title, 22);
   }
 
@@ -2004,6 +2012,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (value.indexOf("x-fty") >= 0) return "XFY";
     if (value.indexOf("results") >= 0) return "R/R";
     if (value.indexOf("scrutiny") >= 0) return "SCR";
+    if (value.indexOf("intro") >= 0 || value.indexOf("launch") >= 0) return "INTRO";
     if (value.indexOf("fpt") >= 0) return "FPT";
     return shortTitle(label, 3).toUpperCase();
   }
@@ -2692,7 +2701,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         return '<th>' + text(season) + '</th>';
       }).join("") + '</tr></thead>',
       '<tbody>',
-      GAME_PLAN_GATE_ORDER.map(function (gate) {
+      ["INTRO"].concat(GAME_PLAN_GATE_ORDER).map(function (gate) {
         return renderGamePlanGateGroup(gate, grouped[gate] || []);
       }).join(""),
       '</tbody>',
@@ -2734,7 +2743,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function productGamePlanRows() {
     var rowsByKey = {};
-    (EMBEDDED.milestones || []).forEach(function (item, index) {
+    (EMBEDDED.milestones || []).concat(seasonIntroMilestones()).forEach(function (item, index) {
       if (!item || item.source !== "schedule.pdf") return;
       var key = [item.gate || "", item.kind || "", item.task || ""].join("|");
       if (!rowsByKey[key]) {
@@ -2753,7 +2762,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return Object.keys(rowsByKey).map(function (key) {
       return rowsByKey[key];
     }).sort(function (a, b) {
-      var gateSort = gateOrder(a.gate) - gateOrder(b.gate);
+      var gateSort = gamePlanGateOrder(a.gate) - gamePlanGateOrder(b.gate);
       if (gateSort) return gateSort;
       return a.firstIndex - b.firstIndex || a.firstDate.localeCompare(b.firstDate);
     });
@@ -2771,6 +2780,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function gateOrder(gate) {
     var index = GAME_PLAN_GATE_ORDER.indexOf(gate);
     return index >= 0 ? index : 999;
+  }
+
+  function gamePlanGateOrder(gate) {
+    return gate === "INTRO" ? -1 : gateOrder(gate);
   }
 
   function gamePlanKindLabel(kind) {
@@ -4674,7 +4687,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function normalizedEvents() {
     var events = [];
-    (EMBEDDED.milestones || []).forEach(function (item) {
+    (EMBEDDED.milestones || []).concat(seasonIntroMilestones()).forEach(function (item) {
       if (!item.date || (item.source !== "schedule.pdf" && item.source !== "tcms")) return;
       var workOrder = isWtWorkOrderSubmission(item);
       if (workOrder && !isAllowedWtWorkOrderSubmission(item)) return;
@@ -4682,7 +4695,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         id: item.id,
         date: item.date,
         endDate: item.endDate || item.date,
-        title: item.task || item.gate || "Milestone",
+        title: item.kind === "intro" ? item.season + " Intro (Launch)" : (item.task || item.gate || "Milestone"),
         kind: mapMilestoneKind(item.kind),
         sourceKind: item.kind || "",
         season: item.season || "All",
@@ -4733,6 +4746,24 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     }).sort(function (a, b) {
       return (a.date + a.title).localeCompare(b.date + b.title);
     });
+  }
+
+  function seasonIntroMilestones() {
+    return SCHEDULE_SEASONS.map(function (season) {
+      var match = String(season || "").toUpperCase().match(/^(SP|SU|FA|HO)(\d{2})$/);
+      if (!match || !SEASON_INTRO_MONTH_DAY[match[1]]) return null;
+      var year = 2000 + Number(match[2]);
+      return {
+        id: "INTRO-" + season,
+        date: year + "-" + SEASON_INTRO_MONTH_DAY[match[1]],
+        season: season,
+        gate: "INTRO",
+        task: "Intro (Launch)",
+        kind: "intro",
+        source: "schedule.pdf",
+        source_line: "Season intro baseline: SP 3/1, SU 6/1, FA 9/1, HO 12/1."
+      };
+    }).filter(Boolean);
   }
 
   function loadLocalSubmissions() {
@@ -4970,6 +5001,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (kind === "results_ready") return "report";
     if (kind === "design_revisions_due" || kind === "revisions_ddd") return "deadline";
     if (kind === "scrutiny" || kind === "x_fty") return "review";
+    if (kind === "intro") return "review";
     if (kind === "bom_ddd" || kind === "product_freeze") return "creation";
     if (kind === "tcms_wt_order") return "deadline";
     return "deadline";
