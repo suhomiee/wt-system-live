@@ -300,6 +300,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     sidebarCollapsed: false,
     dashboardRunningView: false,
     dashboardYear: 0,
+    dashboardMasterZoom: 3,
     actionMessage: "",
     season: "All",
     localSubmissions: [],
@@ -338,6 +339,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var dashboardTodayButton = event.target.closest("[data-dashboard-today]");
       var dashboardRunningToggle = event.target.closest("[data-dashboard-running-toggle]");
       var dashboardYearShiftButton = event.target.closest("[data-dashboard-year-shift]");
+      var dashboardMasterZoomButton = event.target.closest("[data-dashboard-master-zoom]");
+      var dashboardMasterShiftButton = event.target.closest("[data-dashboard-master-shift]");
       var dashboardGanttEventButton = event.target.closest("[data-dashboard-gantt-event]");
       var dashboardActualProjectButton = event.target.closest("[data-dashboard-actual-project]");
       var closeProjectDrawerButton = event.target.closest("[data-close-project-drawer]");
@@ -471,6 +474,29 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       if (dashboardYearShiftButton && root.contains(dashboardYearShiftButton)) {
         event.preventDefault();
         state.dashboardYear += Number(dashboardYearShiftButton.getAttribute("data-dashboard-year-shift")) || 0;
+        state.activeProjectKey = "";
+        state.actionMessage = "";
+        render(root);
+        return;
+      }
+
+      if (dashboardMasterZoomButton && root.contains(dashboardMasterZoomButton)) {
+        event.preventDefault();
+        var zoomDirection = Number(dashboardMasterZoomButton.getAttribute("data-dashboard-master-zoom")) || 0;
+        state.dashboardMasterZoom = Math.max(1, Math.min(5, state.dashboardMasterZoom + zoomDirection));
+        state.activeProjectKey = "";
+        state.actionMessage = "";
+        render(root);
+        return;
+      }
+
+      if (dashboardMasterShiftButton && root.contains(dashboardMasterShiftButton)) {
+        event.preventDefault();
+        var masterShift = Number(dashboardMasterShiftButton.getAttribute("data-dashboard-master-shift")) || 0;
+        var masterRange = dashboardMasterRange();
+        var masterMonths = dashboardMasterZoomMonths();
+        state.selectedDate = toIso(addMonths(fromIso(masterRange.start), masterShift * masterMonths));
+        state.weekStart = periodAnchor(state.selectedDate, "month");
         state.activeProjectKey = "";
         state.actionMessage = "";
         render(root);
@@ -1073,6 +1099,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       projector: '<rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8"></path><path d="M12 16v4"></path>',
       libraries: '<path d="M4 19.5V5.75A2.75 2.75 0 0 1 6.75 3H20v16H6.75A2.75 2.75 0 0 0 4 21.75"></path><path d="M8 7h8"></path><path d="M8 11h6"></path>',
       search: '<circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path>',
+      "zoom-in": '<circle cx="10.5" cy="10.5" r="6.5"></circle><path d="M15.5 15.5L21 21"></path><path d="M10.5 7.5v6"></path><path d="M7.5 10.5h6"></path>',
+      "zoom-out": '<circle cx="10.5" cy="10.5" r="6.5"></circle><path d="M15.5 15.5L21 21"></path><path d="M7.5 10.5h6"></path>',
       flag: '<path d="M5 21V4"></path><path d="M5 4h12l-1.5 4L17 12H5"></path>',
       plus: '<path d="M12 5v14"></path><path d="M5 12h14"></path>',
       edit: '<path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path>',
@@ -1723,14 +1751,323 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderDashboard() {
     var runningClass = state.dashboardRunningView ? "is-running-split" : "is-month-only";
     return [
-      '<section class="wt-dashboard ' + (state.dashboardRunningView ? "has-running-view" : "") + '">',
-      renderDashboardGanttOverview(),
+      '<section class="wt-dashboard wt-dashboard-scale-stack ' + (state.dashboardRunningView ? "has-running-view" : "") + '">',
+      renderDashboardMacroPlan(),
+      renderDashboardMasterPlan(),
       '<div class="wt-dashboard-calendar-grid ' + runningClass + '">',
       renderDashboardMonthPanel(),
       state.dashboardRunningView ? renderDashboardRunningPanel() : "",
       '</div>',
       '</section>',
       renderDashboardProjectDrawer()
+    ].join("");
+  }
+
+  function renderDashboardMacroPlan() {
+    var year = state.dashboardYear || fromIso(state.selectedDate).getFullYear();
+    var range = periodRange(year + "-07-01", "year");
+    var units = monthUnits(range);
+    var todayIso = dashboardGanttTodayIso();
+    var planEvents = normalizedEvents().filter(matchesFilters).filter(function (event) {
+      return event.source === "schedule.pdf" && eventOverlapsRange(event, range.start, range.end);
+    });
+    var seasons = unique(planEvents.map(function (event) {
+      return event.season;
+    })).filter(function (season) {
+      return season && season !== "All";
+    }).sort(compareSeasonLabels);
+    return [
+      '<section class="wt-dashboard-macro-plan" aria-label="' + text(year + " macro plan") + '">',
+      '<header class="wt-dashboard-scale-head">',
+      '<div class="wt-dashboard-scale-title"><small>LARGE</small><div><h2>Macro Plan</h2><span>' + text(year) + ' · Seasonal program flow</span></div></div>',
+      renderDashboardGateLegend(),
+      '<div class="wt-dashboard-year-nav">',
+      '<button type="button" data-dashboard-year-shift="-1" aria-label="Previous year" title="Previous year">' + icon("chevron-left") + '</button>',
+      '<button type="button" data-dashboard-year-shift="1" aria-label="Next year" title="Next year">' + icon("chevron-right") + '</button>',
+      '</div>',
+      '</header>',
+      '<div class="wt-dashboard-macro-months">',
+      '<span>Season</span>',
+      '<div style="--wt-cols:' + text(units.length) + '">',
+      units.map(function (unit) {
+        var selected = state.selectedDate >= unit.start && state.selectedDate <= unit.end ? " active" : "";
+        var current = todayIso >= unit.start && todayIso <= unit.end ? " is-current-month" : "";
+        return '<button type="button" class="' + selected + current + '" data-dashboard-month-date="' + text(unit.start) + '" aria-label="' + text("Open " + unit.label + " " + unit.caption) + '"><b>' + text(unit.label) + '</b></button>';
+      }).join(""),
+      '</div>',
+      '</div>',
+      '<div class="wt-dashboard-macro-body">',
+      seasons.length ? seasons.map(function (season) {
+        return renderDashboardMacroSeason(season, planEvents.filter(function (event) {
+          return event.season === season;
+        }), range, units, todayIso);
+      }).join("") : '<p class="wt-dashboard-scale-empty">No WT PGP program flow in ' + text(year) + '.</p>',
+      '</div>',
+      '</section>'
+    ].join("");
+  }
+
+  function renderDashboardGateLegend() {
+    return [
+      '<div class="wt-dashboard-gate-legend" aria-label="Gate colors">',
+      GAME_PLAN_GATE_ORDER.map(function (gate) {
+        return '<span class="wt-gate-legend wt-gate-' + text(gate.toLowerCase()) + '"><i></i>' + text(gate) + '</span>';
+      }).join(""),
+      '<span class="wt-gate-legend wt-gate-milestone"><i></i>Milestone</span>',
+      '</div>'
+    ].join("");
+  }
+
+  function renderDashboardMacroSeason(season, events, range, units, todayIso) {
+    var flows = dashboardSeasonPlanFlows(season, range);
+    var intros = events.filter(function (event) {
+      return dashboardSourceKind(event) === "intro";
+    });
+    var span = dashboardMacroSeasonSpan(events, range);
+    return [
+      '<article class="wt-dashboard-macro-season">',
+      '<div class="wt-dashboard-macro-season-label"><b>' + text(season) + '</b></div>',
+      '<div class="wt-dashboard-macro-track">',
+      renderDashboardMasterUnitGrid(units, todayIso),
+      span ? '<span class="wt-dashboard-macro-span" style="--wt-left:' + text(span.left) + '; --wt-width:' + text(span.width) + '"></span>' : "",
+      flows.map(function (flow, index) {
+        return renderDashboardMacroFlow(flow, index);
+      }).join(""),
+      intros.map(function (event) {
+        return renderDashboardMacroIntro(event, range, todayIso);
+      }).join(""),
+      '</div>',
+      '</article>'
+    ].join("");
+  }
+
+  function dashboardMacroSeasonSpan(events, range) {
+    if (!events.length) return null;
+    var dates = events.reduce(function (values, event) {
+      values.push(event.date);
+      values.push(event.endDate || event.date);
+      return values;
+    }, []).sort();
+    var start = dates[0] < range.start ? range.start : dates[0];
+    var end = dates[dates.length - 1] > range.end ? range.end : dates[dates.length - 1];
+    return dashboardRangePosition(start, end, range);
+  }
+
+  function renderDashboardMacroFlow(flow, index) {
+    return [
+      '<div class="wt-dashboard-macro-flow wt-gate-' + text(flow.gate.toLowerCase()) + '" style="--wt-left:' + text(flow.position.left) + '; --wt-width:' + text(flow.position.width) + '; --wt-flow-row:' + text(index) + '" title="' + text(flow.season + " " + flow.gate + " Revision DDD to LTWT X-FTY") + '">',
+      '<span>' + text(flow.gate + " · REV → X-FTY") + '</span>',
+      flow.events.map(function (event) {
+        return renderDashboardFlowMilestone(event, flow);
+      }).join(""),
+      '</div>'
+    ].join("");
+  }
+
+  function renderDashboardMacroIntro(event, range, todayIso) {
+    var position = dashboardPointPosition(event, range, "macro");
+    var pastClass = event.date < todayIso ? " wt-is-past" : "";
+    return [
+      '<button type="button" class="wt-dashboard-macro-intro' + pastClass + '" data-dashboard-gantt-event data-event-id="' + text(event.id) + '" data-date="' + text(event.date) + '" style="--wt-left:' + text(position.left) + '; --wt-width:' + text(position.width) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '">',
+      '<span>' + text(formatDateSlash(event.date)) + '</span><b>INTRO</b>',
+      '</button>'
+    ].join("");
+  }
+
+  function dashboardMasterZoomMonths() {
+    return [12, 6, 3, 2, 1][Math.max(1, Math.min(5, state.dashboardMasterZoom || 3)) - 1];
+  }
+
+  function dashboardMasterRange() {
+    var selected = fromIso(state.selectedDate);
+    var zoom = Math.max(1, Math.min(5, state.dashboardMasterZoom || 3));
+    var startMonth = 0;
+    if (zoom === 2) startMonth = selected.getMonth() < 6 ? 0 : 6;
+    if (zoom === 3) startMonth = Math.floor(selected.getMonth() / 3) * 3;
+    if (zoom === 4 || zoom === 5) startMonth = selected.getMonth();
+    var start = new Date(selected.getFullYear(), startMonth, 1);
+    var end = addDays(addMonths(start, dashboardMasterZoomMonths()), -1);
+    return { start: toIso(start), end: toIso(end) };
+  }
+
+  function dashboardMasterUnits(range) {
+    var zoom = Math.max(1, Math.min(5, state.dashboardMasterZoom || 3));
+    if (zoom <= 2) return monthUnits(range);
+    if (zoom <= 4) return weekUnits(range);
+    return dayUnits(range);
+  }
+
+  function dashboardMasterRangeLabel(range) {
+    var start = fromIso(range.start);
+    var end = fromIso(range.end);
+    if (start.getFullYear() === end.getFullYear() && start.getMonth() === end.getMonth()) {
+      return MONTHS[start.getMonth()] + " " + start.getFullYear();
+    }
+    return MONTHS[start.getMonth()] + " " + start.getFullYear() + " – " + MONTHS[end.getMonth()] + " " + end.getFullYear();
+  }
+
+  function renderDashboardMasterPlan() {
+    var range = dashboardMasterRange();
+    var units = dashboardMasterUnits(range);
+    var todayIso = dashboardGanttTodayIso();
+    var planEvents = normalizedEvents().filter(matchesFilters).filter(function (event) {
+      return event.source === "schedule.pdf" && dashboardSourceKind(event) !== "intro" && eventOverlapsRange(event, range.start, range.end);
+    });
+    var seasons = unique(planEvents.map(function (event) {
+      return event.season;
+    })).filter(function (season) {
+      return season && season !== "All";
+    }).sort(compareSeasonLabels);
+    var flows = seasons.reduce(function (items, season) {
+      return items.concat(dashboardSeasonPlanFlows(season, range));
+    }, []);
+    var standaloneEvents = planEvents.filter(function (event) {
+      return !dashboardPlanEventCoveredByFlow(event, flows);
+    });
+    var planLayout = dashboardPointLayout(dashboardGroupedMasterEvents(standaloneEvents), range, "master");
+    var projects = dashboardAllActualProjects().filter(function (project) {
+      return project.events.some(function (event) {
+        return eventOverlapsRange(event, range.start, range.end);
+      });
+    });
+    return [
+      '<section class="wt-dashboard-master-plan" aria-label="' + text(dashboardMasterRangeLabel(range) + " master plan") + '">',
+      '<header class="wt-dashboard-scale-head">',
+      '<div class="wt-dashboard-scale-title"><small>MEDIUM</small><div><h2>Master Plan</h2><span>' + text(dashboardMasterRangeLabel(range)) + ' · PGP detail &amp; actual</span></div></div>',
+      '<div class="wt-dashboard-master-nav">',
+      '<div class="wt-dashboard-master-shift">',
+      '<button type="button" data-dashboard-master-shift="-1" aria-label="Previous period" title="Previous period">' + icon("chevron-left") + '</button>',
+      '<button type="button" data-dashboard-master-shift="1" aria-label="Next period" title="Next period">' + icon("chevron-right") + '</button>',
+      '</div>',
+      '<div class="wt-dashboard-zoom" aria-label="Master Plan zoom">',
+      '<button type="button" data-dashboard-master-zoom="-1" aria-label="Zoom out" title="Zoom out" ' + (state.dashboardMasterZoom <= 1 ? "disabled" : "") + '>' + icon("zoom-out") + '</button>',
+      '<output aria-live="polite">' + text(state.dashboardMasterZoom) + '× <small>/ 5×</small></output>',
+      '<button type="button" data-dashboard-master-zoom="1" aria-label="Zoom in" title="Zoom in" ' + (state.dashboardMasterZoom >= 5 ? "disabled" : "") + '>' + icon("zoom-in") + '</button>',
+      '</div>',
+      '</div>',
+      '</header>',
+      '<div class="wt-dashboard-master-units" style="--wt-master-cols:' + text(units.length) + '">',
+      '<span>Plan / actual</span>',
+      '<div>',
+      units.map(function (unit) {
+        var current = todayIso >= unit.start && todayIso <= unit.end ? " is-current" : "";
+        return '<button type="button" class="' + current + '" data-dashboard-month-date="' + text(unit.start) + '" aria-label="' + text("Open " + unit.label + " " + unit.caption) + '"><b>' + text(dashboardMasterUnitLabel(unit)) + '</b></button>';
+      }).join(""),
+      '</div>',
+      '</div>',
+      '<div class="wt-dashboard-master-body">',
+      '<div class="wt-dashboard-master-row wt-dashboard-master-pgp-row">',
+      '<div class="wt-dashboard-master-row-label"><b>PGP Master</b><span>Freeze · tooling · handoff · X-FTY</span></div>',
+      '<div class="wt-dashboard-master-track" style="--wt-master-cols:' + text(units.length) + '; --wt-point-rows:' + text(planLayout.rows) + '; --wt-flow-rows:' + text(Math.max(1, flows.length)) + '">',
+      renderDashboardMasterUnitGrid(units, todayIso),
+      flows.map(function (flow, index) {
+        return renderDashboardMasterFlow(flow, index);
+      }).join(""),
+      planLayout.items.map(function (item) {
+        return renderDashboardMasterPlanPoint(item, todayIso);
+      }).join(""),
+      '</div>',
+      '</div>',
+      projects.map(function (project) {
+        return renderDashboardMasterActualRow(project, range, units, todayIso);
+      }).join(""),
+      '</div>',
+      '</section>'
+    ].join("");
+  }
+
+  function dashboardMasterUnitLabel(unit) {
+    var zoom = Math.max(1, Math.min(5, state.dashboardMasterZoom || 3));
+    if (zoom <= 2) return unit.label;
+    if (zoom <= 4) return formatDateSlash(unit.start);
+    return String(dayOfMonth(unit.start));
+  }
+
+  function renderDashboardMasterUnitGrid(units, todayIso) {
+    return [
+      '<div class="wt-dashboard-master-unit-grid" style="--wt-master-cols:' + text(units.length) + '" aria-hidden="true">',
+      units.map(function (unit) {
+        var current = todayIso >= unit.start && todayIso <= unit.end ? " is-current" : "";
+        return '<span class="' + current + '"></span>';
+      }).join(""),
+      '</div>'
+    ].join("");
+  }
+
+  function dashboardGroupedMasterEvents(events) {
+    var grouped = {};
+    events.forEach(function (event) {
+      var key = [event.date, event.season, event.gate].join("|");
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(event);
+    });
+    return Object.keys(grouped).map(function (key) {
+      var items = grouped[key];
+      if (items.length === 1) return items[0];
+      var first = items[0];
+      return extendEvent(first, {
+        title: items.map(function (event) { return event.title; }).join(" / "),
+        displayLabel: unique(items.map(dashboardPlanPointLabel)).join(" + "),
+        groupedEventCount: items.length
+      });
+    });
+  }
+
+  function renderDashboardMasterFlow(flow, index) {
+    return [
+      '<div class="wt-dashboard-master-flow wt-gate-' + text(flow.gate.toLowerCase()) + '" style="--wt-left:' + text(flow.position.left) + '; --wt-width:' + text(flow.position.width) + '; --wt-flow-row:' + text(index) + '" title="' + text(flow.season + " " + flow.gate + " Revision DDD to LTWT X-FTY") + '">',
+      '<span>' + text(flow.season + " · " + flow.gate + " · Revision DDD → LTWT X-FTY") + '</span>',
+      flow.events.map(function (event) {
+        return renderDashboardFlowMilestone(event, flow);
+      }).join(""),
+      '</div>'
+    ].join("");
+  }
+
+  function renderDashboardMasterPlanPoint(item, todayIso) {
+    var event = item.event;
+    var pastClass = event.date < todayIso ? " wt-is-past" : "";
+    var gateClass = " wt-gate-" + String(event.gate || "WT").toLowerCase();
+    return [
+      '<button type="button" class="wt-dashboard-master-point' + pastClass + gateClass + '" data-dashboard-gantt-event data-event-id="' + text(event.id) + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '">',
+      '<span>' + text(formatDateSlash(event.date)) + '</span>',
+      '<b>' + text([event.season, event.gate, dashboardPlanPointLabel(event)].filter(Boolean).join(" · ")) + '</b>',
+      '</button>'
+    ].join("");
+  }
+
+  function renderDashboardMasterActualRow(project, range, units, todayIso) {
+    var events = project.events.filter(function (event) {
+      return eventOverlapsRange(event, range.start, range.end);
+    });
+    var layout = dashboardPointLayout(events, range, "master-actual");
+    var period = dashboardActualPeriod(events, range);
+    var gate = dashboardProjectGate(project);
+    return [
+      '<div class="wt-dashboard-master-row wt-dashboard-master-actual-row">',
+      '<button type="button" class="wt-dashboard-master-row-label wt-dashboard-master-project-label" data-dashboard-actual-project="' + text(project.key) + '" aria-label="' + text("Open " + project.modelName + " project schedule") + '">',
+      renderDashboardCadThumb(project),
+      '<span><b>' + text(project.modelName) + '</b><small>' + text(project.owner) + '</small></span>',
+      '</button>',
+      '<div class="wt-dashboard-master-track wt-dashboard-master-actual-track wt-gate-' + text(gate.toLowerCase()) + '" style="--wt-master-cols:' + text(units.length) + '; --wt-point-rows:' + text(layout.rows) + '">',
+      renderDashboardMasterUnitGrid(units, todayIso),
+      period ? '<span class="wt-dashboard-master-actual-period" style="--wt-left:' + text(period.left) + '; --wt-width:' + text(period.width) + '"></span>' : "",
+      layout.items.map(function (item) {
+        return renderDashboardMasterActualPoint(item, project, todayIso, gate);
+      }).join(""),
+      '</div>',
+      '</div>'
+    ].join("");
+  }
+
+  function renderDashboardMasterActualPoint(item, project, todayIso, gate) {
+    var event = item.event;
+    var pastClass = event.date < todayIso ? " wt-is-past" : "";
+    return [
+      '<button type="button" class="wt-dashboard-master-point wt-dashboard-master-actual-point wt-gate-' + text(String(gate || "GGP").toLowerCase()) + pastClass + '" data-dashboard-actual-project="' + text(project.key) + '" data-date="' + text(event.date) + '" title="' + text(eventTooltip(event)) + '" aria-label="' + text(eventTooltip(event)) + '" style="--wt-left:' + text(item.position.left) + '; --wt-width:' + text(item.position.width) + '; --wt-row:' + text(item.row) + '">',
+      '<span>' + text(formatDateSlash(event.date)) + '</span>',
+      '<b>' + text(dashboardActualPointLabel(event)) + '</b>',
+      '</button>'
     ].join("");
   }
 
@@ -1819,7 +2156,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function dashboardPlanEventCoveredByFlow(event, flows) {
     return flows.some(function (flow) {
-      return event.gate === flow.gate && event.date >= flow.start && event.date <= flow.end;
+      return (!flow.season || event.season === flow.season) && event.gate === flow.gate && event.date >= flow.start && event.date <= flow.end;
     });
   }
 
@@ -1888,7 +2225,17 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var day = Math.max(0, Math.min(totalDays - 1, daysBetween(range.start, event.date)));
     var label = mode === "actual" ? dashboardActualPointLabel(event) : dashboardPlanPointLabel(event);
     var introWidth = dashboardSourceKind(event) === "intro" ? 5.2 : 0;
-    var width = mode === "actual" ? (label.length > 14 ? 5.8 : 5.2) : (introWidth || (label.length > 18 ? 4.8 : 4.2));
+    var width;
+    if (mode === "macro") {
+      width = 7.2;
+    } else if (mode === "master" || mode === "master-actual") {
+      var zoomWidths = [5.5, 6.5, 7.5, 10, 14];
+      width = zoomWidths[Math.max(1, Math.min(5, state.dashboardMasterZoom || 3)) - 1];
+      if (mode === "master-actual") width = Math.max(5.5, width - 2);
+      if (mode === "master" && label.length > 18) width += 1.5;
+    } else {
+      width = mode === "actual" ? (label.length > 14 ? 5.8 : 5.2) : (introWidth || (label.length > 18 ? 4.8 : 4.2));
+    }
     var left = (day / totalDays) * 100;
     if (left + width > 100) left = Math.max(0, 100 - width);
     return { left: left.toFixed(3), width: width.toFixed(3) };
@@ -1918,6 +2265,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         var end = endEvent.date > range.end ? range.end : endEvent.date;
         var position = dashboardRangePosition(start, end, range);
         flows.push({
+          season: season,
           gate: gate,
           start: start,
           end: end,
@@ -2274,7 +2622,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       return [
         '<section class="wt-dashboard-month-panel" aria-label="' + text(monthTitle + " monthly calendar") + '">',
         '<header class="wt-dashboard-panel-head">',
-        '<div><h2>' + text(monthTitle) + '</h2><span>Month</span></div>',
+        '<div class="wt-dashboard-scale-title"><small>SMALL</small><div><h2>Month</h2><span>' + text(monthTitle) + '</span></div></div>',
         '<div class="wt-dashboard-panel-actions">',
         '<button type="button" data-dashboard-month-shift="-1" aria-label="Previous month">' + icon("chevron-left") + '</button>',
         '<button type="button" data-dashboard-today>Today</button>',
