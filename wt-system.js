@@ -44,6 +44,18 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     { value: "LTWT P/T Sample Actual", kind: "sample" }
   ];
   var SCHEDULE_SIZE_OPTIONS = ["W5.5", "W8", "M9", "M10"];
+  var APPROVAL_STATUS = {
+    pending: "Pending Review",
+    approved: "Approved",
+    returned: "Returned",
+    withdrawn: "Withdrawn"
+  };
+  var MANAGER_APPROVAL_FILTERS = [
+    { id: "pending", label: "Pending Review", status: APPROVAL_STATUS.pending },
+    { id: "approved", label: "Approved", status: APPROVAL_STATUS.approved },
+    { id: "returned", label: "Returned", status: APPROVAL_STATUS.returned },
+    { id: "all", label: "All", status: "" }
+  ];
   var PROJECT_ACTUAL_FIELDS = [
     { key: "revisionDdd", input: "actualRevisionDdd", label: "Revision DDD", shortLabel: "Revision DDD", kind: "deadline" },
     { key: "handoff", input: "actualHandoff", label: "Sample Handoff", shortLabel: "Handoff", kind: "handoff" },
@@ -290,6 +302,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     sharedSubmissionsLoaded: false,
     sharedSubmissionsLoading: false,
     sharedSubmissionsError: "",
+    currentUser: { id: "", name: "", email: "" },
+    currentUserLoaded: false,
+    currentUserLoading: false,
+    currentUserError: "",
     tcmsMilestonesLoaded: false,
     tcmsMilestonesLoading: false,
     tcmsMilestonesError: "",
@@ -308,7 +324,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     pendingDeleteEventId: "",
     returnSectionAfterEdit: "",
     activeEventId: "",
-    activeProjectKey: ""
+    activeProjectKey: "",
+    managerApprovalFilter: "pending",
+    reviewingSubmissionId: "",
+    approvalSaving: false
   };
 
   function boot() {
@@ -322,6 +341,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       bind(roots[i]);
       updateClock(roots[i]);
       ensureActiveSourceIndexes(roots[i]);
+      ensureCurrentUser(roots[i]);
       ensureSharedSubmissions(roots[i]);
       ensureTcmsMilestones(roots[i]);
     }
@@ -363,6 +383,46 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var sidebarToggleButton = event.target.closest("[data-sidebar-toggle]");
       var copilotPopupLink = event.target.closest("a[data-copilot-popup]");
       var externalSourceLink = event.target.closest("a[data-external-source]");
+      var managerApprovalFilterButton = event.target.closest("[data-manager-approval-filter]");
+      var reviewScheduleButton = event.target.closest("[data-review-schedule-id]");
+      var closeReviewModalButton = event.target.closest("[data-close-review-modal]");
+      var approvalDecisionButton = event.target.closest("[data-approval-decision]");
+
+      if (managerApprovalFilterButton && root.contains(managerApprovalFilterButton)) {
+        event.preventDefault();
+        state.managerApprovalFilter = managerApprovalFilterButton.getAttribute("data-manager-approval-filter") || "pending";
+        state.actionMessage = "";
+        render(root);
+        return;
+      }
+
+      if (reviewScheduleButton && root.contains(reviewScheduleButton)) {
+        event.preventDefault();
+        state.reviewingSubmissionId = reviewScheduleButton.getAttribute("data-review-schedule-id") || "";
+        state.actionMessage = "";
+        render(root);
+        return;
+      }
+
+      if (closeReviewModalButton && root.contains(closeReviewModalButton)) {
+        event.preventDefault();
+        state.reviewingSubmissionId = "";
+        state.approvalSaving = false;
+        render(root);
+        return;
+      }
+
+      if (approvalDecisionButton && root.contains(approvalDecisionButton)) {
+        event.preventDefault();
+        var approvalComment = root.querySelector("[data-approval-comment]");
+        decideScheduleApproval(
+          root,
+          approvalDecisionButton.getAttribute("data-approval-submission-id") || state.reviewingSubmissionId,
+          approvalDecisionButton.getAttribute("data-approval-decision") || "",
+          approvalComment ? approvalComment.value.trim() : ""
+        );
+        return;
+      }
 
       if (sidebarToggleButton && root.contains(sidebarToggleButton)) {
         event.preventDefault();
@@ -779,6 +839,59 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     state.backendMode = root && root.getAttribute("data-wt-backend-mode") === "sharepoint-list" ? "sharepoint-list" : "local";
   }
 
+  function ensureCurrentUser(root) {
+    if (!root || state.currentUserLoaded || state.currentUserLoading) return;
+    var configured = configuredCurrentUser(root);
+    if (state.backendMode !== "sharepoint-list") {
+      state.currentUser = configured;
+      state.currentUserLoaded = true;
+      return;
+    }
+    state.currentUserLoading = true;
+    loadSharePointCurrentUser(root).then(function (user) {
+      state.currentUser = user;
+      state.currentUserLoaded = true;
+      state.currentUserLoading = false;
+      state.currentUserError = "";
+      render(root);
+    }).catch(function (error) {
+      state.currentUser = configured;
+      state.currentUserLoaded = true;
+      state.currentUserLoading = false;
+      state.currentUserError = error.message || String(error);
+      render(root);
+    });
+  }
+
+  function configuredCurrentUser(root) {
+    var isLocal = state.backendMode !== "sharepoint-list";
+    return {
+      id: "",
+      name: queryParam("wt-user-name") || (root ? root.getAttribute("data-wt-current-user-name") : "") || (isLocal ? "Local Approver" : ""),
+      email: queryParam("wt-user-email") || (root ? root.getAttribute("data-wt-current-user-email") : "") || (isLocal ? "local.approver@example.com" : "")
+    };
+  }
+
+  function loadSharePointCurrentUser(root) {
+    var sitePath = getSitePath(root);
+    if (!sitePath) return Promise.reject(new Error("SharePoint site path unavailable."));
+    return window.fetch(sitePath + "/_api/web/currentuser?$select=Id,Title,Email,LoginName", {
+      method: "GET",
+      credentials: sharePointFetchCredentials(sitePath),
+      headers: { "Accept": "application/json;odata=nometadata" }
+    }).then(function (response) {
+      if (!response.ok) throw new Error("Current user HTTP " + response.status);
+      return response.json();
+    }).then(function (data) {
+      var item = data && data.d ? data.d : data;
+      return {
+        id: item.Id || item.ID || "",
+        name: item.Title || item.title || "",
+        email: item.Email || item.email || ""
+      };
+    });
+  }
+
   function currentDateIso(root) {
     var configured = queryParam("wt-date") || queryParam("wt-today") || (root ? root.getAttribute("data-wt-default-date") : "");
     if (isIsoDate(configured)) return configured;
@@ -821,6 +934,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       renderShell(root),
       renderEventModal(),
       renderScheduleEditorModal(root),
+      renderApprovalReviewModal(root),
       '</div>'
     ].join("");
   }
@@ -840,7 +954,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-brand">',
       '<div><b>FPT WT Management System</b></div>',
       '</div>',
-      '<button type="button" class="wt-sidebar-create" data-view="edit">' + icon("plus") + '<span>Create Schedule</span></button>',
+      '<button type="button" class="wt-sidebar-create" data-view="edit">' + icon("plus") + '<span>Submit Schedule</span></button>',
       '<nav class="wt-primary-nav wt-primary-nav-main" aria-label="Primary">',
       navGroup("Workspace", [
         navItem("dashboard", "Dashboard"),
@@ -1008,7 +1122,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       renderWorkOrderToggle(),
       '</div>',
       '<div class="wt-action-buttons wt-flow-actions">',
-      '<button type="button" data-view="edit" aria-label="Create Schedule">' + icon("plus") + '<span>Create Schedule</span></button>',
+      '<button type="button" data-view="edit" aria-label="Submit Schedule">' + icon("plus") + '<span>Submit Schedule</span></button>',
       '</div>',
       '<div class="wt-range-row wt-flow-range-row">',
       '<div class="wt-range-title"><strong>' + text(rangeLabel) + '</strong></div>',
@@ -1700,16 +1814,72 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderScheduleEditorModal(root) {
     if (state.view !== "edit") return "";
     var editingItem = state.editingEventId ? findLocalSubmissionById(state.editingEventId) : null;
-    var title = editingItem ? "Edit Schedule" : "Create Schedule";
+    var title = editingItem ? "Revise Schedule" : "Submit Schedule";
     return [
       '<section class="wt-event-modal wt-schedule-modal" role="dialog" aria-modal="true" aria-label="' + text(title) + '">',
       '<button class="wt-modal-backdrop" type="button" data-close-schedule-modal aria-label="Close schedule editor"></button>',
       '<article class="wt-modal-panel wt-schedule-panel">',
       '<header class="wt-modal-header">',
-      '<div><small>WT_Submissions</small><h2>' + text(title) + '</h2></div>',
+      '<div><small>Approval submission</small><h2>' + text(title) + '</h2></div>',
       '<button type="button" class="wt-modal-close" data-close-schedule-modal aria-label="Close">&times;</button>',
       '</header>',
       renderEditForm(root, true),
+      '</article>',
+      '</section>'
+    ].join("");
+  }
+
+  function renderApprovalReviewModal(root) {
+    var item = state.reviewingSubmissionId ? findLocalSubmissionById(state.reviewingSubmissionId) : null;
+    if (!item || state.view === "edit") return "";
+    var status = approvalStatus(item);
+    var canReview = status === APPROVAL_STATUS.pending && canCurrentUserReviewSubmission(root, item);
+    var model = item.modelName || item.projectName || "WT schedule";
+    var warning = productFreezeWarningForSubmission(item);
+    var timelineEvents = approvalReviewTimelineEvents(item, state.reviewingSubmissionId);
+    var rows = [
+      ["Schedule Date", formatGamePlanDate(item.targetDate)],
+      ["Type", normalizeScheduleTypeValue(item.milestoneType || item.kind || "")],
+      ["Season / Gate", [item.season || "-", item.gate || "-"].join(" / ")],
+      ["Size", item.size || "-"],
+      ["PCC Developer", item.owner || "-"],
+      ["Submitted By", item.submittedByName || item.submittedByEmail || "Legacy entry"]
+    ];
+    var readonlyMessage = status !== APPROVAL_STATUS.pending
+      ? "This submission is " + status.toLowerCase() + ". The decision history remains available for audit."
+      : (!canReview ? "Review actions are available to the assigned Outlook approvers." : "");
+    return [
+      '<section class="wt-event-modal wt-approval-review-modal" role="dialog" aria-modal="true" aria-label="Schedule approval review">',
+      '<button class="wt-modal-backdrop" type="button" data-close-review-modal aria-label="Close approval review"></button>',
+      '<article class="wt-modal-panel wt-approval-review-panel">',
+      '<header class="wt-modal-header wt-approval-review-head">',
+      '<div><small>' + text(formatGamePlanDate(item.targetDate) + " · " + (item.season || "-") + " · " + (item.gate || "-")) + '</small><h2>' + text(model) + '</h2></div>',
+      '<button type="button" class="wt-modal-close" data-close-review-modal aria-label="Close">&times;</button>',
+      '</header>',
+      '<div class="wt-approval-review-status">' + renderApprovalStatusBadge(status) + '<span>' + text(item.notificationStatus || "") + '</span></div>',
+      '<div class="wt-modal-detail-grid wt-approval-detail-grid">',
+      rows.map(function (row) { return '<div><small>' + text(row[0]) + '</small><b>' + text(row[1]) + '</b></div>'; }).join(""),
+      '</div>',
+      '<section class="wt-approval-timeline-section">',
+      '<header><small>Schedule comparison</small><b>Plan, handoff, test and report</b></header>',
+      '<div class="wt-approval-timeline" role="list">',
+      timelineEvents.map(function (event) {
+        return '<article class="wt-approval-timeline-item is-' + text(event.sourceType || "system") + ' wt-kind-' + text(event.kind || "deadline") + '" role="listitem"><time>' + text(formatGamePlanDate(event.date)) + '</time><b>' + text(shortTitle(event.title, 54)) + '</b><small>' + text(event.gate || "Plan") + '</small></article>';
+      }).join(""),
+      '</div>',
+      '</section>',
+      warning ? '<p class="wt-modal-caution wt-approval-warning">' + text(warning) + '</p>' : "",
+      item.notes ? '<section class="wt-approval-memo"><small>Submitter memo</small><p>' + text(item.notes) + '</p></section>' : "",
+      '<section class="wt-approval-audit">',
+      '<small>Approval history</small>',
+      '<div><span>Submitted</span><b>' + text(formatDateTime(item.approvalSubmittedAt || item.submittedAt || "")) + '</b></div>',
+      item.approverName || item.approverEmail ? '<div><span>Last reviewer</span><b>' + text(item.approverName || item.approverEmail) + '</b></div>' : "",
+      item.approvalUpdatedAt ? '<div><span>Decision time</span><b>' + text(formatDateTime(item.approvalUpdatedAt)) + '</b></div>' : "",
+      item.approvalComment ? '<div class="is-comment"><span>Reviewer comment</span><b>' + text(item.approvalComment) + '</b></div>' : "",
+      '</section>',
+      canReview ? '<label class="wt-approval-comment">Reviewer Comment<textarea rows="3" data-approval-comment placeholder="Required when returning for revision"></textarea></label>' : "",
+      readonlyMessage ? '<p class="wt-modal-readonly wt-approval-readonly">' + text(readonlyMessage) + '</p>' : "",
+      canReview ? '<div class="wt-modal-actions wt-approval-actions"><button type="button" class="danger" data-approval-decision="' + text(APPROVAL_STATUS.returned) + '" data-approval-submission-id="' + text(state.reviewingSubmissionId) + '"' + (state.approvalSaving ? " disabled" : "") + '>Return for Revision</button><button type="button" class="primary" data-approval-decision="' + text(APPROVAL_STATUS.approved) + '" data-approval-submission-id="' + text(state.reviewingSubmissionId) + '"' + (state.approvalSaving ? " disabled" : "") + '>Approve Schedule</button></div>' : "",
       '</article>',
       '</section>'
     ].join("");
@@ -2377,6 +2547,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function dashboardAllActualProjects() {
     var grouped = {};
     loadLocalSubmissions().forEach(function (item, index) {
+      if (!isApprovedSubmission(item)) return;
       var key = projectKeyForSubmission(item);
       if (!grouped[key]) {
         grouped[key] = {
@@ -2869,49 +3040,76 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderScheduleManager(root) {
-    var submissions = managerSubmissions();
+    var allSubmissions = managerSubmissions("all");
+    var submissions = managerSubmissions(state.managerApprovalFilter);
     return [
       '<section class="wt-manager-page">',
       '<header class="wt-manager-head">',
       '<div>',
-      '<small>WT_Submissions</small>',
+      '<small>Approval workspace</small>',
       '<h2>Schedule Manager</h2>',
       '</div>',
-      '<button type="button" class="wt-manager-create" data-view="edit">' + icon("plus") + '<span>Create Schedule</span></button>',
+      '<div class="wt-manager-head-actions">',
+      renderCurrentUser(root),
+      '<button type="button" class="wt-manager-create" data-view="edit">' + icon("plus") + '<span>Submit Schedule</span></button>',
+      '</div>',
       '</header>',
+      renderManagerApprovalTabs(allSubmissions),
       '<div class="wt-action-message wt-manager-message">' + text(state.actionMessage || "") + '</div>',
-      submissions.length ? renderManagerProjects(submissions) : renderManagerEmptyState(),
+      submissions.length ? renderManagerProjects(submissions, root) : renderManagerEmptyState(state.managerApprovalFilter),
       '</section>'
     ].join("");
   }
 
-  function managerSubmissions() {
-    return loadLocalSubmissions().slice().sort(function (a, b) {
-      return ((a.targetDate || "") + (a.projectName || "")).localeCompare((b.targetDate || "") + (b.projectName || ""));
+  function managerSubmissions(filterId) {
+    var filter = MANAGER_APPROVAL_FILTERS.filter(function (item) { return item.id === filterId; })[0] || MANAGER_APPROVAL_FILTERS[0];
+    return loadLocalSubmissions().filter(function (item) {
+      return !filter.status || approvalStatus(item) === filter.status;
+    }).slice().sort(function (a, b) {
+      var statusSort = approvalStatusOrder(approvalStatus(a)) - approvalStatusOrder(approvalStatus(b));
+      if (statusSort) return statusSort;
+      return ((b.approvalSubmittedAt || b.submittedAt || b.updatedAt || "") + (b.projectName || "")).localeCompare((a.approvalSubmittedAt || a.submittedAt || a.updatedAt || "") + (a.projectName || ""));
     });
   }
 
-  function renderManagerProjects(submissions) {
+  function renderManagerApprovalTabs(submissions) {
     return [
-      '<div class="wt-manager-projects" aria-label="Registered schedules with season product game plan milestones">',
+      '<nav class="wt-manager-tabs" aria-label="Schedule approval status">',
+      MANAGER_APPROVAL_FILTERS.map(function (filter) {
+        var count = submissions.filter(function (item) { return !filter.status || approvalStatus(item) === filter.status; }).length;
+        return '<button type="button" class="' + (state.managerApprovalFilter === filter.id ? "active" : "") + '" data-manager-approval-filter="' + text(filter.id) + '" aria-pressed="' + text(state.managerApprovalFilter === filter.id) + '"><span>' + text(filter.label) + '</span><b>' + text(count) + '</b></button>';
+      }).join(""),
+      '</nav>'
+    ].join("");
+  }
+
+  function renderManagerProjects(submissions, root) {
+    return [
+      '<div class="wt-manager-projects" aria-label="Submitted schedules with season product game plan milestones">',
       submissions.map(function (item, index) {
-        return renderManagerProjectRow(item, index);
+        return renderManagerProjectRow(item, index, root);
       }).join(""),
       '</div>'
     ].join("");
   }
 
-  function renderManagerProjectRow(item, index) {
+  function renderManagerProjectRow(item, index, root) {
     var id = submissionId(item, index);
     var confirmingDelete = state.pendingDeleteEventId === id;
     var season = item.season || "All";
     var type = normalizeScheduleTypeValue(item.milestoneType || item.kind || "");
     var model = item.modelName || item.projectName || "Untitled schedule";
     var owner = item.owner || "-";
+    var status = approvalStatus(item);
     var timelineEvents = managerTimelineEvents(item, id);
+    var canEdit = canCurrentUserEditSubmission(root, item);
     return [
-      '<article class="wt-manager-project-row">',
+      '<article class="wt-manager-project-row is-' + text(approvalStatusClass(status)) + '">',
       '<section class="wt-manager-project-info" aria-label="' + text(model + " schedule details") + '">',
+      '<div class="wt-manager-approval-line">',
+      renderApprovalStatusBadge(status),
+      '<small>' + text(item.notificationStatus || (status === APPROVAL_STATUS.pending ? "Outlook notification queued" : "")) + '</small>',
+      '</div>',
       '<h3>' + text(model) + '</h3>',
       '<p class="wt-manager-project-owner"><span>PCC Developer</span> <strong>' + text(owner) + '</strong></p>',
       '<div class="wt-manager-project-topline">',
@@ -2922,11 +3120,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-manager-meta-grid">',
       '<span><small>Size</small><strong>' + text(item.size || "-") + '</strong></span>',
       '<span><small>Schedule Date</small><strong>' + text(formatGamePlanDate(item.targetDate || state.selectedDate)) + '</strong></span>',
-      '<span><small>Updated</small><strong>' + text(formatSubmissionUpdated(item)) + '</strong></span>',
+      '<span><small>Submitted By</small><strong>' + text(item.submittedByName || item.submittedByEmail || "Legacy entry") + '</strong></span>',
+      '<span><small>Submitted</small><strong>' + text(formatSubmissionUpdated(item)) + '</strong></span>',
       '</div>',
       '<div class="wt-manager-actions">',
-      '<button type="button" class="wt-manager-action" data-edit-event-id="' + text(id) + '" data-date="' + text(item.targetDate || state.selectedDate) + '" aria-label="' + text("Edit " + model) + '">' + icon("edit") + '<span>Edit</span></button>',
-      '<button type="button" class="wt-manager-action danger ' + (confirmingDelete ? "is-confirming" : "") + '" data-delete-event-id="' + text(id) + '" aria-label="' + text("Delete " + model) + '">' + icon("trash") + '<span>' + text(confirmingDelete ? "Confirm" : "Delete") + '</span></button>',
+      '<button type="button" class="wt-manager-action primary" data-review-schedule-id="' + text(id) + '" aria-label="' + text("Review " + model) + '">' + icon("search") + '<span>' + text(status === APPROVAL_STATUS.pending ? "Review" : "Details") + '</span></button>',
+      canEdit ? '<button type="button" class="wt-manager-action" data-edit-event-id="' + text(id) + '" data-date="' + text(item.targetDate || state.selectedDate) + '" aria-label="' + text("Edit " + model) + '">' + icon("edit") + '<span>' + text(status === APPROVAL_STATUS.returned ? "Revise" : "Edit") + '</span></button>' : "",
+      canEdit ? '<button type="button" class="wt-manager-action danger ' + (confirmingDelete ? "is-confirming" : "") + '" data-delete-event-id="' + text(id) + '" aria-label="' + text("Delete " + model) + '">' + icon("trash") + '<span>' + text(confirmingDelete ? "Confirm" : "Delete") + '</span></button>' : "",
       '</div>',
       '</section>',
       '<section class="wt-manager-timeline-panel" aria-label="' + text(season + " product game plan timeline") + '">',
@@ -2964,6 +3164,15 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var sourceSort = managerTimelineSourceOrder(a.sourceType) - managerTimelineSourceOrder(b.sourceType);
       if (sourceSort) return sourceSort;
       return (a.title || "").localeCompare(b.title || "");
+    });
+  }
+
+  function approvalReviewTimelineEvents(item, id) {
+    var targetGate = String(item && item.gate || "").toUpperCase();
+    return managerTimelineEvents(item, id).filter(function (event) {
+      if (event.sourceType === "user" || event.sourceType === "derived") return true;
+      if (targetGate && String(event.gate || "").toUpperCase() !== targetGate) return false;
+      return /revision|handoff|bom\s*ddd|product\s*freeze|x-?fty/i.test(event.title || "");
     });
   }
 
@@ -3021,21 +3230,88 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     ].join("");
   }
 
-  function renderManagerEmptyState() {
+  function renderManagerEmptyState(filterId) {
+    var filter = MANAGER_APPROVAL_FILTERS.filter(function (item) { return item.id === filterId; })[0] || MANAGER_APPROVAL_FILTERS[0];
     return [
       '<section class="wt-manager-empty">',
       icon("manager"),
-      '<b>No user schedules yet</b>',
-      '<span>Create a schedule to manage model-level WT handoffs, reports, and sample actuals here.</span>',
-      '<button type="button" data-view="edit">' + icon("plus") + '<span>Create Schedule</span></button>',
+      '<b>No ' + text(filter.label.toLowerCase()) + ' schedules</b>',
+      '<span>Submitted schedules move through Outlook review here before they appear in calendars.</span>',
+      '<button type="button" data-view="edit">' + icon("plus") + '<span>Submit Schedule</span></button>',
       '</section>'
     ].join("");
   }
 
   function formatSubmissionUpdated(item) {
-    var value = item.updatedAt || item.submittedAt || "";
+    var value = item.approvalSubmittedAt || item.updatedAt || item.submittedAt || "";
     if (!value) return "-";
     return formatDateTime(value);
+  }
+
+  function approvalStatus(item) {
+    var raw = String(item && (item.approvalStatus || item.ApprovalStatus) || "").trim().toLowerCase();
+    if (!raw) return APPROVAL_STATUS.approved;
+    if (raw === "pending" || raw === "pending review" || raw === "submitted" || raw === "awaiting approval") return APPROVAL_STATUS.pending;
+    if (raw === "approved" || raw === "approve") return APPROVAL_STATUS.approved;
+    if (raw === "returned" || raw === "return" || raw === "rejected" || raw === "reject") return APPROVAL_STATUS.returned;
+    if (raw === "withdrawn" || raw === "inactive") return APPROVAL_STATUS.withdrawn;
+    return item.approvalStatus || item.ApprovalStatus || APPROVAL_STATUS.pending;
+  }
+
+  function approvalStatusClass(status) {
+    return String(status || "pending").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  }
+
+  function approvalStatusOrder(status) {
+    if (status === APPROVAL_STATUS.pending) return 0;
+    if (status === APPROVAL_STATUS.returned) return 1;
+    if (status === APPROVAL_STATUS.approved) return 2;
+    return 3;
+  }
+
+  function renderApprovalStatusBadge(status) {
+    return '<span class="wt-approval-status is-' + text(approvalStatusClass(status)) + '">' + text(status) + '</span>';
+  }
+
+  function renderCurrentUser(root) {
+    if (state.currentUserLoading) return '<span class="wt-manager-user is-loading">Loading user...</span>';
+    var user = state.currentUser || {};
+    var label = user.name || user.email || (state.backendMode === "local" ? "Local approver" : "User unavailable");
+    return '<span class="wt-manager-user" title="' + text(user.email || label) + '">' + icon("manager") + '<b>' + text(label) + '</b></span>';
+  }
+
+  function currentUserEmail(root) {
+    var user = state.currentUser || {};
+    return String(user.email || configuredCurrentUser(root).email || "").trim().toLowerCase();
+  }
+
+  function configuredApprovalReviewers(root) {
+    var configured = root ? root.getAttribute("data-wt-approval-reviewers") || "" : "";
+    return splitEmailList(configured);
+  }
+
+  function submissionApproverEmails(item) {
+    return splitEmailList(item && (item.approverEmails || item.ApproverEmails) || "");
+  }
+
+  function splitEmailList(value) {
+    return unique(String(value || "").split(/[;,\n]+/).map(function (email) {
+      return email.trim().toLowerCase();
+    }).filter(Boolean));
+  }
+
+  function canCurrentUserReviewSubmission(root, item) {
+    if (state.backendMode === "local") return true;
+    var email = currentUserEmail(root);
+    if (!email) return false;
+    return submissionApproverEmails(item).concat(configuredApprovalReviewers(root)).indexOf(email) >= 0;
+  }
+
+  function canCurrentUserEditSubmission(root, item) {
+    if (state.backendMode === "local") return true;
+    var submitter = String(item && item.submittedByEmail || "").trim().toLowerCase();
+    if (!submitter) return true;
+    return submitter === currentUserEmail(root);
   }
 
   function renderGamePlan() {
@@ -4311,7 +4587,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       '<main class="wt-main wt-editor" aria-label="Schedule editor">',
       '<header class="wt-toolbar">',
-      '<div class="wt-title-block"><small>WT Operations</small><h1>' + text(editing ? "Edit Schedule" : "Create Schedule") + '</h1></div>',
+      '<div class="wt-title-block"><small>WT Operations</small><h1>' + text(editing ? "Revise Schedule" : "Submit Schedule") + '</h1></div>',
       '<button class="wt-toolbar-create" type="button" data-view="display">Back to Calendar</button>',
       '</header>',
       '<div class="wt-editor-layout">',
@@ -4342,12 +4618,24 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       actualSchedule: editingItem ? editingItem.actualSchedule : null,
       notes: editingItem ? editingItem.notes : "",
       submittedAt: editingItem ? editingItem.submittedAt : "",
-      sharePointItemId: editingItem ? editingItem.sharePointItemId : ""
+      sharePointItemId: editingItem ? editingItem.sharePointItemId : "",
+      approvalStatus: editingItem ? editingItem.approvalStatus : "",
+      approvalSubmittedAt: editingItem ? editingItem.approvalSubmittedAt : "",
+      submittedByName: editingItem ? editingItem.submittedByName : "",
+      submittedByEmail: editingItem ? editingItem.submittedByEmail : "",
+      approverEmails: editingItem ? editingItem.approverEmails : "",
+      approvalComment: editingItem ? editingItem.approvalComment : "",
+      approvalUpdatedAt: editingItem ? editingItem.approvalUpdatedAt : "",
+      approverName: editingItem ? editingItem.approverName : "",
+      approverEmail: editingItem ? editingItem.approverEmail : "",
+      notificationStatus: editingItem ? editingItem.notificationStatus : "",
+      approvalRevision: editingItem ? editingItem.approvalRevision : 0
     });
     return [
       '<aside class="wt-edit-card' + (inModal ? " wt-edit-card-modal" : "") + '">',
       inModal ? "" : '<h2>' + text(editingItem ? "Edit Schedule" : "New Schedule") + '</h2>',
       '<form class="wt-edit-form">',
+      '<section class="wt-submission-notice">' + icon("flag") + '<div><b>Approval required</b><span>Submitting sends an Outlook review request. The schedule appears in calendars only after approval.</span></div></section>',
       editingItem ? '<input type="hidden" name="rowKey" value="' + text(editingItem.rowKey || state.editingEventId) + '">' : "",
       '<div class="wt-schedule-primary-fields">',
       select("Season", scheduleSeasonOptions(draft.season), "season", draft.season, " required data-schedule-priority=\"season\""),
@@ -4363,7 +4651,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<label>Memo<textarea name="notes" rows="5" placeholder="Report file, shipment note, blocker, or extra context">' + text(editingItem ? editingItem.notes : "") + '</textarea></label>',
       '<p class="wt-form-message" aria-live="polite">' + text(confirmingDelete ? "Click Confirm Delete to remove this schedule." : "") + '</p>',
       '<div class="wt-form-actions">',
-      '<button class="primary" type="submit">' + text(editingItem ? "Update Schedule" : "Save Schedule") + '</button>',
+      '<button class="primary" type="submit">' + text(editingItem ? "Resubmit for Approval" : "Submit for Approval") + '</button>',
       editingItem ? '<button class="danger ' + (confirmingDelete ? "is-confirming" : "") + '" type="button" data-delete-event-id="' + text(state.editingEventId) + '">' + text(confirmingDelete ? "Confirm Delete" : "Delete Schedule") + '</button>' : "",
       '<button type="button" data-close-schedule-modal>Cancel</button>',
       '</div>',
@@ -4425,7 +4713,18 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         productFreeze: formValue(form, "actualProductFreeze"),
         ltwtXfty: formValue(form, "actualLtwtXfty")
       },
-      notes: formValue(form, "notes")
+      notes: formValue(form, "notes"),
+      approvalStatus: editingItem ? editingItem.approvalStatus : "",
+      approvalSubmittedAt: editingItem ? editingItem.approvalSubmittedAt : "",
+      submittedByName: editingItem ? editingItem.submittedByName : "",
+      submittedByEmail: editingItem ? editingItem.submittedByEmail : "",
+      approverEmails: editingItem ? editingItem.approverEmails : "",
+      approvalComment: editingItem ? editingItem.approvalComment : "",
+      approvalUpdatedAt: editingItem ? editingItem.approvalUpdatedAt : "",
+      approverName: editingItem ? editingItem.approverName : "",
+      approverEmail: editingItem ? editingItem.approverEmail : "",
+      notificationStatus: editingItem ? editingItem.notificationStatus : "",
+      approvalRevision: editingItem ? editingItem.approvalRevision : 0
     });
   }
 
@@ -4450,7 +4749,19 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       cadImageUrl: values.cadImageUrl || "",
       actualSchedule: normalizeProjectActualSchedule(values.actualSchedule),
       notes: values.notes || "",
-      sharePointItemId: values.sharePointItemId || ""
+      sharePointItemId: values.sharePointItemId || "",
+      approvalStatus: values.approvalStatus || "",
+      approvalSubmittedAt: values.approvalSubmittedAt || "",
+      submittedByName: values.submittedByName || "",
+      submittedByEmail: values.submittedByEmail || "",
+      approverEmails: values.approverEmails || "",
+      approvalComment: values.approvalComment || "",
+      approvalUpdatedAt: values.approvalUpdatedAt || "",
+      approvedAt: values.approvedAt || "",
+      approverName: values.approverName || "",
+      approverEmail: values.approverEmail || "",
+      notificationStatus: values.notificationStatus || "",
+      approvalRevision: Number(values.approvalRevision || 0)
     };
   }
 
@@ -4650,9 +4961,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var mode = root.getAttribute("data-wt-backend-mode") || "local";
     var editingItem = state.editingEventId ? findLocalSubmissionById(state.editingEventId) : null;
     var payload = scheduleDraftFromForm(form, editingItem);
+    var now = new Date().toISOString();
     payload.rowKey = payload.rowKey || "WT-" + Date.now();
-    payload.submittedAt = payload.submittedAt || new Date().toISOString();
-    payload.updatedAt = new Date().toISOString();
+    payload.submittedAt = payload.submittedAt || now;
+    payload.updatedAt = now;
+    prepareSubmissionForApproval(root, payload, editingItem, now);
 
     if (editingItem) {
       updateSchedule(root, payload, message);
@@ -4663,29 +4976,47 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       submitToSharePointList(root, payload).then(function (item) {
         payload.sharePointItemId = sharePointItemId(item);
         saveLocalSubmission(payload);
-        completeScheduleSave(root, payload, "Saved to WT_Submissions.");
+        completeScheduleSave(root, payload, "Submitted for approval. Outlook notification is queued for the assigned reviewers.");
       }).catch(function (error) {
-        if (message) message.textContent = "SharePoint save failed: " + error.message;
+        if (message) message.textContent = "SharePoint submission failed: " + error.message;
       });
       return;
     }
 
     try {
       saveLocalSubmission(payload);
-      completeScheduleSave(root, payload, "Saved locally for preview.");
+      completeScheduleSave(root, payload, "Submitted for approval in local preview.");
     } catch (error) {
       if (message) message.textContent = "Local save failed: " + error.message;
     }
   }
 
+  function prepareSubmissionForApproval(root, payload, editingItem, now) {
+    var user = state.currentUser || configuredCurrentUser(root);
+    payload.approvalStatus = APPROVAL_STATUS.pending;
+    payload.approvalSubmittedAt = now;
+    payload.submittedByName = user.name || payload.submittedByName || "";
+    payload.submittedByEmail = user.email || payload.submittedByEmail || "";
+    payload.approverEmails = unique(
+      configuredApprovalReviewers(root).concat(editingItem ? submissionApproverEmails(editingItem) : [])
+    ).join(";");
+    payload.approvalComment = "";
+    payload.approvalUpdatedAt = "";
+    payload.approvedAt = "";
+    payload.approverName = "";
+    payload.approverEmail = "";
+    payload.notificationStatus = state.backendMode === "sharepoint-list" ? "Queued for Outlook" : "Local approval preview";
+    payload.approvalRevision = Number(editingItem && editingItem.approvalRevision || 0) + 1;
+  }
+
   function completeScheduleSave(root, payload, message) {
-    var saveWarning = productFreezeWarningForSubmission(payload);
-    state.section = state.returnSectionAfterEdit || "calendar";
+    state.section = "manager";
     state.view = "display";
     state.editingEventId = "";
     state.pendingDeleteEventId = "";
     state.returnSectionAfterEdit = "";
-    state.activeEventId = saveWarning ? payload.rowKey : "";
+    state.activeEventId = "";
+    state.managerApprovalFilter = "pending";
     state.selectedDate = payload.targetDate || state.selectedDate;
     state.period = "month";
     state.weekStart = periodAnchor(state.selectedDate, state.period);
@@ -4711,7 +5042,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (mode === "sharepoint-list" && itemId) {
       updateSharePointListItem(root, itemId, payload).then(function () {
         updateLocalSubmission(payload);
-        completeScheduleSave(root, payload, "Updated in WT_Submissions.");
+        completeScheduleSave(root, payload, "Re-submitted for approval. Outlook notification is queued for the assigned reviewers.");
       }).catch(function (error) {
         if (message) message.textContent = "SharePoint update failed: " + error.message;
       });
@@ -4719,7 +5050,65 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     }
 
     updateLocalSubmission(payload);
-    completeScheduleSave(root, payload, "Updated locally for preview.");
+    completeScheduleSave(root, payload, "Re-submitted for approval in local preview.");
+  }
+
+  function decideScheduleApproval(root, id, decision, comment) {
+    var item = findLocalSubmissionById(id);
+    if (!item || state.approvalSaving) return;
+    if (approvalStatus(item) !== APPROVAL_STATUS.pending) {
+      state.actionMessage = "This submission is no longer pending review.";
+      state.reviewingSubmissionId = "";
+      render(root);
+      return;
+    }
+    if (!canCurrentUserReviewSubmission(root, item)) {
+      state.actionMessage = "Only an assigned Outlook approver can record this decision.";
+      render(root);
+      return;
+    }
+    if (decision === APPROVAL_STATUS.returned && !comment) {
+      var commentInput = root.querySelector("[data-approval-comment]");
+      if (commentInput) {
+        commentInput.setCustomValidity("Add a revision reason before returning this schedule.");
+        commentInput.reportValidity();
+        commentInput.setCustomValidity("");
+      }
+      return;
+    }
+    if (decision !== APPROVAL_STATUS.approved && decision !== APPROVAL_STATUS.returned) return;
+
+    var user = state.currentUser || configuredCurrentUser(root);
+    var now = new Date().toISOString();
+    var payload = JSON.parse(JSON.stringify(item));
+    payload.approvalStatus = decision;
+    payload.approvalComment = comment;
+    payload.approvalUpdatedAt = now;
+    payload.approvedAt = decision === APPROVAL_STATUS.approved ? now : "";
+    payload.approverName = user.name || "";
+    payload.approverEmail = user.email || "";
+    payload.notificationStatus = "Decision recorded; submitter email queued";
+    payload.updatedAt = now;
+    state.approvalSaving = true;
+
+    var mode = root.getAttribute("data-wt-backend-mode") || "local";
+    var request = mode === "sharepoint-list" && payload.sharePointItemId
+      ? updateSharePointListItem(root, payload.sharePointItemId, payload)
+      : Promise.resolve();
+    request.then(function () {
+      updateLocalSubmission(payload);
+      state.approvalSaving = false;
+      state.reviewingSubmissionId = "";
+      state.managerApprovalFilter = decision === APPROVAL_STATUS.approved ? "approved" : "returned";
+      state.actionMessage = decision === APPROVAL_STATUS.approved
+        ? "Schedule approved. It is now visible in the dashboard and calendars."
+        : "Schedule returned for revision. The submitter notification is queued.";
+      render(root);
+    }).catch(function (error) {
+      state.approvalSaving = false;
+      state.actionMessage = "Approval update failed: " + error.message;
+      render(root);
+    });
   }
 
   function deleteSchedule(root, id) {
@@ -4799,7 +5188,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var listTitle = root.getAttribute("data-wt-sharepoint-list-title") || "WT_Submissions";
     var endpoint = "";
     try {
-      endpoint = sharePointListItemsEndpoint(root, listTitle) + "?$select=Id,Title,RowKey,PayloadJson,SubmittedAt,Modified,IsActive&$filter=IsActive eq 1&$orderby=Modified desc&$top=5000";
+      endpoint = sharePointListItemsEndpoint(root, listTitle) + "?$select=Id,Title,RowKey,PayloadJson,SubmittedAt,Modified,IsActive,ApprovalStatus,ApprovalSubmittedAt,ApproverEmails,ApprovalComment,ApprovalUpdatedAt,ApprovedAt,ApproverName,ApproverEmail,SubmittedByName,SubmittedByEmail,NotificationStatus,ApprovalRevision&$filter=IsActive eq 1&$orderby=Modified desc&$top=5000";
     } catch (error) {
       return Promise.reject(error);
     }
@@ -4831,6 +5220,18 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     payload.submittedAt = payload.submittedAt || item.SubmittedAt || item.Created || "";
     payload.updatedAt = item.Modified || payload.updatedAt || payload.submittedAt || "";
     payload.source = payload.source || "wt-system-ui";
+    payload.approvalStatus = item.ApprovalStatus || payload.approvalStatus || "";
+    payload.approvalSubmittedAt = item.ApprovalSubmittedAt || payload.approvalSubmittedAt || payload.submittedAt || "";
+    payload.approverEmails = item.ApproverEmails || payload.approverEmails || "";
+    payload.approvalComment = item.ApprovalComment || payload.approvalComment || "";
+    payload.approvalUpdatedAt = item.ApprovalUpdatedAt || payload.approvalUpdatedAt || "";
+    payload.approvedAt = item.ApprovedAt || payload.approvedAt || "";
+    payload.approverName = item.ApproverName || payload.approverName || "";
+    payload.approverEmail = item.ApproverEmail || payload.approverEmail || "";
+    payload.submittedByName = item.SubmittedByName || payload.submittedByName || "";
+    payload.submittedByEmail = item.SubmittedByEmail || payload.submittedByEmail || "";
+    payload.notificationStatus = item.NotificationStatus || payload.notificationStatus || "";
+    payload.approvalRevision = Number(item.ApprovalRevision || payload.approvalRevision || 0);
     return payload.targetDate ? payload : null;
   }
 
@@ -4857,13 +5258,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
           "Content-Type": "application/json;odata=nometadata",
           "X-RequestDigest": digest
         },
-        body: JSON.stringify({
-          Title: payload.projectName || "WT schedule",
-          RowKey: payload.rowKey,
-          PayloadJson: JSON.stringify(payload),
-          SubmittedAt: payload.submittedAt,
-          IsActive: true
-        })
+        body: JSON.stringify(sharePointSubmissionBody(payload))
       }).then(function (response) {
         if (!response.ok) throw new Error("HTTP " + response.status);
         return response.json();
@@ -4885,12 +5280,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
           "X-HTTP-Method": "MERGE",
           "IF-MATCH": "*"
         },
-        body: JSON.stringify({
-          Title: payload.projectName || "WT schedule",
-          PayloadJson: JSON.stringify(payload),
-          SubmittedAt: payload.submittedAt,
-          IsActive: true
-        })
+        body: JSON.stringify(sharePointSubmissionBody(payload))
       }).then(function (response) {
         if (!response.ok) throw new Error("HTTP " + response.status);
       });
@@ -4916,6 +5306,28 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         if (!response.ok) throw new Error("HTTP " + response.status);
       });
     });
+  }
+
+  function sharePointSubmissionBody(payload) {
+    return {
+      Title: payload.projectName || "WT schedule",
+      RowKey: payload.rowKey,
+      PayloadJson: JSON.stringify(payload),
+      SubmittedAt: payload.submittedAt || null,
+      IsActive: true,
+      ApprovalStatus: approvalStatus(payload),
+      ApprovalSubmittedAt: payload.approvalSubmittedAt || payload.submittedAt || null,
+      ApproverEmails: payload.approverEmails || "",
+      ApprovalComment: payload.approvalComment || "",
+      ApprovalUpdatedAt: payload.approvalUpdatedAt || null,
+      ApprovedAt: payload.approvedAt || null,
+      ApproverName: payload.approverName || "",
+      ApproverEmail: payload.approverEmail || "",
+      SubmittedByName: payload.submittedByName || "",
+      SubmittedByEmail: payload.submittedByEmail || "",
+      NotificationStatus: payload.notificationStatus || "",
+      ApprovalRevision: Number(payload.approvalRevision || 0)
+    };
   }
 
   function sharePointItemId(item) {
@@ -5058,6 +5470,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     });
     loadLocalSubmissions().forEach(function (item, index) {
       if (!item || !item.targetDate) return;
+      if (!isApprovedSubmission(item)) return;
       var workOrder = isWtWorkOrderSubmission(item);
       if (workOrder && !isAllowedWtWorkOrderSubmission(item)) return;
       var parentId = submissionId(item, index);
@@ -5117,6 +5530,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function loadLocalSubmissions() {
     if (state.backendMode === "sharepoint-list") return dedupeSubmissions(state.localSubmissions);
     return dedupeSubmissions(readStoredSubmissions().concat(state.localSubmissions));
+  }
+
+  function isApprovedSubmission(item) {
+    return approvalStatus(item) === APPROVAL_STATUS.approved;
   }
 
   function findLocalSubmissionById(id) {
