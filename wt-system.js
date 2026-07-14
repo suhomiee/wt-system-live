@@ -948,7 +948,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderApp(root) {
     if (root) root.classList.toggle("is-sidebar-collapsed", state.sidebarCollapsed);
     return [
-      state.section === "dashboard" && !state.sidebarCollapsed ? "" : renderSidebarToggle(),
+      renderSidebarToggle(),
       '<div class="wt-app is-' + text(state.section) + ' is-' + text(state.view) + (state.sidebarCollapsed ? " is-sidebar-collapsed" : "") + '">',
       renderSidebar(root),
       renderShell(root),
@@ -969,7 +969,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderSidebar(root) {
-    if (state.section === "dashboard") return renderCommandSidebar();
     return [
       '<aside class="wt-sidebar" aria-label="WT System navigation"' + (state.sidebarCollapsed ? ' aria-hidden="true" inert' : "") + '>',
       '<div class="wt-brand">',
@@ -1989,15 +1988,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-command-today-gap">' + renderCommandTodayMarker(state.dashboardYear || fromIso(state.selectedDate).getFullYear()) + '</div>',
       renderCommandMasterPlan(),
       '<div class="wt-command-today-gap is-master-gap">' + renderCommandTodayMarker(fromIso(state.selectedDate).getFullYear()) + '</div>',
-      renderCommandMonthPanel(),
+      state.dashboardRunningView ? renderCommandTwoMonthPanel() : renderCommandMonthPanel(),
       '</section>',
       renderDashboardProjectDrawer()
     ].join("");
   }
 
   function renderCommandDashboardHeader() {
-    var programOptions = ["All"].concat(availableSeasons().filter(function (season) { return season !== "All"; }));
-    var dataDate = fromIso(dashboardGanttTodayIso());
     return [
       '<header class="wt-command-topbar">',
       '<div class="wt-command-page-title"><h1>Schedule Dashboard</h1><span>PGP Command Board</span></div>',
@@ -2006,16 +2003,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<button type="button" class="' + (state.dashboardMode === "macro" ? "active" : "") + '" data-dashboard-mode="macro">Macro Plan</button>',
       '<button type="button" class="' + (state.dashboardMode === "master" ? "active" : "") + '" data-dashboard-mode="master">Master Plan</button>',
       '</div>',
-      '<label class="wt-command-program-select"><span class="sr-only">Program</span><select data-dashboard-program-filter>',
-      programOptions.map(function (season) {
-        var label = season === "All" ? "All Programs" : season;
-        return '<option value="' + text(season) + '" ' + (state.season === season ? "selected" : "") + '>' + text(label) + '</option>';
-      }).join(""),
-      '</select></label>',
-      '<button type="button" class="wt-command-action ' + (state.deadlineHighlight ? "active" : "") + '" data-deadline-toggle aria-pressed="' + text(state.deadlineHighlight ? "true" : "false") + '">' + icon("filter") + '<span>Filters</span></button>',
-      '<button type="button" class="wt-command-icon-action" data-section="calendar" aria-label="Open calendar" title="Open calendar">' + icon("calendar") + '</button>',
-      '<span class="wt-command-data-date">Data as of: ' + text(MONTH_NAMES[dataDate.getMonth()] + " " + dataDate.getDate() + ", " + dataDate.getFullYear()) + '</span>',
-      '<button type="button" class="wt-command-icon-action" data-dashboard-refresh aria-label="Refresh schedules" title="Refresh schedules">' + icon("refresh") + '</button>',
+      '<div class="wt-dashboard-panel-actions wt-command-restored-actions">',
+      '<button type="button" data-dashboard-month-shift="-1" aria-label="Previous month" title="Previous month">' + icon("chevron-left") + '</button>',
+      '<button type="button" data-dashboard-today>Today</button>',
+      '<button type="button" data-dashboard-month-shift="1" aria-label="Next month" title="Next month">' + icon("chevron-right") + '</button>',
+      '<button type="button" class="wt-dashboard-running-toggle ' + (state.dashboardRunningView ? "active" : "") + '" data-dashboard-running-toggle aria-pressed="' + text(state.dashboardRunningView ? "true" : "false") + '" title="Toggle 2-month schedule">' + icon("calendar") + '<span>2M Schedule</span></button>',
+      renderWorkOrderToggle(),
+      '</div>',
       '</div>',
       '</header>'
     ].join("");
@@ -2054,7 +2048,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var launchVisible = row.launch.slice(0, 4) === String(year);
     return [
       '<article class="wt-command-season-row wt-season-' + text(row.tone) + '">',
-      '<button type="button" class="wt-command-season-label" data-dashboard-month-date="' + text(row.intro) + '"><b>' + text(row.id) + '</b><small>' + text(row.name) + '</small></button>',
+      '<button type="button" class="wt-command-season-label" data-dashboard-month-date="' + text(row.intro) + '"><b>' + text(row.id) + '</b></button>',
       '<div class="wt-command-season-track">',
       '<span class="wt-command-season-span" style="--start:' + text(start.toFixed(3)) + '%;--end:' + text(end.toFixed(3)) + '%"></span>',
       '<button type="button" class="wt-command-season-point is-intro" data-dashboard-month-date="' + text(row.intro) + '" style="--point:' + text(start.toFixed(3)) + '%"><span><b>Intro</b><small>' + text(commandPointDate(row.intro)) + '</small></span><i></i></button>',
@@ -2205,6 +2199,19 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         return '<button type="button" class="wt-command-month-cell ' + text(classes) + '" data-dashboard-month-date="' + text(date) + '" style="grid-column:' + text(column) + ';grid-row:' + text(row) + '"><span>' + text(fromIso(date).getDate()) + '</span>' + (date === today ? '<small>TODAY</small>' : "") + '</button>';
       }).join(""),
       events.map(renderCommandMonthEvent).join(""),
+      '</div>',
+      '</section>'
+    ].join("");
+  }
+
+  function renderCommandTwoMonthPanel() {
+    var selected = fromIso(state.selectedDate);
+    var nextMonth = addMonths(selected, 1);
+    return [
+      '<section class="wt-command-panel wt-command-two-month" aria-label="Two-month schedule">',
+      '<header><h2>2M SCHEDULE · ' + text(MONTHS[selected.getMonth()].toUpperCase() + " – " + MONTHS[nextMonth.getMonth()].toUpperCase() + " " + nextMonth.getFullYear()) + '</h2></header>',
+      '<div class="wt-command-two-month-body">',
+      renderDashboardRunningPanel({ hideHeader: true }),
       '</div>',
       '</section>'
     ].join("");

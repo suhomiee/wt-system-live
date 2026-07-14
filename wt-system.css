@@ -18,7 +18,7 @@
 }
 
 .wt-app.is-dashboard {
-  --wt-sidebar-width: 244px;
+  --wt-sidebar-width: clamp(220px, 18vw, 256px);
   grid-template-columns: var(--wt-sidebar-width) minmax(0, 1fr);
   background: #f7f8f8;
   font-family: "Inter WT", Inter, "Arimo WT", Arial, sans-serif;
@@ -948,7 +948,7 @@
 }
 
 @media (max-width: 1450px) {
-  .wt-app.is-dashboard { --wt-sidebar-width: 232px; }
+  .wt-app.is-dashboard { --wt-sidebar-width: clamp(220px, 18vw, 256px); }
   .wt-command-sidebar { width: 232px; max-width: 232px; }
   .wt-command-top-actions { gap: 7px; }
   .wt-command-data-date { display: none; }
@@ -9974,16 +9974,68 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   }
 
   .wt-command-month-event {
-    height: 18px;
-    margin: calc(14px + (var(--lane) * 20px)) 7px 0;
+    height: 14px;
+    margin: calc(9px + (var(--lane) * 15px)) 7px 0;
     padding-inline: 6px;
   }
 
   .wt-command-month-event b {
-    font-size: 8px;
+    font-size: 7.5px;
   }
 
   .wt-command-month-event small {
     font-size: 7px;
   }
+}
+
+/* Restore the established WT navigation and dashboard controls. */
+#wt-system-root .wt-app.is-dashboard .wt-sidebar:not(.wt-command-sidebar),
+.wt-root .wt-app.is-dashboard .wt-sidebar:not(.wt-command-sidebar) {
+  font-family: var(--font-text);
+}
+
+.wt-command-restored-actions {
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+
+.wt-command-restored-actions button {
+  flex: 0 0 auto;
+}
+
+.wt-command-restored-actions > button:nth-child(2) {
+  min-width: 54px;
+}
+
+.wt-command-two-month {
+  display: grid;
+  grid-template-rows: 32px minmax(0, 1fr);
+}
+
+.wt-command-two-month > header {
+  display: flex;
+  align-items: center;
+  padding: 0 13px;
+  border-bottom: 1px solid #cbd1d4;
+}
+
+.wt-command-two-month > header h2 {
+  font-size: 13px;
+}
+
+.wt-command-two-month-body {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.wt-command-two-month-body .wt-dashboard-running-panel {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 7px 9px 9px;
+}
+
+.wt-command-two-month-body .wt-dashboard-running-board {
+  height: 100%;
 }
