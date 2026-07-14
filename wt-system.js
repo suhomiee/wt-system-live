@@ -323,6 +323,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     sidebarCollapsed: false,
     dashboardRunningView: false,
     dashboardYear: 0,
+    dashboardMacroStart: "",
     dashboardMasterZoom: 3,
     actionMessage: "",
     season: "All",
@@ -365,6 +366,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var dashboardWeekShiftButton = event.target.closest("[data-dashboard-week-shift]");
       var dashboardTodayButton = event.target.closest("[data-dashboard-today]");
       var dashboardRunningToggle = event.target.closest("[data-dashboard-running-toggle]");
+      var dashboardMacroShiftButton = event.target.closest("[data-command-macro-shift]");
       var dashboardYearShiftButton = event.target.closest("[data-dashboard-year-shift]");
       var dashboardMasterZoomButton = event.target.closest("[data-dashboard-master-zoom]");
       var dashboardMasterShiftButton = event.target.closest("[data-dashboard-master-shift]");
@@ -548,6 +550,16 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         return;
       }
 
+      if (dashboardMacroShiftButton && root.contains(dashboardMacroShiftButton)) {
+        event.preventDefault();
+        var macroShift = Number(dashboardMacroShiftButton.getAttribute("data-command-macro-shift")) || 0;
+        state.dashboardMacroStart = toIso(addMonths(fromIso(commandMacroRange().start), macroShift));
+        state.activeProjectKey = "";
+        state.actionMessage = "";
+        render(root);
+        return;
+      }
+
       if (dashboardYearShiftButton && root.contains(dashboardYearShiftButton)) {
         event.preventDefault();
         state.dashboardYear += Number(dashboardYearShiftButton.getAttribute("data-dashboard-year-shift")) || 0;
@@ -675,6 +687,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         event.preventDefault();
         var dashboardTodayIso = currentDateIso(root);
         state.selectedDate = dashboardTodayIso;
+        state.dashboardMacroStart = dashboardTodayIso.slice(0, 4) + "-01-01";
         state.weekStart = periodAnchor(dashboardTodayIso, state.period);
         state.pendingDeleteEventId = "";
         state.activeEventId = "";
@@ -856,6 +869,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     state.selectedDate = initialDate;
     state.weekStart = periodAnchor(initialDate, state.period);
     state.dashboardYear = fromIso(initialDate).getFullYear();
+    state.dashboardMacroStart = initialDate.slice(0, 4) + "-01-01";
   }
 
   function configureBackendMode(root) {
@@ -1983,9 +1997,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<section class="wt-dashboard wt-command-dashboard">',
       renderCommandDashboardHeader(),
       renderCommandMacroPlan(),
-      '<div class="wt-command-today-gap">' + renderCommandTodayMarker(state.dashboardYear || fromIso(state.selectedDate).getFullYear()) + '</div>',
+      '<div class="wt-command-today-gap">' + renderCommandRangeTodayMarker(commandMacroRange()) + '</div>',
       renderCommandMasterPlan(),
-      '<div class="wt-command-today-gap is-master-gap">' + renderCommandTodayMarker(fromIso(state.selectedDate).getFullYear()) + '</div>',
+      '<div class="wt-command-today-gap is-master-gap">' + renderCommandRangeTodayMarker(dashboardMasterRange()) + '</div>',
       state.dashboardRunningView ? renderCommandTwoMonthPanel() : renderCommandMonthPanel(),
       '</section>',
       renderDashboardProjectDrawer()
@@ -2010,22 +2024,39 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderCommandMacroPlan() {
-    var year = state.dashboardYear || fromIso(state.selectedDate).getFullYear();
-    var rows = commandSeasonRows(year);
+    var range = commandMacroRange();
+    var units = monthUnits(range);
+    var rows = commandSeasonRows(range);
+    var rangeLabel = commandMacroRangeLabel(range);
     return [
-      '<section class="wt-command-panel wt-command-macro" aria-label="Macro plan calendar year ' + text(year) + '">',
-      '<header class="wt-command-panel-head"><h2>MACRO PLAN</h2><b>CALENDAR YEAR ' + text(year) + '</b></header>',
-      '<div class="wt-command-year-months"><span></span>' + MONTHS.map(function (month) { return '<b>' + text(month.toUpperCase()) + '</b>'; }).join("") + '</div>',
+      '<section class="wt-command-panel wt-command-macro" aria-label="Macro plan ' + text(rangeLabel) + '" style="--wt-command-month-count:' + text(units.length) + '">',
+      '<header class="wt-command-panel-head"><h2>MACRO PLAN</h2><nav class="wt-command-macro-nav" aria-label="Macro plan date range"><button type="button" data-command-macro-shift="-12" aria-label="Show previous 17 months" title="Previous year">' + icon("chevron-left") + '</button><b>' + text(rangeLabel) + '</b><button type="button" data-command-macro-shift="12" aria-label="Show next 17 months" title="Next year">' + icon("chevron-right") + '</button></nav></header>',
+      '<div class="wt-command-year-months"><span></span>' + units.map(function (unit, index) {
+        var showYear = index === 0 || fromIso(unit.start).getMonth() === 0;
+        return '<b><span>' + text(unit.label.toUpperCase()) + '</span>' + (showYear ? '<small>' + text(String(fromIso(unit.start).getFullYear()).slice(-2)) + '</small>' : '') + '</b>';
+      }).join("") + '</div>',
       '<div class="wt-command-season-grid" style="--wt-command-season-count:' + text(Math.max(1, rows.length)) + '">',
-      rows.length ? rows.map(function (row) { return renderCommandSeasonRow(row, year); }).join("") : '<p class="wt-command-season-empty">No Revision DDD → (LTWT) X-FTY flow in ' + text(year) + '.</p>',
-      renderCommandYearTodayLine(year),
+      rows.length ? rows.map(function (row) { return renderCommandSeasonRow(row, range); }).join("") : '<p class="wt-command-season-empty">No Revision DDD → (LTWT) X-FTY flow in ' + text(rangeLabel) + '.</p>',
+      renderCommandRangeTodayLine(range),
       '</div>',
       '</section>'
     ].join("");
   }
 
-  function commandSeasonRows(year) {
-    var range = { start: year + "-01-01", end: year + "-12-31" };
+  function commandMacroRange() {
+    var fallbackYear = state.dashboardYear || fromIso(state.selectedDate).getFullYear();
+    var source = isIsoDate(state.dashboardMacroStart) ? fromIso(state.dashboardMacroStart) : new Date(fallbackYear, 0, 1);
+    var start = new Date(source.getFullYear(), source.getMonth(), 1);
+    return { start: toIso(start), end: toIso(addDays(addMonths(start, 17), -1)) };
+  }
+
+  function commandMacroRangeLabel(range) {
+    var start = fromIso(range.start);
+    var end = fromIso(range.end);
+    return MONTHS[start.getMonth()].toUpperCase() + " " + start.getFullYear() + " – " + MONTHS[end.getMonth()].toUpperCase() + " " + end.getFullYear();
+  }
+
+  function commandSeasonRows(range) {
     var tones = ["green", "teal", "orange", "coral", "purple"];
     var seasons = GAME_PLAN_SEASONS.filter(function (season) {
       return dashboardSeasonPlanFlows(season, range).length > 0;
@@ -2039,6 +2070,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var flow = flows[flows.length - 1];
       var actualStart = toIso(addDays(fromIso(flow.start), 5 + (index * 2)));
       var actualEnd = toIso(addDays(fromIso(flow.end), index % 2 ? 4 : -2));
+      if (actualStart > range.end) actualStart = range.end;
       if (actualEnd <= actualStart) actualEnd = toIso(addDays(fromIso(actualStart), 14));
       if (actualEnd > range.end) actualEnd = range.end;
       return {
@@ -2056,24 +2088,24 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     });
   }
 
-  function renderCommandSeasonRow(row, year) {
-    var start = Math.max(0, commandYearPercent(row.planStart, year));
-    var end = Math.min(100, commandYearPercent(row.planEnd, year));
-    var actualStart = Math.max(0, commandYearPercent(row.actualStart, year));
-    var actualEnd = Math.min(100, commandYearPercent(row.actualEnd, year));
+  function renderCommandSeasonRow(row, range) {
+    var start = commandRangePercent(row.planStart, range, false);
+    var end = commandRangePercent(row.planEnd, range, true);
+    var actualStart = commandRangePercent(row.actualStart, range, false);
+    var actualEnd = commandRangePercent(row.actualEnd, range, true);
     var actualModel = row.actual && row.actual.modelName || "WT Worksheet model";
     var actualModelLabel = commandWorksheetModelLabel(actualModel);
     var planTitle = row.id + " " + row.gate + " Revision DDD " + formatDateSlash(row.revision) + " to (LTWT) X-FTY " + formatDateSlash(row.xfty);
     var actualTitle = "WT Worksheet example · " + actualModel + " · " + formatDateSlash(row.actualStart) + " to " + formatDateSlash(row.actualEnd);
     return [
       '<article class="wt-command-season-row wt-season-' + text(row.tone) + '">',
-      '<button type="button" class="wt-command-season-label" data-dashboard-month-date="' + text(row.planStart) + '" title="' + text(planTitle) + '"><b>' + text(row.id) + '</b><small>' + text(row.gate + " PLAN") + '</small></button>',
+      '<button type="button" class="wt-command-season-label" data-dashboard-month-date="' + text(row.planStart) + '" title="' + text(planTitle) + '"><b>' + text(row.id) + '</b></button>',
       '<div class="wt-command-season-track">',
       '<button type="button" class="wt-command-season-plan-bar" data-dashboard-month-date="' + text(row.planStart) + '" style="--start:' + text(start.toFixed(3)) + '%;--end:' + text(end.toFixed(3)) + '%" title="' + text(planTitle) + '" aria-label="' + text(planTitle) + '">',
-      '<span><b>REV DDD</b><small>' + text(formatDateSlash(row.revision)) + '</small></span><i>→</i><span><b>(LTWT) X-FTY</b><small>' + text(formatDateSlash(row.xfty)) + '</small></span>',
+      '<strong class="wt-command-bar-gate">' + text(row.gate) + '</strong><span><b>REV DDD</b><small>' + text(formatDateSlash(row.revision)) + '</small></span><i>→</i><span><b>(LTWT) X-FTY</b><small>' + text(formatDateSlash(row.xfty)) + '</small></span>',
       '</button>',
       '<button type="button" class="wt-command-season-actual-bar" data-section="tcms-running" style="--start:' + text(actualStart.toFixed(3)) + '%;--end:' + text(actualEnd.toFixed(3)) + '%" title="' + text(actualTitle) + '" aria-label="' + text(actualTitle) + '">',
-      '<b>ACTUAL</b><span>' + text(actualModelLabel) + '</span>',
+      '<strong class="wt-command-bar-gate">' + text(row.gate) + '</strong><b>ACTUAL</b><span>' + text(actualModelLabel) + '</span>',
       '</button>',
       '</div>',
       '</article>'
@@ -2116,27 +2148,28 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return MONTHS[date.getMonth()] + " " + date.getDate();
   }
 
-  function commandYearPercent(dateIso, year) {
-    var start = year + "-01-01";
-    var end = year + "-12-31";
-    var total = daysBetween(start, end) + 1;
-    return (daysBetween(start, dateIso) / total) * 100;
+  function commandRangePercent(dateIso, range, afterDate) {
+    var total = daysBetween(range.start, range.end) + 1;
+    var day = daysBetween(range.start, dateIso) + (afterDate ? 1 : 0);
+    return Math.max(0, Math.min(100, (day / total) * 100));
   }
 
-  function renderCommandYearTodayLine(year) {
+  function commandRangePointPercent(dateIso, range) {
+    var total = daysBetween(range.start, range.end) + 1;
+    var day = Math.max(0, Math.min(total - 1, daysBetween(range.start, dateIso)));
+    return ((day + .5) / total) * 100;
+  }
+
+  function renderCommandRangeTodayLine(range) {
     var today = dashboardGanttTodayIso();
-    if (Number(today.slice(0, 4)) !== year) return "";
-    return '<span class="wt-command-year-today" style="--point:' + text(commandTodayVisualPercent(today, year).toFixed(3)) + '%"></span>';
+    if (today < range.start || today > range.end) return "";
+    return '<span class="wt-command-year-today" style="--point:' + text(commandRangePointPercent(today, range).toFixed(3)) + '%"></span>';
   }
 
-  function renderCommandTodayMarker(year) {
+  function renderCommandRangeTodayMarker(range) {
     var today = dashboardGanttTodayIso();
-    if (Number(today.slice(0, 4)) !== year) return "";
-    return '<span style="--point:' + text(commandTodayVisualPercent(today, year).toFixed(3)) + '%">TODAY</span>';
-  }
-
-  function commandTodayVisualPercent(today, year) {
-    return Math.max(0, Math.min(100, commandYearPercent(today, year) - 2.45));
+    if (today < range.start || today > range.end) return "";
+    return '<span style="--point:' + text(commandRangePointPercent(today, range).toFixed(3)) + '%">TODAY</span>';
   }
 
   function renderCommandMasterPlan() {
@@ -2145,7 +2178,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var quarter = Math.floor(fromIso(range.start).getMonth() / 3) + 1;
     var year = fromIso(range.start).getFullYear();
     var monthTitle = MONTHS.slice(fromIso(range.start).getMonth(), fromIso(range.end).getMonth() + 1).map(function (month) { return month.toUpperCase(); }).join(" – ");
-    var milestones = commandMasterMilestones(weeks);
+    var milestones = commandMasterMilestones(weeks, range);
     return [
       '<section class="wt-command-panel wt-command-master" aria-label="Master plan quarter ' + text(quarter) + '">',
       '<header class="wt-command-master-head">',
@@ -2163,8 +2196,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-command-master-label is-milestone">KEY MILESTONES</div>',
       '<div class="wt-command-milestone-track" style="grid-column:2 / span ' + text(weeks.length) + ';--weeks:' + text(weeks.length) + '">',
       weeks.map(function () { return '<i class="wt-command-master-rule"></i>'; }).join(""),
-      milestones.map(renderCommandMasterMilestone).join(""),
-      renderCommandActualMilestones(range, weeks),
+      milestones.map(function (item) { return renderCommandMasterMilestone(item, range); }).join(""),
+      renderCommandActualMilestones(range),
       '</div>',
       '</div>',
       '</section>'
@@ -2197,39 +2230,50 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     ].join("");
   }
 
-  function commandMasterMilestones(weeks) {
+  function commandMasterMilestones(weeks, range) {
     var count = weeks.length;
-    function dateAt(index) { return weeks[Math.max(0, Math.min(count - 1, index))]; }
+    function dateAt(index) {
+      var date = weeks[Math.max(0, Math.min(count - 1, index))];
+      if (date < range.start) return range.start;
+      if (date > range.end) return range.end;
+      return date;
+    }
     return [
-      { label: "Tooling", date: dateAt(0), start: 1, span: 1, tone: "gold", visualLeft: .8, visualWidth: 4.8 },
-      { label: "Product Freeze", date: dateAt(2), start: 3, span: 1, tone: "teal", visualLeft: 11.4, visualWidth: 7.0 },
-      { label: "BOM DDD", date: dateAt(4), start: 5, span: 1, tone: "teal", visualLeft: 24.9, visualWidth: 5.4 },
-      { label: "Revision DDD", date: dateAt(6), start: 7, span: 1, tone: "blue", visualLeft: 38.5, visualWidth: 6.8 },
-      { label: "Revision DDD to LTWT X-FTY", date: dateAt(6), endDate: dateAt(count - 2), start: 8, span: Math.max(2, count - 9), tone: "blue", flow: true, visualLeft: 48.4, visualWidth: 35.5 },
-      { label: "LTWT X-FTY", date: dateAt(count - 2), start: count - 1, span: 1, tone: "red", visualLeft: 84.8, visualWidth: 5.9 },
-      { label: "Handoff", date: dateAt(count - 1), start: count, span: 1, tone: "red-outline", visualLeft: 93.0, visualWidth: 4.9 }
+      { label: "Tooling", date: dateAt(0), tone: "gold" },
+      { label: "Product Freeze", date: dateAt(2), tone: "teal" },
+      { label: "BOM DDD", date: dateAt(4), tone: "teal" },
+      { label: "Revision DDD", date: dateAt(6), tone: "blue", labelBefore: true },
+      { label: "Revision DDD to LTWT X-FTY", date: dateAt(6), endDate: dateAt(count - 2), tone: "blue", flow: true },
+      { label: "LTWT X-FTY", date: dateAt(count - 2), tone: "red" },
+      { label: "Handoff", date: dateAt(count - 1), tone: "red-outline", labelBefore: true }
     ];
   }
 
-  function renderCommandMasterMilestone(item) {
+  function renderCommandMasterMilestone(item, range) {
     var dateLabel = item.flow ? commandPointDate(item.date) + " – " + commandPointDate(item.endDate) : commandPointDate(item.date);
+    var point = commandRangePointPercent(item.date, range);
+    var flowPosition = item.flow ? dashboardRangePosition(item.date, item.endDate, range) : null;
+    var labelBefore = !item.flow && (item.labelBefore || point > 88);
+    var style = item.flow
+      ? '--visual-left:' + text(flowPosition.left) + '%;--visual-width:' + text(flowPosition.width) + '%'
+      : '--visual-left:' + text(point.toFixed(3)) + '%';
     return [
-      '<button type="button" class="wt-command-master-event is-' + text(item.tone) + (item.flow ? " is-flow" : "") + '" data-dashboard-month-date="' + text(item.date) + '" style="--column:' + text(item.start) + ';--span:' + text(item.span) + ';--visual-left:' + text(item.visualLeft) + '%;--visual-width:' + text(item.visualWidth) + '%">',
+      '<button type="button" class="wt-command-master-event is-' + text(item.tone) + (item.flow ? " is-flow" : " is-point") + (labelBefore ? " is-label-before" : "") + '" data-dashboard-month-date="' + text(item.date) + '" style="' + style + '" title="' + text(item.label + " · " + dateLabel) + '">',
       '<b>' + text(item.label) + '</b><small>' + text(dateLabel) + '</small>',
       '</button>'
     ].join("");
   }
 
-  function renderCommandActualMilestones(range, weeks) {
+  function renderCommandActualMilestones(range) {
     var projects = dashboardAllActualProjects().filter(function (project) {
       return project.events.some(function (event) { return eventOverlapsRange(event, range.start, range.end); });
     }).slice(0, 2);
     if (!projects.length) return "";
     return projects.map(function (project, rowIndex) {
       var firstEvent = project.events.filter(function (event) { return eventOverlapsRange(event, range.start, range.end); }).sort(function (a, b) { return a.date.localeCompare(b.date); })[0];
-      var weekIndex = weeks.findIndex(function (week) { return firstEvent.date >= week && firstEvent.date <= toIso(addDays(fromIso(week), 6)); });
-      weekIndex = Math.max(0, weekIndex);
-      return '<button type="button" class="wt-command-actual-event" data-dashboard-actual-project="' + text(project.key) + '" style="--column:' + text(weekIndex + 1) + ';--actual-row:' + text(rowIndex) + '"><b>' + text(shortTitle(project.modelName || project.projectName || "Actual", 16)) + '</b><small>' + text(formatDateSlash(firstEvent.date)) + '</small></button>';
+      var point = commandRangePointPercent(firstEvent.date, range);
+      var labelBefore = point > 88 ? " is-label-before" : "";
+      return '<button type="button" class="wt-command-actual-event' + labelBefore + '" data-dashboard-actual-project="' + text(project.key) + '" style="--visual-left:' + text(point.toFixed(3)) + '%;--actual-row:' + text(rowIndex) + '" title="' + text((project.modelName || project.projectName || "Actual") + " · " + formatDateSlash(firstEvent.date)) + '"><b>' + text(shortTitle(project.modelName || project.projectName || "Actual", 16)) + '</b><small>' + text(formatDateSlash(firstEvent.date)) + '</small></button>';
     }).join("");
   }
 
