@@ -933,7 +933,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     root.style.setProperty("--wt-fit-scale", "1");
     root.style.setProperty("--wt-fit-width", window.innerWidth + "px");
     root.style.setProperty("--wt-fit-height", window.innerHeight + "px");
-    root.style.setProperty("--wt-sidebar-edge", "clamp(220px, 18vw, 256px)");
+    root.style.setProperty("--wt-sidebar-edge", "clamp(208px, 16.5vw, 232px)");
   }
 
   function renderApp(root) {

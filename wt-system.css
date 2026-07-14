@@ -18,7 +18,7 @@
 }
 
 .wt-app.is-dashboard {
-  --wt-sidebar-width: clamp(220px, 18vw, 256px);
+  --wt-sidebar-width: clamp(208px, 16.5vw, 232px);
   grid-template-columns: var(--wt-sidebar-width) minmax(0, 1fr);
   background: #f7f8f8;
   font-family: "Inter WT", Inter, "Arimo WT", Arial, sans-serif;
@@ -922,7 +922,7 @@
 }
 
 @media (max-width: 1450px) {
-  .wt-app.is-dashboard { --wt-sidebar-width: clamp(220px, 18vw, 256px); }
+  .wt-app.is-dashboard { --wt-sidebar-width: clamp(208px, 16.5vw, 232px); }
   .wt-command-sidebar { width: 232px; max-width: 232px; }
   .wt-command-top-actions { gap: 7px; }
   .wt-command-data-date { display: none; }
@@ -5349,7 +5349,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   position: relative;
   grid-template-rows: 49px auto minmax(0, 1fr) auto;
   gap: 0;
-  padding: 0 10px;
+  padding: 0 8px;
   background: var(--flow-navy);
   color: var(--flow-sidebar-ink);
   border-right: 1px solid var(--flow-sidebar-line);
@@ -5364,49 +5364,59 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-brand b {
   font-family: var(--font-text);
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 400;
   line-height: 1.2;
   letter-spacing: 0;
 }
 
 .wt-sidebar-create {
-  margin-top: 16px;
+  min-height: 42px;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 8px;
+  margin-top: 13px;
+  padding: 0 10px;
   border-color: rgba(255,255,255,.36);
   background: #005062;
+  font-size: 14px;
+}
+
+.wt-sidebar-create .wt-icon {
+  width: 18px;
+  height: 18px;
 }
 
 .wt-primary-nav {
-  gap: 13px;
+  gap: 10px;
   align-content: start;
   min-height: 0;
-  padding: 16px 0 12px;
+  padding: 13px 0 10px;
   border: 0;
   overflow: auto;
   scrollbar-width: thin;
 }
 
 .wt-primary-nav .wt-nav-group {
-  gap: 5px;
+  gap: 3px;
 }
 
 .wt-primary-nav .wt-nav-group-title {
-  padding: 0 12px 1px;
+  padding: 0 10px 1px;
   color: rgba(255,255,255,.56);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: .1em;
 }
 
 .wt-primary-nav button,
 .wt-primary-nav a {
-  height: 40px;
-  grid-template-columns: 24px 1fr;
-  gap: 11px;
-  padding: 0 12px;
+  height: 36px;
+  grid-template-columns: 21px 1fr;
+  gap: 9px;
+  padding: 0 10px;
   border-radius: 6px;
   color: var(--flow-sidebar-muted);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
 }
 
@@ -5422,8 +5432,8 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-primary-nav button .wt-icon,
 .wt-primary-nav a .wt-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   color: currentColor;
   opacity: .95;
 }
@@ -5443,7 +5453,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-sidebar-bottom-nav {
   align-self: stretch;
   align-content: end;
-  padding: 10px 0 14px;
+  padding: 8px 0 10px;
   border-top: 1px solid var(--flow-sidebar-line);
   border-bottom: 0;
   overflow: visible;
@@ -5454,7 +5464,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-sidebar-bottom-nav button {
-  height: 46px;
+  height: 42px;
   border: 1px solid rgba(255,255,255,.18);
   background: rgba(255,255,255,.06);
 }
@@ -7173,7 +7183,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-app {
-  --wt-sidebar-width: clamp(220px, 18vw, 256px);
+  --wt-sidebar-width: clamp(208px, 16.5vw, 232px);
   transition: grid-template-columns .24s cubic-bezier(.2,.72,.2,1);
 }
 
