@@ -2062,6 +2062,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var actualStart = Math.max(0, commandYearPercent(row.actualStart, year));
     var actualEnd = Math.min(100, commandYearPercent(row.actualEnd, year));
     var actualModel = row.actual && row.actual.modelName || "WT Worksheet model";
+    var actualModelLabel = commandWorksheetModelLabel(actualModel);
     var planTitle = row.id + " " + row.gate + " Revision DDD " + formatDateSlash(row.revision) + " to (LTWT) X-FTY " + formatDateSlash(row.xfty);
     var actualTitle = "WT Worksheet example · " + actualModel + " · " + formatDateSlash(row.actualStart) + " to " + formatDateSlash(row.actualEnd);
     return [
@@ -2072,7 +2073,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<span><b>REV DDD</b><small>' + text(formatDateSlash(row.revision)) + '</small></span><i>→</i><span><b>(LTWT) X-FTY</b><small>' + text(formatDateSlash(row.xfty)) + '</small></span>',
       '</button>',
       '<button type="button" class="wt-command-season-actual-bar" data-section="tcms-running" style="--start:' + text(actualStart.toFixed(3)) + '%;--end:' + text(actualEnd.toFixed(3)) + '%" title="' + text(actualTitle) + '" aria-label="' + text(actualTitle) + '">',
-      '<b>ACTUAL</b><span>' + text(actualModel) + '</span><small>' + text(formatDateSlash(row.actualStart) + "–" + formatDateSlash(row.actualEnd)) + '</small>',
+      '<b>ACTUAL</b><span>' + text(actualModelLabel) + '</span>',
       '</button>',
       '</div>',
       '</article>'
@@ -2101,6 +2102,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       result[season] = selected;
     });
     return result;
+  }
+
+  function commandWorksheetModelLabel(modelName) {
+    return String(modelName || "")
+      .replace(/^NIKE\s+/i, "")
+      .replace(/\s+-\s+[A-Z0-9]+$/i, "")
+      .trim();
   }
 
   function commandPointDate(dateIso) {
