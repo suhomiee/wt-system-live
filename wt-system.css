@@ -293,16 +293,6 @@
   gap: 20px;
 }
 
-.wt-command-mode-switch {
-  height: 36px;
-  display: grid;
-  grid-template-columns: 92px 91px;
-  border: 1px solid #b9c1c5;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.wt-command-mode-switch button,
 .wt-command-action,
 .wt-command-icon-action,
 .wt-command-program-select select {
@@ -311,22 +301,6 @@
   color: #182a34;
   font-size: 11px;
   font-weight: 560;
-}
-
-.wt-command-mode-switch button {
-  height: 34px;
-  padding: 0 14px;
-  border-right: 1px solid #d2d7da;
-  white-space: nowrap;
-}
-
-.wt-command-mode-switch button:last-child {
-  border-right: 0;
-}
-
-.wt-command-mode-switch button.active {
-  background: #003b46;
-  color: #ffffff;
 }
 
 .wt-command-program-select {

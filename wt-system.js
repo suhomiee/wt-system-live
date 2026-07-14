@@ -315,7 +315,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     tcmsMilestonesSignature: "",
     sidebarCollapsed: false,
     dashboardRunningView: false,
-    dashboardMode: "macro",
     dashboardYear: 0,
     dashboardMasterZoom: 3,
     actionMessage: "",
@@ -364,7 +363,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       var dashboardMasterShiftButton = event.target.closest("[data-dashboard-master-shift]");
       var dashboardGanttEventButton = event.target.closest("[data-dashboard-gantt-event]");
       var dashboardActualProjectButton = event.target.closest("[data-dashboard-actual-project]");
-      var dashboardModeButton = event.target.closest("[data-dashboard-mode]");
       var dashboardRefreshButton = event.target.closest("[data-dashboard-refresh]");
       var closeProjectDrawerButton = event.target.closest("[data-close-project-drawer]");
       var todayButton = event.target.closest("[data-today]");
@@ -530,13 +528,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         state.activeEventId = "";
         state.pendingDeleteEventId = "";
         state.actionMessage = "";
-        render(root);
-        return;
-      }
-
-      if (dashboardModeButton && root.contains(dashboardModeButton)) {
-        event.preventDefault();
-        state.dashboardMode = dashboardModeButton.getAttribute("data-dashboard-mode") || "macro";
         render(root);
         return;
       }
@@ -1999,10 +1990,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<header class="wt-command-topbar">',
       '<div class="wt-command-page-title"><h1>Schedule Dashboard</h1><span>PGP Command Board</span></div>',
       '<div class="wt-command-top-actions">',
-      '<div class="wt-command-mode-switch" role="group" aria-label="Plan scale">',
-      '<button type="button" class="' + (state.dashboardMode === "macro" ? "active" : "") + '" data-dashboard-mode="macro">Macro Plan</button>',
-      '<button type="button" class="' + (state.dashboardMode === "master" ? "active" : "") + '" data-dashboard-mode="master">Master Plan</button>',
-      '</div>',
       '<div class="wt-dashboard-panel-actions wt-command-restored-actions">',
       '<button type="button" data-dashboard-month-shift="-1" aria-label="Previous month" title="Previous month">' + icon("chevron-left") + '</button>',
       '<button type="button" data-dashboard-today>Today</button>',
