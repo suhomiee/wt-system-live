@@ -425,7 +425,7 @@
 }
 
 .wt-command-season-row {
-  height: 20%;
+  height: calc(100% / var(--wt-command-season-count, 5));
   display: grid;
   grid-template-columns: 102px minmax(0, 1fr);
   border-bottom: 1px solid #d2d7d9;
@@ -470,66 +470,109 @@
   background-image: repeating-linear-gradient(to right, transparent 0, transparent calc(8.333333% - 1px), #e1e4e6 calc(8.333333% - 1px), #e1e4e6 8.333333%);
 }
 
-.wt-command-season-span {
+.wt-command-season-plan-bar,
+.wt-command-season-actual-bar {
   position: absolute;
-  top: 9px;
   left: var(--start);
   width: max(22px, calc(var(--end) - var(--start)));
-  height: 22px;
-  border-radius: 4px;
-}
-
-.wt-season-green .wt-command-season-span { background: #cbddc5; }
-.wt-season-teal .wt-command-season-span { background: #bfdfdb; }
-.wt-season-orange .wt-command-season-span { background: #fcdbb9; }
-.wt-season-coral .wt-command-season-span { background: #f6c5c5; }
-.wt-season-purple .wt-command-season-span { background: #dac7e4; }
-
-.wt-command-season-point {
-  position: absolute;
-  top: 6px;
-  left: var(--point);
-  z-index: 2;
-  height: 35px;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #28353b;
-  text-align: left;
-  transform: translateX(-3px);
-}
-
-.wt-command-season-point.is-intro {
-  transform: translateX(-100%);
-}
-
-.wt-command-season-point i {
-  width: 8px;
-  height: 8px;
-  flex: 0 0 auto;
-  border: 1px solid #ffffff;
-  border-radius: 50%;
-  background: #8c9498;
-  box-shadow: 0 0 0 1px rgba(65,75,80,.12);
-}
-
-.wt-command-season-point span {
-  display: grid;
-  gap: 1px;
+  min-width: 0;
+  margin: 0;
+  border-radius: 3px;
+  overflow: hidden;
   white-space: nowrap;
 }
 
-.wt-command-season-point b,
-.wt-command-season-point small {
-  font-size: 9px;
+.wt-command-season-plan-bar {
+  top: 4px;
+  height: 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 3px;
+  padding: 0 5px;
+  border: 1px solid rgba(39, 66, 72, .18);
+  color: #28353b;
+  text-align: center;
+}
+
+.wt-season-green .wt-command-season-plan-bar { background: #cbddc5; }
+.wt-season-teal .wt-command-season-plan-bar { background: #bfdfdb; }
+.wt-season-orange .wt-command-season-plan-bar { background: #fcdbb9; }
+.wt-season-coral .wt-command-season-plan-bar { background: #f6c5c5; }
+.wt-season-purple .wt-command-season-plan-bar { background: #dac7e4; }
+
+.wt-command-season-plan-bar span {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  overflow: hidden;
+}
+
+.wt-command-season-plan-bar span:last-child {
+  justify-content: flex-end;
+}
+
+.wt-command-season-plan-bar b,
+.wt-command-season-plan-bar small,
+.wt-command-season-plan-bar i {
+  flex: 0 0 auto;
+  font-size: 7.5px;
+  font-style: normal;
   line-height: 1;
 }
 
-.wt-command-season-point b { font-weight: 650; }
-.wt-command-season-point small { font-weight: 450; }
+.wt-command-season-plan-bar b {
+  overflow: hidden;
+  font-weight: 760;
+  text-overflow: ellipsis;
+}
+
+.wt-command-season-plan-bar small {
+  color: rgba(22, 46, 52, .72);
+  font-weight: 600;
+}
+
+.wt-command-season-actual-bar {
+  top: 27px;
+  height: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 5px;
+  border: 1px solid #4464d8;
+  background: #eef1ff;
+  color: #263d92;
+  text-align: left;
+}
+
+.wt-command-season-actual-bar b,
+.wt-command-season-actual-bar span,
+.wt-command-season-actual-bar small {
+  min-width: 0;
+  font-size: 7.5px;
+  line-height: 1;
+}
+
+.wt-command-season-actual-bar b,
+.wt-command-season-actual-bar small {
+  flex: 0 0 auto;
+  font-weight: 760;
+}
+
+.wt-command-season-actual-bar span {
+  flex: 1 1 auto;
+  overflow: hidden;
+  font-weight: 650;
+  text-overflow: ellipsis;
+}
+
+.wt-command-season-empty {
+  margin: 0;
+  padding: 22px 16px;
+  color: #69777d;
+  font-size: 11px;
+}
 
 .wt-command-year-today {
   position: absolute;
@@ -936,7 +979,7 @@
   .wt-command-tree button { height: 19px; }
   .wt-app.is-dashboard .wt-dashboard.wt-command-dashboard,
   #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-dashboard.wt-command-dashboard {
-    grid-template-rows: 56px 245px 20px 170px 22px minmax(0,1fr);
+    grid-template-rows: 56px 265px 18px 165px 18px minmax(0,1fr);
     padding-top: 7px;
   }
 }
@@ -9932,21 +9975,6 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   .wt-command-master-head h2 {
     font-size: 15px;
     white-space: nowrap;
-  }
-
-  .wt-command-season-span {
-    top: 7px;
-    height: 19px;
-  }
-
-  .wt-command-season-point {
-    top: 2px;
-    height: 28px;
-  }
-
-  .wt-command-season-point b,
-  .wt-command-season-point small {
-    font-size: 8px;
   }
 
   .wt-command-master-event b {

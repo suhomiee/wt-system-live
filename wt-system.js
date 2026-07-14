@@ -63,6 +63,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     { key: "productFreeze", input: "actualProductFreeze", label: "(LTWT) Product Freeze", shortLabel: "Product Freeze", kind: "deadline" },
     { key: "ltwtXfty", input: "actualLtwtXfty", label: "(LTWT) X-FTY", shortLabel: "LTWT X-FTY", kind: "review" }
   ];
+  var COMMAND_WORKSHEET_MODEL_FALLBACKS = [
+    { season: "SP28", modelName: "NIKE STRUCTURE PLUS 2 - JA7824", owner: "신성무" },
+    { season: "SU27", modelName: "NIKE ACG VOMERO TRAIL - IZ4894", owner: "전세현" },
+    { season: "FA27", modelName: "NIKE VOMERO 19 PHANTOM - JA9525", owner: "강민규" },
+    { season: "SU27", modelName: "W STRUCTURE 27 - IQ2842", owner: "김희준" },
+    { season: "SP28", modelName: "AIR ZOOM PEGASUS 43 - JA8962", owner: "장수연" }
+  ];
 
   var EMBEDDED = window.WT_SYSTEM_EMBEDDED || { milestones: [], holidays: [] };
 
@@ -2009,8 +2016,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<section class="wt-command-panel wt-command-macro" aria-label="Macro plan calendar year ' + text(year) + '">',
       '<header class="wt-command-panel-head"><h2>MACRO PLAN</h2><b>CALENDAR YEAR ' + text(year) + '</b></header>',
       '<div class="wt-command-year-months"><span></span>' + MONTHS.map(function (month) { return '<b>' + text(month.toUpperCase()) + '</b>'; }).join("") + '</div>',
-      '<div class="wt-command-season-grid">',
-      rows.map(function (row) { return renderCommandSeasonRow(row, year); }).join(""),
+      '<div class="wt-command-season-grid" style="--wt-command-season-count:' + text(Math.max(1, rows.length)) + '">',
+      rows.length ? rows.map(function (row) { return renderCommandSeasonRow(row, year); }).join("") : '<p class="wt-command-season-empty">No Revision DDD → (LTWT) X-FTY flow in ' + text(year) + '.</p>',
       renderCommandYearTodayLine(year),
       '</div>',
       '</section>'
@@ -2018,31 +2025,82 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function commandSeasonRows(year) {
-    var suffix = String(year).slice(-2);
-    var nextSuffix = String(year + 1).slice(-2);
-    return [
-      { id: "SP" + suffix, name: "Spring " + year, intro: year + "-01-06", launch: year + "-03-01", tone: "green", visualStart: 4.2, visualEnd: 18.9 },
-      { id: "SU" + suffix, name: "Summer " + year, intro: year + "-03-29", launch: year + "-05-31", tone: "teal", visualStart: 20.48, visualEnd: 38.85 },
-      { id: "FA" + suffix, name: "Fall " + year, intro: year + "-05-24", launch: year + "-08-30", tone: "orange", visualStart: 36.18, visualEnd: 62.9 },
-      { id: "HO" + suffix, name: "Holiday " + year, intro: year + "-08-23", launch: year + "-11-29", tone: "coral", visualStart: 61.1, visualEnd: 90.03 },
-      { id: "SP" + nextSuffix, name: "Spring " + (year + 1), intro: year + "-12-21", launch: (year + 1) + "-03-01", tone: "purple", visualStart: 89.88, visualEnd: 100 }
-    ];
+    var range = { start: year + "-01-01", end: year + "-12-31" };
+    var tones = ["green", "teal", "orange", "coral", "purple"];
+    var seasons = GAME_PLAN_SEASONS.filter(function (season) {
+      return dashboardSeasonPlanFlows(season, range).length > 0;
+    });
+    var worksheetExamples = commandWorksheetExamples(seasons);
+    return seasons.map(function (season, index) {
+      var flows = dashboardSeasonPlanFlows(season, range).slice().sort(function (a, b) {
+        var endSort = a.end.localeCompare(b.end);
+        return endSort || gateOrder(a.gate) - gateOrder(b.gate);
+      });
+      var flow = flows[flows.length - 1];
+      var actualStart = toIso(addDays(fromIso(flow.start), 5 + (index * 2)));
+      var actualEnd = toIso(addDays(fromIso(flow.end), index % 2 ? 4 : -2));
+      if (actualEnd <= actualStart) actualEnd = toIso(addDays(fromIso(actualStart), 14));
+      if (actualEnd > range.end) actualEnd = range.end;
+      return {
+        id: season,
+        gate: flow.gate,
+        revision: flow.startEvent.date,
+        xfty: flow.endEvent.date,
+        planStart: flow.start,
+        planEnd: flow.end,
+        actualStart: actualStart,
+        actualEnd: actualEnd,
+        actual: worksheetExamples[season],
+        tone: tones[index % tones.length]
+      };
+    });
   }
 
   function renderCommandSeasonRow(row, year) {
-    var start = row.visualStart == null ? Math.max(0, commandYearPercent(row.intro, year)) : row.visualStart;
-    var end = row.visualEnd == null ? Math.min(100, commandYearPercent(row.launch, year)) : row.visualEnd;
-    var launchVisible = row.launch.slice(0, 4) === String(year);
+    var start = Math.max(0, commandYearPercent(row.planStart, year));
+    var end = Math.min(100, commandYearPercent(row.planEnd, year));
+    var actualStart = Math.max(0, commandYearPercent(row.actualStart, year));
+    var actualEnd = Math.min(100, commandYearPercent(row.actualEnd, year));
+    var actualModel = row.actual && row.actual.modelName || "WT Worksheet model";
+    var planTitle = row.id + " " + row.gate + " Revision DDD " + formatDateSlash(row.revision) + " to (LTWT) X-FTY " + formatDateSlash(row.xfty);
+    var actualTitle = "WT Worksheet example · " + actualModel + " · " + formatDateSlash(row.actualStart) + " to " + formatDateSlash(row.actualEnd);
     return [
       '<article class="wt-command-season-row wt-season-' + text(row.tone) + '">',
-      '<button type="button" class="wt-command-season-label" data-dashboard-month-date="' + text(row.intro) + '"><b>' + text(row.id) + '</b></button>',
+      '<button type="button" class="wt-command-season-label" data-dashboard-month-date="' + text(row.planStart) + '" title="' + text(planTitle) + '"><b>' + text(row.id) + '</b><small>' + text(row.gate + " PLAN") + '</small></button>',
       '<div class="wt-command-season-track">',
-      '<span class="wt-command-season-span" style="--start:' + text(start.toFixed(3)) + '%;--end:' + text(end.toFixed(3)) + '%"></span>',
-      '<button type="button" class="wt-command-season-point is-intro" data-dashboard-month-date="' + text(row.intro) + '" style="--point:' + text(start.toFixed(3)) + '%"><span><b>Intro</b><small>' + text(commandPointDate(row.intro)) + '</small></span><i></i></button>',
-      launchVisible ? '<button type="button" class="wt-command-season-point is-launch" data-dashboard-month-date="' + text(row.launch) + '" style="--point:' + text(end.toFixed(3)) + '%"><i></i><span><b>Launch</b><small>' + text(commandPointDate(row.launch)) + '</small></span></button>' : "",
+      '<button type="button" class="wt-command-season-plan-bar" data-dashboard-month-date="' + text(row.planStart) + '" style="--start:' + text(start.toFixed(3)) + '%;--end:' + text(end.toFixed(3)) + '%" title="' + text(planTitle) + '" aria-label="' + text(planTitle) + '">',
+      '<span><b>REV DDD</b><small>' + text(formatDateSlash(row.revision)) + '</small></span><i>→</i><span><b>(LTWT) X-FTY</b><small>' + text(formatDateSlash(row.xfty)) + '</small></span>',
+      '</button>',
+      '<button type="button" class="wt-command-season-actual-bar" data-section="tcms-running" style="--start:' + text(actualStart.toFixed(3)) + '%;--end:' + text(actualEnd.toFixed(3)) + '%" title="' + text(actualTitle) + '" aria-label="' + text(actualTitle) + '">',
+      '<b>ACTUAL</b><span>' + text(actualModel) + '</span><small>' + text(formatDateSlash(row.actualStart) + "–" + formatDateSlash(row.actualEnd)) + '</small>',
+      '</button>',
       '</div>',
       '</article>'
     ].join("");
+  }
+
+  function commandWorksheetExamples(seasons) {
+    var records = (EMBEDDED.milestones || []).filter(isTcmsRunningWtOrder).map(function (item) {
+      return { season: item.season || "All", modelName: item.modelName || "", owner: item.tcmsOwner || item.owner || "" };
+    }).concat(COMMAND_WORKSHEET_MODEL_FALLBACKS);
+    var uniqueRecords = [];
+    var seen = {};
+    records.forEach(function (item) {
+      var key = String(item.modelName || "").trim().toLowerCase();
+      if (!key || seen[key]) return;
+      seen[key] = true;
+      uniqueRecords.push(item);
+    });
+    var used = {};
+    var result = {};
+    seasons.forEach(function (season) {
+      var exact = uniqueRecords.filter(function (item) { return item.season === season && !used[item.modelName]; });
+      var available = uniqueRecords.filter(function (item) { return !used[item.modelName]; });
+      var selected = exact[0] || available[0] || uniqueRecords[0] || { season: season, modelName: "WT Worksheet model", owner: "" };
+      used[selected.modelName] = true;
+      result[season] = selected;
+    });
+    return result;
   }
 
   function commandPointDate(dateIso) {
