@@ -2322,7 +2322,17 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       if (!eventOverlapsRange(event, cellStart, cellEnd)) return false;
       return isUserEvent(event) || isDerivedEvent(event) || allowedKinds.indexOf(event.kind) >= 0;
     }).sort(function (a, b) { return (a.date + a.title).localeCompare(b.date + b.title); }).slice(0, 12).map(function (event) {
-      return { id: event.id, date: event.date, endDate: event.endDate || event.date, label: dashboardGanttBarTitle(event), tone: commandEventTone(event), event: event };
+      var descriptor = commandMonthEventDescriptor(event);
+      return {
+        id: event.id,
+        date: event.date,
+        endDate: event.endDate || event.date,
+        label: descriptor.fullLabel,
+        contextLabel: descriptor.contextLabel,
+        eventTypeLabel: descriptor.eventTypeLabel,
+        tone: commandEventTone(event),
+        event: event
+      };
     });
     if (sourceEvents.length >= 4) return commandAssignMonthEventLanes(sourceEvents, cells);
     var year = Number(isoMonth.slice(0, 4));
@@ -2330,7 +2340,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var lastDay = new Date(year, month, 0).getDate();
     function make(day, label, tone, endDay) {
       var date = year + "-" + pad(month) + "-" + pad(Math.min(lastDay, day));
-      return { date: date, endDate: year + "-" + pad(month) + "-" + pad(Math.min(lastDay, endDay || day)), label: label, tone: tone };
+      return {
+        date: date,
+        endDate: year + "-" + pad(month) + "-" + pad(Math.min(lastDay, endDay || day)),
+        label: "PGP · " + label,
+        contextLabel: "PGP",
+        eventTypeLabel: label,
+        tone: tone
+      };
     }
     var flowStartDay = 8;
     while (flowStartDay < 15 && fromIso(make(flowStartDay, "", "").date).getDay() !== 4) flowStartDay += 1;
@@ -2341,6 +2358,30 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       make(26, "BOM DDD", "teal"),
       make(28, "Tooling", "gold")
     ]), cells).slice(0, 14);
+  }
+
+  function commandMonthEventDescriptor(event) {
+    var actual = isUserEvent(event) || isDerivedEvent(event);
+    var eventTypeLabel = actual ? dashboardActualPointLabel(event) : dashboardPlanPointLabel(event);
+    var modelName = commandWorksheetModelLabel(event.modelName || "");
+    if (!modelName && actual) {
+      var titleParts = String(event.title || "").split(/\s+-\s+/);
+      if (titleParts.length > 1) modelName = commandWorksheetModelLabel(titleParts.slice(1).join(" - "));
+    }
+    var contextParts = modelName ? [modelName] : [event.season !== "All" ? event.season : "", event.planGate || event.gate || ""];
+    var seen = {};
+    contextParts = contextParts.filter(function (value) {
+      var key = String(value || "").trim().toLowerCase();
+      if (!key || key === String(eventTypeLabel || "").trim().toLowerCase() || seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
+    var contextLabel = contextParts.join(" · ") || (actual ? "WT Project" : "PGP");
+    return {
+      contextLabel: contextLabel,
+      eventTypeLabel: eventTypeLabel,
+      fullLabel: contextLabel + " · " + eventTypeLabel
+    };
   }
 
   function commandEventTone(event) {
@@ -2379,10 +2420,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderCommandMonthEvent(item) {
-    var attrs = item.id ? 'data-dashboard-gantt-event data-event-id="' + text(item.id) + '" data-date="' + text(item.date) + '"' : 'data-dashboard-month-date="' + text(item.date) + '"';
+    var attrs = item.id ? 'data-event-id="' + text(item.id) + '" data-date="' + text(item.date) + '"' : 'data-dashboard-month-date="' + text(item.date) + '"';
+    var fullLabel = item.label || [item.contextLabel, item.eventTypeLabel].filter(Boolean).join(" · ");
+    var singleDayClass = item.gridSpan === 1 ? " is-single-day" : "";
     return [
-      '<button type="button" class="wt-command-month-event is-' + text(item.tone) + '" ' + attrs + ' style="grid-column:' + text(item.gridColumn) + ' / span ' + text(item.gridSpan) + ';grid-row:' + text(item.gridRow) + ';--lane:' + text(item.lane) + '">',
-      '<b>' + text(shortTitle(item.label, item.gridSpan > 1 ? 34 : 20)) + '</b><small>' + text(formatDateNumeric(item.date)) + '</small>',
+      '<button type="button" class="wt-command-month-event is-' + text(item.tone) + singleDayClass + '" ' + attrs + ' style="grid-column:' + text(item.gridColumn) + ' / span ' + text(item.gridSpan) + ';grid-row:' + text(item.gridRow) + ';--lane:' + text(item.lane) + '" title="' + text(fullLabel + " · " + formatDateNumeric(item.date)) + '" aria-label="' + text(fullLabel + " · " + formatDateNumeric(item.date)) + '">',
+      '<b>' + text(item.contextLabel || "PGP") + '</b><em>' + text(item.eventTypeLabel || fullLabel) + '</em><small>' + text(formatDateNumeric(item.date)) + '</small>',
       item.gridSpan > 1 ? '<span aria-hidden="true">→</span>' : "",
       '</button>'
     ].join("");

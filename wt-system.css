@@ -1073,8 +1073,8 @@
   min-width: 0;
   height: 25px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  gap: 5px;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  gap: 4px;
   align-items: center;
   margin: calc(20px + (var(--lane) * 27px)) 8px 0;
   padding: 0 8px;
@@ -1086,6 +1086,7 @@
 }
 
 .wt-command-month-event b,
+.wt-command-month-event em,
 .wt-command-month-event small {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1093,8 +1094,20 @@
 }
 
 .wt-command-month-event b { font-size: 9px; font-weight: 540; }
+.wt-command-month-event em {
+  max-width: 96px;
+  padding: 1px 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, .18);
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 680;
+  line-height: 1.15;
+}
+.wt-command-month-event:not(.is-single-day) em { max-width: 180px; }
 .wt-command-month-event small { font-size: 8px; font-weight: 450; }
 .wt-command-month-event > span { font-size: 16px; line-height: 1; }
+.wt-command-month-event.is-single-day small { display: none; }
 .wt-command-month-event.is-blue { background: #1469c7; }
 .wt-command-month-event.is-teal { background: #078b89; }
 .wt-command-month-event.is-gold { background: #b99700; }
@@ -10135,11 +10148,20 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   }
 
   .wt-command-month-event b {
+    font-size: 8.5px;
+  }
+
+  .wt-command-month-event em {
+    max-width: 74px;
     font-size: 7.5px;
   }
 
+  .wt-command-month-event:not(.is-single-day) em {
+    max-width: 160px;
+  }
+
   .wt-command-month-event small {
-    font-size: 7px;
+    display: none;
   }
 }
 
