@@ -2029,7 +2029,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var rangeLabel = commandMacroRangeLabel(range);
     return [
       '<section class="wt-command-panel wt-command-macro" aria-label="Macro plan ' + text(rangeLabel) + '" style="--wt-command-month-count:' + text(units.length) + '">',
-      '<header class="wt-command-panel-head"><h2>MACRO PLAN</h2><nav class="wt-command-macro-nav" aria-label="Macro plan date range"><button type="button" data-command-macro-shift="-12" aria-label="Show previous 17 months" title="Previous year">' + icon("chevron-left") + '</button><b>' + text(rangeLabel) + '</b><button type="button" data-command-macro-shift="12" aria-label="Show next 17 months" title="Next year">' + icon("chevron-right") + '</button></nav></header>',
+      '<header class="wt-command-panel-head"><nav class="wt-command-macro-nav" aria-label="Macro plan date range"><button type="button" data-command-macro-shift="-12" aria-label="Show previous 17 months" title="Previous year">' + icon("chevron-left") + '</button><b>' + text(rangeLabel) + '</b><button type="button" data-command-macro-shift="12" aria-label="Show next 17 months" title="Next year">' + icon("chevron-right") + '</button></nav></header>',
       '<div class="wt-command-year-months"><span></span>' + units.map(function (unit, index) {
         var showYear = index === 0 || fromIso(unit.start).getMonth() === 0;
         return '<b><span>' + text(unit.label.toUpperCase()) + '</span>' + (showYear ? '<small>' + text(String(fromIso(unit.start).getFullYear()).slice(-2)) + '</small>' : '') + '</b>';
@@ -2181,7 +2181,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       '<section class="wt-command-panel wt-command-master" aria-label="Master plan quarter ' + text(quarter) + '">',
       '<header class="wt-command-master-head">',
-      '<h2>MASTER PLAN · Q' + text(quarter) + ' ' + text(year) + '</h2>',
       '<div class="wt-command-quarter-nav"><button type="button" data-dashboard-master-shift="-1" aria-label="Previous quarter">' + icon("chevron-left") + '</button><span>Q' + text(quarter === 1 ? 4 : quarter - 1) + ' ' + text(quarter === 1 ? year - 1 : year) + '</span></div>',
       '<b>' + text(monthTitle + " " + year) + '</b>',
       '<div class="wt-command-quarter-nav is-next"><span>Q' + text(quarter === 4 ? 1 : quarter + 1) + ' ' + text(quarter === 4 ? year + 1 : year) + '</span><button type="button" data-dashboard-master-shift="1" aria-label="Next quarter">' + icon("chevron-right") + '</button></div>',

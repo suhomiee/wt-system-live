@@ -375,9 +375,9 @@
 }
 
 .wt-command-panel-head {
-  height: 35px;
+  height: 29px;
   display: grid;
-  grid-template-columns: 102px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
   border-bottom: 1px solid #d2d6d8;
 }
@@ -410,7 +410,7 @@
   grid-template-columns: 28px minmax(0, 1fr) 28px;
   align-items: center;
   gap: 7px;
-  padding: 0 8px;
+  padding: 0 7px;
 }
 
 .wt-command-macro-nav b {
@@ -423,7 +423,7 @@
 
 .wt-command-macro-nav button {
   width: 28px;
-  height: 25px;
+  height: 23px;
   display: grid;
   place-items: center;
   padding: 0;
@@ -480,7 +480,7 @@
 
 .wt-command-season-grid {
   position: relative;
-  height: calc(100% - 61px);
+  height: calc(100% - 55px);
 }
 
 .wt-command-season-row {
@@ -696,9 +696,9 @@
 }
 
 .wt-command-master-head {
-  height: 52px;
+  height: 36px;
   display: grid;
-  grid-template-columns: 210px 135px minmax(250px, 1fr) 135px 190px;
+  grid-template-columns: 140px minmax(250px, 1fr) 140px 164px;
   align-items: center;
   gap: 8px;
   padding: 0 15px;
@@ -731,7 +731,7 @@
 .wt-command-quarter-nav button,
 .wt-command-zoom button {
   width: 31px;
-  height: 34px;
+  height: 28px;
   display: grid;
   place-items: center;
   padding: 0;
@@ -749,17 +749,17 @@
 
 .wt-command-zoom {
   display: grid;
-  grid-template-columns: 42px 86px 42px;
-  gap: 7px;
+  grid-template-columns: 34px 78px 34px;
+  gap: 6px;
   justify-content: end;
 }
 
 .wt-command-zoom button {
-  width: 42px;
+  width: 34px;
 }
 
 .wt-command-zoom output {
-  height: 34px;
+  height: 28px;
   display: grid;
   place-items: center;
   border: 1px solid #bfc7cb;
@@ -770,7 +770,7 @@
 }
 
 .wt-command-master-grid {
-  height: calc(100% - 52px);
+  height: calc(100% - 36px);
   display: grid;
   grid-template-columns: 132px repeat(var(--weeks), minmax(0, 1fr));
   grid-template-rows: 36px 34px minmax(0, 1fr);
@@ -1133,7 +1133,7 @@
   .wt-command-sidebar { width: 232px; max-width: 232px; }
   .wt-command-top-actions { gap: 7px; }
   .wt-command-data-date { display: none; }
-  .wt-command-master-head { grid-template-columns: 190px 120px minmax(220px,1fr) 120px 180px; }
+  .wt-command-master-head { grid-template-columns: 120px minmax(220px,1fr) 120px 164px; }
 }
 
 @media (max-height: 820px) {
