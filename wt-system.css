@@ -8,6 +8,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "T2RL Inter";
+  src: url("./fonts/t2rl-inter-latin-100-900-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 /* Schedule command board: supplied 1672 x 941 visual reference */
 @font-face {
   font-family: "Inter WT";
@@ -10215,4 +10223,1102 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-command-two-month-body .wt-dashboard-running-board {
   height: 100%;
+}
+
+/* T2RL Crew dark theme: preserve WT layout and behavior, replace visual surfaces. */
+#wt-system-root,
+.wt-root {
+  --canvas: #020606;
+  --surface: rgba(5, 8, 8, .88);
+  --panel: rgba(255, 255, 255, .045);
+  --panel-strong: rgba(255, 255, 255, .08);
+  --ink: #f5f7f6;
+  --muted: rgba(255, 255, 255, .58);
+  --line: rgba(255, 255, 255, .13);
+  --line-strong: rgba(255, 255, 255, .24);
+  --teal: #43c9c0;
+  --teal-dark: #43c9c0;
+  --flow-navy: rgba(2, 6, 6, .84);
+  --flow-active: rgba(67, 201, 192, .1);
+  --flow-sidebar-ink: #f5f7f6;
+  --flow-sidebar-muted: rgba(255, 255, 255, .76);
+  --flow-sidebar-line: rgba(255, 255, 255, .14);
+  --flow-blue: #6e91dd;
+  --flow-border: rgba(255, 255, 255, .13);
+  --flow-border-dark: rgba(255, 255, 255, .26);
+  --flow-card: rgba(255, 255, 255, .045);
+  --flow-muted: rgba(255, 255, 255, .58);
+  --flow-ink: #f5f7f6;
+  position: relative;
+  isolation: isolate;
+  background: #020606;
+  color: var(--ink);
+  color-scheme: dark;
+  font-family: "T2RL Inter", "Segoe UI Variable", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+#wt-system-root::before,
+.wt-root::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-color: #020606;
+  background-image:
+    url("https://taekwangcom.sharepoint.com/sites/T2RL2/SiteAssets/t2rl-spectral-dark-50-bg.jpg"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.19'/%3E%3C/svg%3E");
+  background-position: center bottom, center;
+  background-repeat: no-repeat, repeat;
+  background-size: cover, 180px 180px;
+  opacity: .86;
+  pointer-events: none;
+}
+
+#wt-system-root::after,
+.wt-root::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: rgba(0, 0, 0, .3);
+  pointer-events: none;
+}
+
+body:has(#wt-system-root[data-wt-standalone="true"]) {
+  background: #020606;
+}
+
+#wt-system-root .wt-app,
+.wt-root .wt-app {
+  z-index: 1;
+  background: transparent;
+  font-family: "T2RL Inter", "Segoe UI Variable", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+#wt-system-root .wt-main,
+#wt-system-root .wt-workspace,
+#wt-system-root .wt-flow-topbar,
+#wt-system-root .wt-flow-calendar-page,
+.wt-root .wt-main,
+.wt-root .wt-workspace,
+.wt-root .wt-flow-topbar,
+.wt-root .wt-flow-calendar-page {
+  background: transparent;
+  color: var(--ink);
+}
+
+#wt-system-root .wt-sidebar,
+.wt-root .wt-sidebar {
+  border-right-color: rgba(255, 255, 255, .16);
+  background: rgba(2, 6, 6, .83);
+  color: #f5f7f6;
+}
+
+#wt-system-root .wt-sidebar-create,
+.wt-root .wt-sidebar-create {
+  border-color: rgba(67, 201, 192, .55);
+  background: rgba(67, 201, 192, .07);
+  color: #f5f7f6;
+  font-weight: 560;
+}
+
+#wt-system-root .wt-primary-nav button,
+#wt-system-root .wt-primary-nav a,
+.wt-root .wt-primary-nav button,
+.wt-root .wt-primary-nav a {
+  color: rgba(255, 255, 255, .76);
+  font-weight: 500;
+}
+
+#wt-system-root .wt-primary-nav button.active,
+#wt-system-root .wt-primary-nav a.active,
+.wt-root .wt-primary-nav button.active,
+.wt-root .wt-primary-nav a.active {
+  border: 1px solid rgba(67, 201, 192, .5);
+  background: rgba(67, 201, 192, .1);
+  color: #ffffff;
+}
+
+#wt-system-root .wt-toolbar,
+#wt-system-root .wt-manager-head,
+#wt-system-root .wt-manager-tabs,
+.wt-root .wt-toolbar,
+.wt-root .wt-manager-head,
+.wt-root .wt-manager-tabs {
+  border-color: var(--line);
+  background: rgba(5, 8, 8, .82);
+  color: var(--ink);
+}
+
+#wt-system-root input,
+#wt-system-root select,
+#wt-system-root textarea,
+.wt-root input,
+.wt-root select,
+.wt-root textarea {
+  border-color: var(--line-strong);
+  background-color: rgba(5, 8, 8, .88);
+  color: var(--ink);
+}
+
+#wt-system-root input::placeholder,
+#wt-system-root textarea::placeholder,
+.wt-root input::placeholder,
+.wt-root textarea::placeholder {
+  color: rgba(255, 255, 255, .42);
+}
+
+/* Dashboard shell and navigation */
+#wt-system-root .wt-app.is-dashboard,
+#wt-system-root .wt-app.is-dashboard .wt-main,
+#wt-system-root .wt-app.is-dashboard .wt-workspace,
+#wt-system-root .wt-app.is-dashboard .wt-dashboard.wt-command-dashboard,
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-dashboard.wt-command-dashboard,
+.wt-root .wt-app.is-dashboard,
+.wt-root .wt-app.is-dashboard .wt-main,
+.wt-root .wt-app.is-dashboard .wt-workspace,
+.wt-root .wt-app.is-dashboard .wt-dashboard.wt-command-dashboard {
+  background: transparent !important;
+}
+
+#wt-system-root .wt-app.is-dashboard .wt-sidebar.wt-command-sidebar,
+.wt-root .wt-app.is-dashboard .wt-sidebar.wt-command-sidebar {
+  border-right: 1px solid rgba(255, 255, 255, .16);
+  background: rgba(2, 6, 6, .83);
+  color: #f5f7f6;
+}
+
+.wt-command-brand-mark {
+  border-color: rgba(255, 255, 255, .78);
+  color: #ffffff;
+  font-weight: 560;
+}
+
+.wt-command-brand-copy b {
+  color: #ffffff;
+  font-weight: 560;
+}
+
+.wt-command-brand-copy small {
+  color: rgba(255, 255, 255, .56);
+  font-weight: 480;
+}
+
+.wt-command-dashboard-link {
+  border: 1px solid transparent;
+  color: rgba(255, 255, 255, .78);
+  font-weight: 520;
+}
+
+.wt-command-dashboard-link.active {
+  border-color: rgba(67, 201, 192, .5);
+  background: rgba(67, 201, 192, .1);
+  color: #ffffff;
+}
+
+.wt-command-nav-group > header b {
+  color: rgba(255, 255, 255, .58);
+  font-weight: 560;
+}
+
+.wt-command-tree::before,
+.wt-command-tree button::before {
+  border-color: rgba(255, 255, 255, .2);
+}
+
+.wt-command-tree button {
+  color: rgba(255, 255, 255, .75);
+  font-weight: 450;
+}
+
+.wt-command-tree button:hover,
+.wt-command-tree button:focus-visible {
+  background: rgba(255, 255, 255, .055);
+  color: #ffffff;
+}
+
+.wt-command-collapse {
+  border-top-color: rgba(255, 255, 255, .15);
+  color: rgba(255, 255, 255, .75);
+}
+
+#wt-system-root .wt-sidebar-toggle,
+.wt-root .wt-sidebar-toggle {
+  border-color: rgba(255, 255, 255, .2);
+  background: rgba(5, 8, 8, .9);
+  color: rgba(255, 255, 255, .72);
+  box-shadow: none;
+}
+
+#wt-system-root .wt-sidebar-toggle:hover,
+#wt-system-root .wt-sidebar-toggle:focus-visible,
+.wt-root .wt-sidebar-toggle:hover,
+.wt-root .wt-sidebar-toggle:focus-visible {
+  border-color: rgba(67, 201, 192, .58);
+  background: rgba(67, 201, 192, .1);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+#wt-system-root.is-sidebar-collapsed .wt-sidebar-toggle,
+.wt-root.is-sidebar-collapsed .wt-sidebar-toggle,
+.wt-app.is-sidebar-collapsed .wt-sidebar-toggle {
+  border-color: rgba(255, 255, 255, .2);
+  border-left-color: transparent;
+  background: rgba(5, 8, 8, .94);
+  color: rgba(255, 255, 255, .78);
+  box-shadow: none;
+}
+
+/* Dashboard header and controls */
+.wt-command-page-title h1 {
+  color: #ffffff;
+  font-weight: 510;
+}
+
+.wt-command-page-title span,
+.wt-command-data-date {
+  color: rgba(255, 255, 255, .56);
+  font-weight: 400;
+}
+
+.wt-command-action,
+.wt-command-icon-action,
+.wt-command-program-select select,
+.wt-command-quarter-nav button,
+.wt-command-zoom button,
+.wt-command-macro-nav button {
+  border-color: rgba(255, 255, 255, .2);
+  background: rgba(5, 8, 8, .78);
+  color: rgba(255, 255, 255, .84);
+  font-weight: 470;
+}
+
+.wt-command-action:hover,
+.wt-command-action:focus-visible,
+.wt-command-icon-action:hover,
+.wt-command-icon-action:focus-visible,
+.wt-command-quarter-nav button:hover,
+.wt-command-quarter-nav button:focus-visible,
+.wt-command-zoom button:hover,
+.wt-command-zoom button:focus-visible,
+.wt-command-macro-nav button:hover,
+.wt-command-macro-nav button:focus-visible {
+  border-color: rgba(67, 201, 192, .62);
+  background: rgba(67, 201, 192, .08);
+  color: #ffffff;
+}
+
+.wt-command-action.active {
+  border-color: rgba(67, 201, 192, .58);
+  background: rgba(67, 201, 192, .1);
+  color: #bff5f1;
+}
+
+.wt-command-top-actions .wt-dashboard-panel-actions button {
+  border-color: rgba(255, 255, 255, .2);
+  background: rgba(5, 8, 8, .78);
+  color: rgba(255, 255, 255, .84);
+  font-weight: 470;
+}
+
+.wt-command-top-actions .wt-dashboard-panel-actions button:hover,
+.wt-command-top-actions .wt-dashboard-panel-actions button:focus-visible {
+  border-color: rgba(67, 201, 192, .62);
+  background: rgba(67, 201, 192, .08);
+  color: #ffffff;
+}
+
+.wt-command-top-actions .wt-dashboard-panel-actions .wt-dashboard-running-toggle.active,
+.wt-command-top-actions .wt-dashboard-panel-actions .wt-work-order-toggle.active {
+  border-color: rgba(67, 201, 192, .58);
+  background: rgba(67, 201, 192, .1);
+  color: #bff5f1;
+}
+
+/* Continuous technical table surfaces */
+.wt-command-panel {
+  border-color: rgba(255, 255, 255, .2);
+  border-radius: 7px;
+  background: rgba(5, 8, 8, .72);
+  color: #f5f7f6;
+}
+
+.wt-command-panel-head,
+.wt-command-master-head,
+.wt-command-month > header,
+.wt-command-two-month > header {
+  border-bottom-color: rgba(255, 255, 255, .14);
+  background: rgba(255, 255, 255, .018);
+}
+
+.wt-command-panel h2,
+.wt-command-panel-head > b,
+.wt-command-macro-nav b,
+.wt-command-master-head > b,
+.wt-command-quarter-nav,
+.wt-command-zoom output {
+  color: rgba(255, 255, 255, .9);
+  font-weight: 520;
+}
+
+.wt-command-zoom output {
+  border-color: rgba(255, 255, 255, .2);
+}
+
+.wt-command-year-months,
+.wt-command-season-row,
+.wt-command-master-head,
+.wt-command-month > header,
+.wt-command-two-month > header {
+  border-color: rgba(255, 255, 255, .14);
+}
+
+.wt-command-year-months > *,
+.wt-command-season-label,
+.wt-command-master-label,
+.wt-command-week-label,
+.wt-command-weekday,
+.wt-command-month-cell {
+  border-color: rgba(255, 255, 255, .11);
+}
+
+.wt-command-year-months b,
+.wt-command-year-months b small,
+.wt-command-master-label,
+.wt-command-week-label,
+.wt-command-weekday {
+  color: rgba(255, 255, 255, .67);
+  font-weight: 500;
+}
+
+.wt-command-season-label,
+.wt-command-master-label,
+.wt-command-week-label,
+.wt-command-month-cell {
+  background: transparent;
+}
+
+.wt-command-season-label b {
+  font-weight: 560;
+}
+
+.wt-season-green .wt-command-season-label { color: #8fbd86; }
+.wt-season-teal .wt-command-season-label { color: #69d7cf; }
+.wt-season-orange .wt-command-season-label { color: #e9a25d; }
+.wt-season-coral .wt-command-season-label { color: #ef7772; }
+.wt-season-purple .wt-command-season-label { color: #b998d2; }
+
+.wt-command-season-track {
+  background-image: linear-gradient(to right, transparent calc(100% - 1px), rgba(255, 255, 255, .09) calc(100% - 1px));
+}
+
+.wt-command-season-plan-bar {
+  border-color: rgba(255, 255, 255, .25);
+  color: #f5f7f6;
+}
+
+.wt-season-green .wt-command-season-plan-bar { background: rgba(88, 135, 78, .25); border-color: rgba(143, 189, 134, .55); }
+.wt-season-teal .wt-command-season-plan-bar { background: rgba(67, 201, 192, .2); border-color: rgba(105, 215, 207, .58); }
+.wt-season-orange .wt-command-season-plan-bar { background: rgba(194, 108, 25, .22); border-color: rgba(233, 162, 93, .58); }
+.wt-season-coral .wt-command-season-plan-bar { background: rgba(203, 52, 47, .2); border-color: rgba(239, 119, 114, .58); }
+.wt-season-purple .wt-command-season-plan-bar { background: rgba(116, 64, 153, .24); border-color: rgba(185, 152, 210, .56); }
+
+.wt-command-bar-gate {
+  background: rgba(0, 0, 0, .26);
+  color: rgba(255, 255, 255, .82);
+  font-weight: 590;
+}
+
+.wt-command-season-plan-bar small {
+  color: rgba(255, 255, 255, .62);
+  font-weight: 470;
+}
+
+.wt-command-season-actual-bar {
+  border-color: rgba(126, 145, 232, .72);
+  background: rgba(83, 109, 240, .14);
+  color: #dbe1ff;
+}
+
+.wt-command-season-actual-bar b,
+.wt-command-season-actual-bar small,
+.wt-command-season-actual-bar span {
+  font-weight: 520;
+}
+
+.wt-command-year-today::after {
+  background: #43c9c0;
+}
+
+.wt-command-today-gap span,
+.wt-command-month-cell small {
+  border-color: rgba(67, 201, 192, .66);
+  background: rgba(67, 201, 192, .18);
+  color: #aaf1ec;
+  font-weight: 560;
+}
+
+/* Master plan */
+.wt-command-gate-band {
+  font-weight: 560;
+}
+
+.wt-command-gate-band.is-xlt { color: #dbb65b; background: rgba(185, 151, 0, .13); }
+.wt-command-gate-band.is-pr { color: #74d8d2; background: rgba(67, 201, 192, .1); }
+.wt-command-gate-band.is-ggp { color: #8dadf0; background: rgba(68, 100, 216, .13); }
+.wt-command-gate-band.is-spa { color: #f08b86; background: rgba(226, 73, 67, .12); }
+
+.wt-command-master-rule {
+  border-right-color: rgba(255, 255, 255, .09);
+}
+
+.wt-command-master-event.is-point {
+  color: rgba(255, 255, 255, .82);
+}
+
+.wt-command-master-event.is-point small,
+.wt-command-actual-event small {
+  color: rgba(255, 255, 255, .5);
+}
+
+.wt-command-master-event.is-point::before {
+  border-color: rgba(255, 255, 255, .3);
+}
+
+.wt-command-master-event.is-point.is-label-before.is-red b,
+.wt-command-master-event.is-point.is-label-before.is-red small {
+  background: rgba(5, 8, 8, .9);
+}
+
+.wt-command-master-event.is-blue {
+  border-color: rgba(79, 128, 210, .78);
+  background: rgba(22, 103, 196, .72);
+}
+
+.wt-command-master-event.is-teal { background: rgba(7, 139, 137, .68); }
+.wt-command-master-event.is-gold { background: rgba(185, 151, 0, .7); }
+.wt-command-master-event.is-red { background: rgba(226, 73, 67, .72); }
+.wt-command-master-event.is-red-outline { border-color: #e86b66; background: rgba(226, 73, 67, .08); color: #f29b97; }
+
+.wt-command-actual-event {
+  color: #9eacf4;
+}
+
+.wt-command-actual-event::before {
+  border-color: #8291e9;
+  background: #6476d8;
+}
+
+/* Month plan */
+.wt-command-month-cell {
+  background: rgba(4, 8, 8, .42);
+  color: rgba(255, 255, 255, .82);
+}
+
+.wt-command-month-cell.is-outside {
+  background: rgba(255, 255, 255, .018);
+  color: rgba(255, 255, 255, .28);
+}
+
+.wt-command-month-cell.is-outside span {
+  color: rgba(255, 255, 255, .28);
+}
+
+.wt-command-month-cell.is-today {
+  background: rgba(67, 201, 192, .075);
+}
+
+.wt-command-month-cell.is-weekend span {
+  color: #77a6e7;
+}
+
+.wt-command-month-event {
+  border-color: rgba(255, 255, 255, .16);
+  color: #ffffff;
+}
+
+.wt-command-month-event.is-blue { background: rgba(20, 105, 199, .78); }
+.wt-command-month-event.is-teal { background: rgba(7, 139, 137, .74); }
+.wt-command-month-event.is-gold { background: rgba(185, 151, 0, .76); }
+.wt-command-month-event.is-red { background: rgba(226, 73, 67, .78); }
+.wt-command-month-event.is-actual { background: rgba(83, 109, 240, .76); }
+
+/* Two-month schedule */
+.wt-command-two-month-body .wt-dashboard-running-board,
+.wt-dashboard-running-board {
+  border-color: rgba(255, 255, 255, .13);
+  background: rgba(5, 8, 8, .68);
+}
+
+.wt-running-month-row {
+  border-bottom-color: rgba(255, 255, 255, .13);
+  background: rgba(255, 255, 255, .025);
+}
+
+.wt-running-month-row span,
+.wt-running-header-spacer {
+  border-color: rgba(255, 255, 255, .11);
+  background: rgba(255, 255, 255, .018);
+  color: rgba(255, 255, 255, .72);
+  font-weight: 500;
+}
+
+.wt-running-day-row {
+  border-bottom-color: rgba(255, 255, 255, .13);
+}
+
+.wt-running-day-row button {
+  border-left-color: rgba(255, 255, 255, .08);
+  background: transparent;
+  color: rgba(255, 255, 255, .68);
+}
+
+.wt-running-day-row button.is-weekend {
+  background:
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, .035) 1px, transparent 1px, transparent 7px),
+    rgba(255, 255, 255, .016);
+}
+
+.wt-running-day-row button.active {
+  background: rgba(67, 201, 192, .075);
+}
+
+.wt-running-day-row button.is-today {
+  background: rgba(67, 201, 192, .72);
+  color: #ffffff;
+}
+
+.wt-dashboard-running-lane {
+  border-top-color: rgba(255, 255, 255, .11);
+}
+
+.wt-dashboard-running-label {
+  border-right-color: rgba(255, 255, 255, .11);
+  background: rgba(255, 255, 255, .02);
+  color: rgba(255, 255, 255, .56);
+  font-weight: 500;
+}
+
+.wt-dashboard-running-track {
+  background: rgba(3, 7, 7, .34);
+}
+
+.wt-dashboard-running-day-grid span {
+  border-left-color: rgba(255, 255, 255, .07);
+}
+
+.wt-dashboard-running-day-grid span.is-weekend {
+  background: repeating-linear-gradient(-45deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .03) 1px, transparent 1px, transparent 7px);
+}
+
+.wt-dashboard-running-day-grid span.active {
+  background: rgba(67, 201, 192, .065);
+}
+
+.wt-dashboard-running-bar {
+  border-color: rgba(255, 255, 255, .18);
+  border-left-color: rgba(255, 255, 255, .42);
+  background: rgba(14, 19, 19, .94);
+  color: rgba(255, 255, 255, .84);
+  box-shadow: none;
+  font-weight: 450;
+}
+
+.wt-dashboard-running-bar.wt-event-user {
+  border-color: rgba(67, 201, 192, .36);
+  border-left-color: #43c9c0;
+  background: rgba(67, 201, 192, .09);
+}
+
+.wt-dashboard-running-bar.wt-event-derived {
+  border-color: rgba(126, 145, 232, .34);
+  border-left-color: #7e91e8;
+  background: rgba(83, 109, 240, .09);
+}
+
+.wt-dashboard-running-bar.is-selected {
+  outline-color: rgba(255, 255, 255, .58);
+}
+
+/* Calendar views */
+.wt-month-calendar-board,
+.wt-horizontal-calendar-board,
+.wt-month-calendar-head,
+.wt-horizontal-calendar-head {
+  border-color: rgba(255, 255, 255, .13);
+  background: rgba(5, 8, 8, .72);
+}
+
+.wt-month-calendar-head span,
+.wt-horizontal-calendar-head span {
+  color: rgba(255, 255, 255, .68);
+  font-weight: 470;
+}
+
+.wt-month-cell {
+  border-color: rgba(255, 255, 255, .1);
+  background: rgba(3, 7, 7, .42);
+}
+
+.wt-month-cell.is-empty {
+  background: repeating-linear-gradient(-45deg, rgba(255, 255, 255, .025), rgba(255, 255, 255, .025) 10px, transparent 10px, transparent 20px);
+}
+
+.wt-month-cell.is-weekend {
+  background:
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, .035) 1px, transparent 1px, transparent 9px),
+    rgba(255, 255, 255, .012);
+}
+
+.wt-month-cell.is-outside-month {
+  background: rgba(255, 255, 255, .012);
+}
+
+.wt-month-cell.is-outside-month.is-weekend {
+  background:
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, .026), rgba(255, 255, 255, .026) 1px, transparent 1px, transparent 9px),
+    rgba(255, 255, 255, .01);
+}
+
+.wt-month-cell.is-selected,
+.wt-month-cell.is-selected.is-weekend {
+  background: rgba(67, 201, 192, .065);
+  box-shadow: inset 0 0 0 1px rgba(67, 201, 192, .58);
+}
+
+.wt-month-day-button {
+  color: rgba(255, 255, 255, .84);
+}
+
+.wt-month-day-button span {
+  color: rgba(255, 255, 255, .42);
+}
+
+.wt-month-day-button b {
+  color: rgba(255, 255, 255, .86);
+  font-weight: 520;
+}
+
+.wt-month-cell.is-outside-month .wt-month-day-button span,
+.wt-month-cell.is-outside-month .wt-month-day-button b {
+  color: rgba(255, 255, 255, .28);
+}
+
+.wt-month-cell.is-today .wt-month-day-button b {
+  background: rgba(67, 201, 192, .2);
+  color: #aaf1ec;
+}
+
+.wt-month-event,
+.wt-horizontal-event {
+  border-left-color: rgba(255, 255, 255, .38);
+  background: rgba(255, 255, 255, .045);
+  color: rgba(255, 255, 255, .84);
+}
+
+.wt-month-event span,
+.wt-horizontal-event span {
+  color: rgba(255, 255, 255, .54);
+}
+
+.wt-month-event b,
+.wt-horizontal-event b {
+  color: rgba(255, 255, 255, .88);
+  font-weight: 500;
+}
+
+.wt-month-event span em,
+.wt-horizontal-event span em {
+  background: rgba(255, 255, 255, .08);
+  color: rgba(255, 255, 255, .72);
+  font-weight: 560;
+}
+
+.wt-month-event.wt-event-user,
+.wt-horizontal-event.wt-event-user,
+.wt-year-event-summary.wt-event-user,
+.wt-list-row.wt-event-user,
+.wt-season-dot.wt-event-user,
+.wt-event.wt-event-user,
+.wt-timeline-bar.wt-event-user,
+.wt-gantt-chip.wt-event-user {
+  border-left-color: #43c9c0;
+  background: rgba(67, 201, 192, .105);
+  color: #dffaf7;
+}
+
+.wt-month-event.wt-event-user span,
+.wt-horizontal-event.wt-event-user span,
+.wt-year-event-summary.wt-event-user span,
+.wt-list-row.wt-event-user span,
+.wt-season-dot.wt-event-user span,
+.wt-event.wt-event-user span,
+.wt-timeline-bar.wt-event-user span,
+.wt-gantt-chip.wt-event-user span {
+  color: rgba(170, 241, 236, .72);
+}
+
+.wt-month-event.wt-event-user b,
+.wt-horizontal-event.wt-event-user b,
+.wt-year-event-summary.wt-event-user b,
+.wt-list-row.wt-event-user b,
+.wt-season-dot.wt-event-user b,
+.wt-event.wt-event-user b,
+.wt-timeline-bar.wt-event-user b,
+.wt-gantt-chip.wt-event-user b {
+  color: #e8fffd;
+  font-weight: 520;
+}
+
+.wt-month-event.wt-event-derived,
+.wt-horizontal-event.wt-event-derived,
+.wt-year-event-summary.wt-event-derived,
+.wt-list-row.wt-event-derived,
+.wt-season-dot.wt-event-derived,
+.wt-event.wt-event-derived,
+.wt-timeline-bar.wt-event-derived,
+.wt-gantt-chip.wt-event-derived {
+  border-left-color: #d8a348;
+  background: rgba(217, 139, 22, .105);
+  color: #f8e7c7;
+}
+
+.wt-month-event.wt-event-derived span,
+.wt-horizontal-event.wt-event-derived span,
+.wt-year-event-summary.wt-event-derived span,
+.wt-list-row.wt-event-derived span,
+.wt-season-dot.wt-event-derived span,
+.wt-event.wt-event-derived span,
+.wt-timeline-bar.wt-event-derived span,
+.wt-gantt-chip.wt-event-derived span {
+  color: rgba(239, 196, 123, .74);
+}
+
+.wt-month-event.wt-event-derived b,
+.wt-horizontal-event.wt-event-derived b,
+.wt-year-event-summary.wt-event-derived b,
+.wt-list-row.wt-event-derived b,
+.wt-season-dot.wt-event-derived b,
+.wt-event.wt-event-derived b,
+.wt-timeline-bar.wt-event-derived b,
+.wt-gantt-chip.wt-event-derived b {
+  color: #fff1d8;
+  font-weight: 520;
+}
+
+.wt-month-event.wt-highlight-deadline,
+.wt-horizontal-event.wt-highlight-deadline,
+.wt-year-event-summary.wt-highlight-deadline,
+.wt-list-row.wt-highlight-deadline,
+.wt-season-dot.wt-highlight-deadline,
+.wt-event.wt-highlight-deadline,
+.wt-timeline-bar.wt-highlight-deadline,
+.wt-gantt-chip.wt-highlight-deadline {
+  border-left-color: #e3aa48;
+  background: rgba(217, 139, 22, .18);
+  color: #fff1d7;
+  box-shadow: inset 0 0 0 1px rgba(217, 139, 22, .22);
+}
+
+.wt-month-event.wt-highlight-model-chain,
+.wt-horizontal-event.wt-highlight-model-chain,
+.wt-year-event-summary.wt-highlight-model-chain,
+.wt-list-row.wt-highlight-model-chain,
+.wt-season-dot.wt-highlight-model-chain,
+.wt-event.wt-highlight-model-chain,
+.wt-timeline-bar.wt-highlight-model-chain,
+.wt-gantt-chip.wt-highlight-model-chain {
+  border-left-color: #43c9c0;
+  background: rgba(67, 201, 192, .16);
+  color: #e8fffd;
+  box-shadow: inset 0 0 0 1px rgba(67, 201, 192, .2);
+}
+
+.wt-timeline-bar.is-selected,
+.wt-gantt-chip.is-selected,
+.wt-list-row.is-selected,
+.wt-season-dot.is-selected,
+.wt-event.is-selected,
+.wt-month-event.is-selected,
+.wt-horizontal-event.is-selected {
+  outline-color: rgba(67, 201, 192, .7);
+  background: rgba(67, 201, 192, .12);
+}
+
+/* Modal and schedule submission surfaces */
+.wt-event-modal {
+  color: var(--ink);
+}
+
+.wt-modal-backdrop {
+  background: rgba(0, 0, 0, .72);
+  backdrop-filter: blur(2px);
+}
+
+.wt-modal-panel,
+.wt-schedule-panel,
+.wt-approval-review-panel {
+  border-color: rgba(255, 255, 255, .2);
+  background: rgba(5, 8, 8, .97);
+  color: rgba(255, 255, 255, .9);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, .62);
+}
+
+.wt-modal-panel,
+.wt-edit-card-modal .wt-edit-form-body {
+  scrollbar-color: rgba(255, 255, 255, .22) transparent;
+}
+
+.wt-modal-header {
+  border-bottom-color: rgba(255, 255, 255, .1);
+}
+
+.wt-modal-header small,
+.wt-modal-detail-grid dt,
+.wt-project-actual-fields > header small,
+.wt-project-actual-fields > p,
+.wt-schedule-logic-preview header small,
+.wt-schedule-logic-chip small {
+  color: rgba(255, 255, 255, .52);
+  font-weight: 480;
+}
+
+.wt-modal-header h2,
+.wt-modal-detail-grid dd,
+.wt-project-actual-fields > header b,
+.wt-schedule-logic-preview header b,
+.wt-schedule-logic-chip b {
+  color: rgba(255, 255, 255, .94);
+  font-weight: 520;
+}
+
+.wt-modal-close {
+  border-color: rgba(255, 255, 255, .18);
+  background: rgba(255, 255, 255, .035);
+  color: rgba(255, 255, 255, .82);
+}
+
+.wt-modal-close:hover {
+  border-color: rgba(67, 201, 192, .58);
+  background: rgba(67, 201, 192, .1);
+  color: #c8faf6;
+}
+
+.wt-submission-notice {
+  border-color: rgba(67, 201, 192, .32);
+  background: rgba(67, 201, 192, .07);
+}
+
+.wt-submission-notice .wt-icon,
+.wt-submission-notice b {
+  color: #aaf1ec;
+  font-weight: 520;
+}
+
+.wt-submission-notice span {
+  color: rgba(255, 255, 255, .62);
+}
+
+.wt-project-actual-fields,
+.wt-schedule-logic-preview {
+  border-color: rgba(255, 255, 255, .13);
+  background: rgba(255, 255, 255, .025);
+}
+
+.wt-schedule-logic-chip {
+  border-color: rgba(255, 255, 255, .14);
+  border-left-color: rgba(255, 255, 255, .4);
+  background: rgba(255, 255, 255, .035);
+}
+
+.wt-schedule-logic-chip span {
+  color: #aaf1ec;
+  font-weight: 520;
+}
+
+.wt-schedule-logic-chip.is-test {
+  border-left-color: #d8a348;
+  background: rgba(216, 163, 72, .07);
+}
+
+.wt-schedule-logic-chip.is-report {
+  border-left-color: #7e91e8;
+  background: rgba(126, 145, 232, .07);
+}
+
+.wt-schedule-logic-chip.is-freeze {
+  border-left-color: #dc766c;
+}
+
+.wt-schedule-logic-chip.is-tight {
+  border-color: rgba(220, 118, 108, .54);
+  border-left-color: #dc766c;
+  background: rgba(220, 118, 108, .09);
+  box-shadow: inset 0 0 0 1px rgba(220, 118, 108, .12);
+}
+
+.wt-schedule-logic-chip.is-tight span,
+.wt-schedule-logic-chip.is-tight b,
+.wt-schedule-logic-chip.is-tight small {
+  color: #ffd8d4;
+}
+
+.wt-schedule-logic-message {
+  border-left-color: #43c9c0;
+  background: rgba(67, 201, 192, .07);
+  color: rgba(224, 255, 252, .82);
+  font-weight: 480;
+}
+
+.wt-schedule-logic-preview.is-tight .wt-schedule-logic-message {
+  border-left-color: #dc766c;
+  background: rgba(220, 118, 108, .09);
+  color: #ffd8d4;
+}
+
+.wt-edit-card-modal .wt-form-actions {
+  border-top-color: rgba(255, 255, 255, .12);
+  background: rgba(5, 8, 8, .98);
+}
+
+.wt-edit-card-modal .wt-form-actions .primary {
+  border-color: rgba(67, 201, 192, .62);
+  background: rgba(67, 201, 192, .16);
+  color: #e8fffd;
+}
+
+.wt-edit-card-modal .wt-form-actions button:not(.primary):not(.danger),
+.wt-modal-actions button:not(.primary):not(.danger) {
+  border-color: rgba(255, 255, 255, .18);
+  background: rgba(255, 255, 255, .045);
+  color: rgba(255, 255, 255, .76);
+}
+
+/* WT Product Game Plan */
+.wt-game-plan-page,
+.wt-game-plan-table-wrap {
+  background: rgba(3, 7, 7, .48);
+}
+
+.wt-game-plan-table-wrap {
+  scrollbar-color: rgba(255, 255, 255, .22) rgba(255, 255, 255, .025);
+}
+
+.wt-game-plan-table {
+  color: rgba(255, 255, 255, .88);
+}
+
+.wt-game-plan-table th,
+.wt-game-plan-table td {
+  border-color: rgba(255, 255, 255, .1);
+}
+
+.wt-game-plan-table thead th {
+  background: rgba(12, 17, 17, .98);
+  color: rgba(255, 255, 255, .66);
+  font-weight: 480;
+}
+
+.wt-game-plan-gate {
+  background: rgba(8, 12, 12, .98);
+}
+
+.wt-game-plan-gate span {
+  border-color: rgba(67, 201, 192, .34);
+  background: rgba(67, 201, 192, .07);
+  color: #b9f4ef;
+  font-weight: 520;
+}
+
+.wt-game-plan-task,
+.wt-game-plan-cell {
+  background: rgba(5, 8, 8, .96);
+}
+
+.wt-game-plan-kind {
+  border-color: rgba(255, 255, 255, .13);
+  background: rgba(255, 255, 255, .04);
+  color: rgba(255, 255, 255, .5);
+}
+
+.wt-game-plan-task-name,
+.wt-game-plan-date {
+  color: rgba(255, 255, 255, .88);
+  font-weight: 460;
+}
+
+.wt-game-plan-event {
+  border-color: rgba(255, 255, 255, .13);
+  background: rgba(255, 255, 255, .035);
+  color: rgba(255, 255, 255, .86);
+}
+
+.wt-game-plan-event:hover {
+  border-color: rgba(67, 201, 192, .4);
+  background: rgba(67, 201, 192, .07);
+}
+
+.wt-game-plan-cell small {
+  color: rgba(255, 255, 255, .5);
+}
+
+.wt-game-plan-cell.is-empty {
+  background: rgba(255, 255, 255, .015);
+  color: rgba(255, 255, 255, .22);
+}
+
+.wt-game-plan-cell.is-selected {
+  background: rgba(67, 201, 192, .08);
+  box-shadow: inset 0 0 0 1px rgba(67, 201, 192, .68);
+}
+
+/* Worksheet and management tables */
+.wt-manager-table-wrap {
+  border-color: rgba(255, 255, 255, .13);
+  background: rgba(5, 8, 8, .88);
+  scrollbar-color: rgba(255, 255, 255, .22) transparent;
+}
+
+.wt-manager-table {
+  color: rgba(255, 255, 255, .86);
+}
+
+.wt-manager-table th,
+.wt-manager-table td {
+  border-bottom-color: rgba(255, 255, 255, .1);
+}
+
+.wt-manager-table thead th {
+  background: rgba(12, 17, 17, .98);
+  color: rgba(255, 255, 255, .56);
+  font-weight: 520;
+}
+
+.wt-manager-table time,
+.wt-manager-table b {
+  font-weight: 520;
+}
+
+.wt-manager-table small {
+  color: rgba(255, 255, 255, .5);
+}
+
+.wt-manager-season,
+.wt-tcms-status,
+.wt-tcms-category {
+  border-color: rgba(67, 201, 192, .3);
+  background: rgba(67, 201, 192, .07);
+  color: #aaf1ec;
+  font-weight: 520;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #wt-system-root *,
+  .wt-root * {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
