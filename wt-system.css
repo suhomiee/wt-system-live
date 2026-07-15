@@ -253,7 +253,7 @@
   height: 100%;
   min-height: 0;
   display: grid;
-  grid-template-rows: 62px 286px 24px 190px 26px minmax(0, 1fr);
+  grid-template-rows: 40px 308px 24px 190px 26px minmax(0, 1fr);
   gap: 0;
   padding: 10px 12px 16px 10px;
   background: #f7f8f8;
@@ -263,10 +263,10 @@
 .wt-command-topbar {
   min-width: 0;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 6px 5px 0 16px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 0 5px;
 }
 
 .wt-command-page-title {
@@ -1143,7 +1143,7 @@
   .wt-command-tree button { height: 19px; }
   .wt-app.is-dashboard .wt-dashboard.wt-command-dashboard,
   #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-dashboard.wt-command-dashboard {
-    grid-template-rows: 56px 265px 18px 165px 18px minmax(0,1fr);
+    grid-template-rows: 36px 285px 18px 165px 18px minmax(0,1fr);
     padding-top: 7px;
   }
 }

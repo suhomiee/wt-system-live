@@ -2009,7 +2009,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderCommandDashboardHeader() {
     return [
       '<header class="wt-command-topbar">',
-      '<div class="wt-command-page-title"><h1>Schedule Dashboard</h1><span>PGP Command Board</span></div>',
       '<div class="wt-command-top-actions">',
       '<div class="wt-dashboard-panel-actions wt-command-restored-actions">',
       '<button type="button" data-dashboard-month-shift="-1" aria-label="Previous month" title="Previous month">' + icon("chevron-left") + '</button>',
