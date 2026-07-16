@@ -11615,22 +11615,32 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-command-month-event {
   height: 14px;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  gap: 2px;
   margin: calc(15px + (var(--lane) * 14px)) 7px 0;
-  padding-inline: 6px;
+  padding-inline: 4px;
   line-height: 1.05;
 }
 
+.wt-command-month-event:not(.is-actual) {
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+}
+
 .wt-command-month-event b {
-  font-size: 10.5px;
+  font-size: 10px;
 }
 
 .wt-command-month-event em,
 .wt-command-month-event small {
-  font-size: 9.5px;
+  font-size: 9px;
+}
+
+.wt-command-month-event em {
+  max-width: 92px;
 }
 
 .wt-command-month-event > span {
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1;
 }
 
