@@ -41,7 +41,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   var SCHEDULE_TYPE_OPTIONS = [
     { value: "T2 FPT Sample Handoff", kind: "handoff" },
     { value: "T2 FPT WT Report", kind: "report" },
-    { value: "LTWT P/T Sample Actual", kind: "sample" }
+    { value: "LTWT P/T Sample Actual", kind: "sample" },
+    { value: "Revision DDD Actual", kind: "revisions_ddd" },
+    { value: "(LTWT) X-FTY Actual", kind: "x_fty" }
   ];
   var SCHEDULE_SIZE_OPTIONS = ["W5.5", "W8", "M9", "M10"];
   var APPROVAL_STATUS = {
@@ -57,11 +59,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     { id: "all", label: "All", status: "" }
   ];
   var PROJECT_ACTUAL_FIELDS = [
-    { key: "revisionDdd", input: "actualRevisionDdd", label: "Revision DDD", shortLabel: "Revision DDD", kind: "deadline" },
+    { key: "revisionDdd", input: "actualRevisionDdd", label: "Revision DDD Actual", shortLabel: "Revision DDD", kind: "revisions_ddd" },
     { key: "handoff", input: "actualHandoff", label: "Sample Handoff", shortLabel: "Handoff", kind: "handoff" },
     { key: "bomDdd", input: "actualBomDdd", label: "BOM DDD", shortLabel: "BOM DDD", kind: "creation" },
     { key: "productFreeze", input: "actualProductFreeze", label: "(LTWT) Product Freeze", shortLabel: "Product Freeze", kind: "deadline" },
-    { key: "ltwtXfty", input: "actualLtwtXfty", label: "(LTWT) X-FTY", shortLabel: "LTWT X-FTY", kind: "review" }
+    { key: "ltwtXfty", input: "actualLtwtXfty", label: "(LTWT) X-FTY Actual", shortLabel: "LTWT X-FTY", kind: "x_fty" }
   ];
   var COMMAND_WORKSHEET_MODEL_FALLBACKS = [
     { season: "SP28", modelName: "NIKE STRUCTURE PLUS 2 - JA7824", owner: "신성무" },
@@ -1529,7 +1531,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function isDeadlineHighlightEvent(event) {
-    return !!event && (event.kind === "deadline" || event.kind === "handoff");
+    return !!event && (["deadline", "handoff", "revisions_ddd", "x_fty"].indexOf(event.kind) >= 0);
   }
 
   function isModelScheduleEvent(event) {
@@ -2051,19 +2053,18 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function commandSeasonRows(range) {
-    var tones = ["green", "teal", "orange", "coral", "purple"];
     var seasons = GAME_PLAN_SEASONS.filter(function (season) {
       return dashboardSeasonPlanFlows(season, range).length > 0;
     });
     var worksheetExamples = commandWorksheetExamples(seasons);
+    var submittedActuals = commandSubmittedActualProjects(range);
     return seasons.map(function (season, index) {
-      var flows = dashboardSeasonPlanFlows(season, range).slice().sort(function (a, b) {
-        var endSort = a.end.localeCompare(b.end);
-        return endSort || gateOrder(a.gate) - gateOrder(b.gate);
-      });
-      var flow = flows[flows.length - 1];
+      var submittedActual = submittedActuals.filter(function (item) { return item.season === season; })[0] || null;
+      var flow = commandSeasonFlow(dashboardSeasonPlanFlows(season, range), range, submittedActual && submittedActual.gate);
       var actualStart = toIso(addDays(fromIso(flow.start), 5 + (index * 2)));
       var actualEnd = toIso(addDays(fromIso(flow.end), index % 2 ? 4 : -2));
+      if (submittedActual && submittedActual.revision) actualStart = submittedActual.revision;
+      if (submittedActual && submittedActual.xfty) actualEnd = submittedActual.xfty;
       if (actualStart > range.end) actualStart = range.end;
       if (actualEnd <= actualStart) actualEnd = toIso(addDays(fromIso(actualStart), 14));
       if (actualEnd > range.end) actualEnd = range.end;
@@ -2076,10 +2077,75 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
         planEnd: flow.end,
         actualStart: actualStart,
         actualEnd: actualEnd,
-        actual: worksheetExamples[season],
-        tone: tones[index % tones.length]
+        actual: submittedActual || worksheetExamples[season],
+        actualGate: submittedActual ? submittedActual.gate : flow.gate,
+        actualProjectKey: submittedActual ? submittedActual.projectKey : ""
       };
     });
+  }
+
+  function commandSeasonFlow(flows, range, preferredGate) {
+    var candidates = (flows || []).slice();
+    var matching = preferredGate ? candidates.filter(function (flow) { return flow.gate === preferredGate; }) : [];
+    if (matching.length) candidates = matching;
+    var focus = dashboardGanttTodayIso();
+    if (focus < range.start || focus > range.end) {
+      focus = toIso(addDays(fromIso(range.start), Math.floor(daysBetween(range.start, range.end) / 2)));
+    }
+    return candidates.sort(function (a, b) {
+      var aDistance = commandFlowDistanceFromDate(a, focus);
+      var bDistance = commandFlowDistanceFromDate(b, focus);
+      return aDistance - bDistance || gateOrder(b.gate) - gateOrder(a.gate) || a.end.localeCompare(b.end);
+    })[0];
+  }
+
+  function commandFlowDistanceFromDate(flow, dateIso) {
+    if (dateIso >= flow.start && dateIso <= flow.end) return 0;
+    if (dateIso < flow.start) return Math.abs(daysBetween(dateIso, flow.start));
+    return Math.abs(daysBetween(flow.end, dateIso));
+  }
+
+  function commandSubmittedActualProjects(range) {
+    return dashboardAllActualProjects().map(function (project) {
+      var revisionDates = [];
+      var xftyDates = [];
+      project.events.forEach(function (event) {
+        var boundary = commandActualBoundary(event);
+        if (boundary === "revision") revisionDates.push(event.date);
+        if (boundary === "xfty") xftyDates.push(event.date);
+      });
+      revisionDates.sort();
+      xftyDates.sort();
+      if (!revisionDates.length && !xftyDates.length) return null;
+      var revision = revisionDates[0] || "";
+      var xfty = xftyDates[xftyDates.length - 1] || "";
+      var start = revision || xfty;
+      var end = xfty || revision;
+      if (end < range.start || start > range.end) return null;
+      var gates = project.submissions.map(function (entry) {
+        return String(entry.item.gate || "").toUpperCase();
+      }).filter(Boolean);
+      return {
+        season: project.season,
+        gate: gates[0] || "GGP",
+        modelName: project.modelName,
+        owner: project.owner,
+        revision: revision,
+        xfty: xfty,
+        projectKey: project.key,
+        completeness: (revision ? 1 : 0) + (xfty ? 1 : 0)
+      };
+    }).filter(Boolean).sort(function (a, b) {
+      return b.completeness - a.completeness || (a.season + a.modelName).localeCompare(b.season + b.modelName);
+    });
+  }
+
+  function commandActualBoundary(event) {
+    var sourceKind = dashboardSourceKind(event).replace(/[^a-z0-9]+/g, "");
+    var label = [event && event.title, event && event.actualLabel, event && event.gate].join(" ").toLowerCase();
+    if (sourceKind === "revisionddd" || sourceKind === "revisionsddd" || label.indexOf("revision ddd") >= 0) return "revision";
+    if (sourceKind === "ltwtxfty" || sourceKind === "xfty" || label.indexOf("x-fty") >= 0) return "xfty";
+    return "";
   }
 
   function renderCommandSeasonRow(row, range) {
@@ -2090,16 +2156,19 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var actualModel = row.actual && row.actual.modelName || "WT Worksheet model";
     var actualModelLabel = commandWorksheetModelLabel(actualModel);
     var planTitle = row.id + " " + row.gate + " Revision DDD " + formatDateSlash(row.revision) + " to (LTWT) X-FTY " + formatDateSlash(row.xfty);
-    var actualTitle = "WT Worksheet example · " + actualModel + " · " + formatDateSlash(row.actualStart) + " to " + formatDateSlash(row.actualEnd);
+    var actualTitle = actualModel + " · " + row.actualGate + " · Revision DDD " + formatDateSlash(row.actualStart) + " to (LTWT) X-FTY " + formatDateSlash(row.actualEnd);
+    var actualAttributes = row.actualProjectKey
+      ? ' data-dashboard-actual-project="' + text(row.actualProjectKey) + '"'
+      : ' data-section="tcms-running"';
     return [
-      '<article class="wt-command-season-row wt-season-' + text(row.tone) + '">',
-      '<button type="button" class="wt-command-season-label" data-dashboard-month-date="' + text(row.planStart) + '" title="' + text(planTitle) + '"><b>' + text(row.id) + '</b></button>',
+      '<article class="wt-command-season-row wt-gate-' + text(row.gate.toLowerCase()) + '">',
+      '<button type="button" class="wt-command-season-label" data-dashboard-month-date="' + text(row.planStart) + '" title="' + text(planTitle) + '"><b>' + text(row.id) + '</b><small>' + text(actualModelLabel) + '</small></button>',
       '<div class="wt-command-season-track">',
       '<button type="button" class="wt-command-season-plan-bar" data-dashboard-month-date="' + text(row.planStart) + '" style="--start:' + text(start.toFixed(3)) + '%;--end:' + text(end.toFixed(3)) + '%" title="' + text(planTitle) + '" aria-label="' + text(planTitle) + '">',
       '<strong class="wt-command-bar-gate">' + text(row.gate) + '</strong><span><b>REV DDD</b><small>' + text(formatDateSlash(row.revision)) + '</small></span><i>→</i><span><b>(LTWT) X-FTY</b><small>' + text(formatDateSlash(row.xfty)) + '</small></span>',
       '</button>',
-      '<button type="button" class="wt-command-season-actual-bar" data-section="tcms-running" style="--start:' + text(actualStart.toFixed(3)) + '%;--end:' + text(actualEnd.toFixed(3)) + '%" title="' + text(actualTitle) + '" aria-label="' + text(actualTitle) + '">',
-      '<strong class="wt-command-bar-gate">' + text(row.gate) + '</strong><span>' + text(actualModelLabel) + '</span>',
+      '<button type="button" class="wt-command-season-actual-bar wt-gate-' + text(row.actualGate.toLowerCase()) + '"' + actualAttributes + ' style="--start:' + text(actualStart.toFixed(3)) + '%;--end:' + text(actualEnd.toFixed(3)) + '%" title="' + text(actualTitle) + '" aria-label="' + text(actualTitle) + '">',
+      '<span class="wt-command-actual-endpoint"><b>REV</b><small>' + text(formatDateSlash(row.actualStart)) + '</small></span><i>→</i><span class="wt-command-actual-endpoint"><b>X</b><small>' + text(formatDateSlash(row.actualEnd)) + '</small></span>',
       '</button>',
       '</div>',
       '</article>'
@@ -5225,12 +5294,17 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var milestoneType = normalizeScheduleTypeValue(values.milestoneType);
     var modelName = values.modelName || "";
     var gate = scheduleGateValue(values.gate || "");
+    var targetDate = values.targetDate || "";
+    var actualSchedule = normalizeProjectActualSchedule(values.actualSchedule);
+    var primaryKind = scheduleTypeKind(milestoneType);
+    if (isIsoDate(targetDate) && primaryKind === "revisions_ddd") actualSchedule.revisionDdd = targetDate;
+    if (isIsoDate(targetDate) && primaryKind === "x_fty") actualSchedule.ltwtXfty = targetDate;
     return {
       rowKey: values.rowKey || "",
       submittedAt: values.submittedAt || "",
       updatedAt: values.updatedAt || "",
       projectName: scheduleTitleForPayload(milestoneType, modelName),
-      targetDate: values.targetDate || "",
+      targetDate: targetDate,
       milestoneType: milestoneType,
       season: values.season || "",
       gate: gate,
@@ -5240,7 +5314,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       source: "wt-system-ui",
       owner: values.owner || "",
       cadImageUrl: values.cadImageUrl || "",
-      actualSchedule: normalizeProjectActualSchedule(values.actualSchedule),
+      actualSchedule: actualSchedule,
       notes: values.notes || "",
       sharePointItemId: values.sharePointItemId || "",
       approvalStatus: values.approvalStatus || "",
@@ -5307,14 +5381,15 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function scheduleLogicPreviewEvents(item, context) {
     if (!item) return [];
     var hasScheduleDate = isIsoDate(item.targetDate);
+    var primaryKind = scheduleTypeKind(item.milestoneType) || "sample";
     var events = [];
     if (hasScheduleDate) {
       events.push({
         date: item.targetDate,
         title: normalizeScheduleTypeValue(item.milestoneType),
-        kind: scheduleTypeKind(item.milestoneType) || "sample",
+        kind: primaryKind,
         label: item.gate || "Gate",
-        previewType: "handoff"
+        previewType: primaryKind === "revisions_ddd" || primaryKind === "x_fty" ? "actual" : "handoff"
       });
     }
     if (hasScheduleDate && isT2FptHandoffSubmission(item)) {
@@ -5346,10 +5421,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function scheduleLogicPreviewOrder(type) {
     if (type === "freeze") return 0;
-    if (type === "handoff") return 1;
-    if (type === "test") return 2;
-    if (type === "report") return 3;
-    return 4;
+    if (type === "actual") return 1;
+    if (type === "handoff") return 2;
+    if (type === "test") return 3;
+    if (type === "report") return 4;
+    return 5;
   }
 
   function renderScheduleLogicChip(event, context) {

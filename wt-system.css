@@ -464,18 +464,21 @@
 
 .wt-command-year-months b {
   display: flex;
-  align-items: baseline;
+  height: 100%;
+  align-items: center;
   justify-content: center;
   gap: 2px;
   color: #23323a;
   font-size: 8.5px;
   font-weight: 680;
+  line-height: 1;
 }
 
 .wt-command-year-months b small {
   color: #758086;
   font-size: 6.5px;
   font-weight: 600;
+  line-height: 1;
 }
 
 .wt-command-season-grid {
@@ -4633,6 +4636,11 @@ textarea:focus-visible {
 
 .wt-schedule-logic-chip.is-handoff {
   border-left-color: #073f47;
+}
+
+.wt-schedule-logic-chip.is-actual {
+  border-left-color: #0a7772;
+  background: #f1fbfa;
 }
 
 .wt-schedule-logic-chip.is-test {
@@ -11137,6 +11145,11 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   font-weight: 520;
 }
 
+.wt-schedule-logic-chip.is-actual {
+  border-left-color: #43c9c0;
+  background: rgba(67, 201, 192, .08);
+}
+
 .wt-schedule-logic-chip.is-test {
   border-left-color: #d8a348;
   background: rgba(216, 163, 72, .07);
@@ -11689,6 +11702,97 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-game-plan-cell small {
   font-size: 12.5px;
+}
+
+/* Macro plan gate progression: XLT to SPA gains visual weight without season tinting. */
+.wt-gate-xlt {
+  --command-gate-border: rgba(157, 224, 218, .58);
+  --command-gate-fill: rgba(124, 205, 198, .12);
+  --command-gate-actual: rgba(124, 205, 198, .08);
+  --command-gate-label: #aee8e3;
+}
+
+.wt-gate-pr {
+  --command-gate-border: rgba(104, 211, 203, .68);
+  --command-gate-fill: rgba(67, 201, 192, .18);
+  --command-gate-actual: rgba(67, 201, 192, .12);
+  --command-gate-label: #89ddd6;
+}
+
+.wt-gate-ggp {
+  --command-gate-border: rgba(36, 184, 176, .82);
+  --command-gate-fill: rgba(13, 151, 145, .25);
+  --command-gate-actual: rgba(13, 151, 145, .17);
+  --command-gate-label: #5ed0c8;
+}
+
+.wt-gate-spa {
+  --command-gate-border: rgba(22, 161, 154, .94);
+  --command-gate-fill: rgba(5, 111, 107, .36);
+  --command-gate-actual: rgba(5, 111, 107, .25);
+  --command-gate-label: #43c9c0;
+}
+
+.wt-command-season-row[class*="wt-gate-"] .wt-command-season-label {
+  color: var(--command-gate-label);
+}
+
+.wt-command-season-row[class*="wt-gate-"] .wt-command-season-plan-bar,
+.wt-command-season-row[class*="wt-gate-"] .wt-command-season-actual-bar {
+  border-color: var(--command-gate-border);
+  color: rgba(255, 255, 255, .92);
+}
+
+.wt-command-season-row[class*="wt-gate-"] .wt-command-season-plan-bar {
+  background: var(--command-gate-fill);
+}
+
+.wt-command-season-row[class*="wt-gate-"] .wt-command-season-actual-bar {
+  background: var(--command-gate-actual);
+}
+
+.wt-command-season-label small {
+  overflow: hidden;
+  color: rgba(255, 255, 255, .58);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wt-command-season-actual-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 2px;
+  padding-inline: 4px;
+  text-align: center;
+}
+
+.wt-command-season-actual-bar .wt-command-actual-endpoint {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.wt-command-season-actual-bar .wt-command-actual-endpoint b,
+.wt-command-season-actual-bar .wt-command-actual-endpoint small,
+.wt-command-season-actual-bar > i {
+  flex: 0 0 auto;
+  font-size: 8.5px;
+  font-style: normal;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.wt-command-season-actual-bar .wt-command-actual-endpoint b {
+  font-weight: 650;
+}
+
+.wt-command-season-actual-bar .wt-command-actual-endpoint small {
+  color: rgba(255, 255, 255, .68);
+  font-weight: 500;
 }
 
 @media (max-width: 1120px) {
