@@ -1998,9 +1998,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     return [
       '<section class="wt-dashboard wt-command-dashboard">',
       renderCommandMacroPlan(),
-      '<div class="wt-command-today-gap">' + renderCommandRangeTodayMarker(commandMacroRange()) + '</div>',
+      '<div class="wt-command-today-gap" aria-hidden="true"></div>',
       renderCommandMasterPlan(),
-      '<div class="wt-command-today-gap is-master-gap">' + renderCommandRangeTodayMarker(dashboardMasterRange()) + '</div>',
+      '<div class="wt-command-today-gap is-master-gap" aria-hidden="true"></div>',
       state.dashboardRunningView ? renderCommandTwoMonthPanel() : renderCommandMonthPanel(),
       '</section>',
       renderDashboardProjectDrawer()
@@ -2237,6 +2237,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderCommandMasterPlan() {
     var range = dashboardMasterRange();
     var weeks = commandQuarterWeeks(range);
+    var visualRange = commandMasterVisualRange(weeks);
     var quarter = Math.floor(fromIso(range.start).getMonth() / 3) + 1;
     var year = fromIso(range.start).getFullYear();
     var monthTitle = MONTHS.slice(fromIso(range.start).getMonth(), fromIso(range.end).getMonth() + 1).map(function (month) { return month.toUpperCase(); }).join(" – ");
@@ -2250,15 +2251,16 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-command-zoom"><button type="button" data-dashboard-master-zoom="-1" aria-label="Zoom out">' + icon("zoom-out") + '</button><output>' + text(state.dashboardMasterZoom) + '× / 5×</output><button type="button" data-dashboard-master-zoom="1" aria-label="Zoom in">' + icon("zoom-in") + '</button></div>',
       '</header>',
       '<div class="wt-command-master-grid" style="--weeks:' + text(weeks.length) + '">',
-      '<div class="wt-command-master-label is-week">WEEK (STARTING)</div>',
-      weeks.map(function (week, index) { return '<button type="button" class="wt-command-week-label" data-dashboard-month-date="' + text(week) + '" style="grid-column:' + text(index + 2) + '">' + text(MONTHS[fromIso(week).getMonth()].toUpperCase() + " " + fromIso(week).getDate()) + '</button>'; }).join(""),
+      '<div class="wt-command-master-label is-week">WEEK RANGE</div>',
+      weeks.map(function (week, index) { return '<button type="button" class="wt-command-week-label" data-dashboard-month-date="' + text(commandMasterWeekTarget(week, range)) + '" style="grid-column:' + text(index + 2) + '">' + commandMasterWeekLabel(week) + '</button>'; }).join(""),
       '<div class="wt-command-master-label is-gate">GATE / ROUND</div>',
       renderCommandGateBands(weeks.length),
       '<div class="wt-command-master-label is-milestone">KEY MILESTONES</div>',
       '<div class="wt-command-milestone-track" style="grid-column:2 / span ' + text(weeks.length) + ';--weeks:' + text(weeks.length) + '">',
       weeks.map(function () { return '<i class="wt-command-master-rule"></i>'; }).join(""),
-      milestones.map(function (item) { return renderCommandMasterMilestone(item, range); }).join(""),
-      renderCommandActualMilestones(range),
+      renderCommandMasterTodayLine(visualRange),
+      milestones.map(function (item) { return renderCommandMasterMilestone(item, visualRange); }).join(""),
+      renderCommandActualMilestones(range, visualRange),
       '</div>',
       '</div>',
       '</section>'
@@ -2275,6 +2277,27 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       cursor = addDays(cursor, 7);
     }
     return weeks;
+  }
+
+  function commandMasterVisualRange(weeks) {
+    return {
+      start: weeks[0],
+      end: toIso(addDays(fromIso(weeks[weeks.length - 1]), 6))
+    };
+  }
+
+  function commandMasterWeekTarget(week, range) {
+    if (week < range.start) return range.start;
+    if (week > range.end) return range.end;
+    return week;
+  }
+
+  function commandMasterWeekLabel(week) {
+    var start = fromIso(week);
+    var end = addDays(start, 6);
+    var startLabel = MONTHS[start.getMonth()].toUpperCase() + " " + start.getDate();
+    var endLabel = (start.getMonth() === end.getMonth() ? "" : MONTHS[end.getMonth()].toUpperCase() + " ") + end.getDate();
+    return '<span>' + text(startLabel) + '</span><small>– ' + text(endLabel) + '</small>';
   }
 
   function renderCommandGateBands(count) {
@@ -2306,7 +2329,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       { label: "Revision DDD", date: dateAt(6), tone: "blue", labelBefore: true },
       { label: "Revision DDD to LTWT X-FTY", date: dateAt(6), endDate: dateAt(count - 2), tone: "blue", flow: true },
       { label: "LTWT X-FTY", date: dateAt(count - 2), tone: "red" },
-      { label: "Handoff", date: dateAt(count - 1), tone: "red-outline", labelBefore: true }
+      { label: "Handoff", date: dateAt(count - 1), tone: "red-outline" }
     ];
   }
 
@@ -2314,27 +2337,48 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var dateLabel = item.flow ? commandPointDate(item.date) + " – " + commandPointDate(item.endDate) : commandPointDate(item.date);
     var point = commandRangePointPercent(item.date, range);
     var flowPosition = item.flow ? dashboardRangePosition(item.date, item.endDate, range) : null;
-    var labelBefore = !item.flow && (item.labelBefore || point > 88);
+    var labelBefore = !item.flow && (item.labelBefore || point > 96);
+    var edgeClass = item.flow ? "" : (labelBefore ? " is-label-before" : (point < 8 || point > 88) ? " is-label-after" : " is-label-centered");
     var style = item.flow
       ? '--visual-left:' + text(flowPosition.left) + '%;--visual-width:' + text(flowPosition.width) + '%'
-      : '--visual-left:' + text(point.toFixed(3)) + '%';
+      : '--visual-left:' + text(point.toFixed(3)) + '%;--point-width:' + text(commandMasterPointWidth(item.label)) + 'px';
     return [
-      '<button type="button" class="wt-command-master-event is-' + text(item.tone) + (item.flow ? " is-flow" : " is-point") + (labelBefore ? " is-label-before" : "") + '" data-dashboard-month-date="' + text(item.date) + '" style="' + style + '" title="' + text(item.label + " · " + dateLabel) + '">',
+      '<button type="button" class="wt-command-master-event is-' + text(item.tone) + (item.flow ? " is-flow" : " is-point") + edgeClass + '" data-dashboard-month-date="' + text(item.date) + '" style="' + style + '" title="' + text(item.label + " · " + dateLabel) + '">',
       '<b>' + text(item.label) + '</b><small>' + text(dateLabel) + '</small>',
       '</button>'
     ].join("");
   }
 
-  function renderCommandActualMilestones(range) {
+  function commandMasterPointWidth(label) {
+    var widths = {
+      "Tooling": 64,
+      "Product Freeze": 94,
+      "BOM DDD": 72,
+      "Revision DDD": 88,
+      "LTWT X-FTY": 86,
+      "Handoff": 60
+    };
+    return widths[label] || 82;
+  }
+
+  function renderCommandMasterTodayLine(range) {
+    var today = dashboardGanttTodayIso();
+    if (today < range.start || today > range.end) return "";
+    return '<span class="wt-command-master-today-line" style="--point:' + text(commandRangePointPercent(today, range).toFixed(3)) + '%"></span>';
+  }
+
+  function renderCommandActualMilestones(range, visualRange) {
     var projects = dashboardAllActualProjects().filter(function (project) {
       return project.events.some(function (event) { return eventOverlapsRange(event, range.start, range.end); });
-    }).slice(0, 2);
+    }).slice(0, 1);
     if (!projects.length) return "";
-    return projects.map(function (project, rowIndex) {
+    return projects.map(function (project) {
       var firstEvent = project.events.filter(function (event) { return eventOverlapsRange(event, range.start, range.end); }).sort(function (a, b) { return a.date.localeCompare(b.date); })[0];
-      var point = commandRangePointPercent(firstEvent.date, range);
-      var labelBefore = point > 88 ? " is-label-before" : "";
-      return '<button type="button" class="wt-command-actual-event' + labelBefore + '" data-dashboard-actual-project="' + text(project.key) + '" style="--visual-left:' + text(point.toFixed(3)) + '%;--actual-row:' + text(rowIndex) + '" title="' + text((project.modelName || project.projectName || "Actual") + " · " + formatDateSlash(firstEvent.date)) + '"><b>' + text(shortTitle(project.modelName || project.projectName || "Actual", 16)) + '</b><small>' + text(formatDateSlash(firstEvent.date)) + '</small></button>';
+      var point = commandRangePointPercent(firstEvent.date, visualRange);
+      var edgeClass = point > 88 ? " is-label-before" : point < 10 ? " is-label-after" : " is-label-centered";
+      var modelName = commandWorksheetModelLabel(project.modelName || project.projectName || "Project");
+      var detail = dashboardProjectGate(project) + " · " + formatDateSlash(firstEvent.date);
+      return '<button type="button" class="wt-command-actual-event' + edgeClass + '" data-dashboard-actual-project="' + text(project.key) + '" style="--visual-left:' + text(point.toFixed(3)) + '%" title="' + text(modelName + " · " + detail) + '"><b>' + text(modelName) + '</b><small>' + text(detail) + '</small></button>';
     }).join("");
   }
 

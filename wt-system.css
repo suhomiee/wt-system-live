@@ -11812,6 +11812,175 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   font-weight: 500;
 }
 
+/* Keep Master Plan dates on one visual axis and use readable milestone cards. */
+.wt-command-week-label {
+  display: grid;
+  place-content: center;
+  gap: 2px;
+  padding: 0 2px;
+  line-height: 1;
+}
+
+.wt-command-week-label span {
+  font-size: 10.5px;
+  font-weight: 560;
+}
+
+.wt-command-week-label small {
+  color: rgba(255, 255, 255, .42);
+  font-size: 8.5px;
+  font-weight: 470;
+}
+
+.wt-command-master-event {
+  top: 3px;
+  height: 34px;
+}
+
+.wt-command-master-event.is-point {
+  width: var(--point-width, 82px);
+  min-width: var(--point-width, 82px);
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  padding: 3px 7px;
+  border: 1px solid rgba(255, 255, 255, .28);
+  border-radius: 3px;
+  color: rgba(255, 255, 255, .94);
+  text-align: center;
+  overflow: hidden;
+  transform: none;
+}
+
+.wt-command-master-event.is-point::before {
+  display: none;
+}
+
+.wt-command-master-event.is-point.is-label-centered {
+  transform: translateX(-50%);
+}
+
+.wt-command-master-event.is-point.is-label-before {
+  right: calc(100% - var(--visual-left));
+  left: auto;
+  padding: 3px 7px;
+  text-align: center;
+}
+
+.wt-command-master-event.is-point b,
+.wt-command-master-event.is-point small {
+  justify-self: stretch;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.wt-command-master-event.is-point.is-label-before.is-red b,
+.wt-command-master-event.is-point.is-label-before.is-red small {
+  background: transparent;
+}
+
+.wt-command-master-event.is-point b {
+  font-size: 10.5px;
+  font-weight: 590;
+}
+
+.wt-command-master-event.is-point small {
+  color: rgba(255, 255, 255, .68);
+  font-size: 9.5px;
+  font-weight: 470;
+}
+
+.wt-command-master-event.is-point.is-gold {
+  border-color: rgba(219, 182, 91, .72);
+  background: rgba(185, 151, 0, .34);
+}
+
+.wt-command-master-event.is-point.is-teal {
+  border-color: rgba(116, 216, 210, .68);
+  background: rgba(7, 139, 137, .34);
+}
+
+.wt-command-master-event.is-point.is-blue {
+  border-color: rgba(141, 173, 240, .7);
+  background: rgba(22, 103, 196, .38);
+}
+
+.wt-command-master-event.is-point.is-red {
+  border-color: rgba(240, 139, 134, .74);
+  background: rgba(226, 73, 67, .38);
+}
+
+.wt-command-master-event.is-point.is-red-outline {
+  border-color: rgba(240, 139, 134, .74);
+  background: rgba(226, 73, 67, .12);
+  color: #ffc0bc;
+}
+
+.wt-command-master-today-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--point);
+  z-index: 1;
+  width: 1px;
+  background: rgba(67, 201, 192, .62);
+  pointer-events: none;
+}
+
+.wt-command-actual-event {
+  bottom: 3px;
+  width: 210px;
+  height: 27px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  justify-content: stretch;
+  gap: 2px;
+  padding: 3px 7px;
+  border: 1px solid rgba(130, 145, 233, .72);
+  border-radius: 3px;
+  background: rgba(83, 109, 240, .2);
+  color: #eef0ff;
+  text-align: left;
+  overflow: hidden;
+  transform: none;
+}
+
+.wt-command-actual-event::before {
+  display: none;
+}
+
+.wt-command-actual-event.is-label-centered {
+  transform: translateX(-50%);
+}
+
+.wt-command-actual-event.is-label-before {
+  right: calc(100% - var(--visual-left));
+  left: auto;
+  justify-content: stretch;
+  padding: 3px 7px;
+  text-align: right;
+}
+
+.wt-command-actual-event b,
+.wt-command-actual-event small {
+  max-width: none;
+  font-weight: 520;
+  line-height: 1;
+}
+
+.wt-command-actual-event b {
+  font-size: 10.5px;
+}
+
+.wt-command-actual-event small {
+  color: rgba(219, 225, 255, .65);
+  font-size: 9.5px;
+}
+
 @media (max-width: 1120px) {
   .wt-command-inline-controls .wt-dashboard-running-toggle span,
   .wt-command-inline-controls .wt-work-order-toggle span {
