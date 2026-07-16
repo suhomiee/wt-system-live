@@ -11329,7 +11329,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 /* Projector readability: keep the command board legible at 1280 x 720. */
 .wt-app.is-dashboard .wt-dashboard.wt-command-dashboard,
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-dashboard.wt-command-dashboard {
-  grid-template-rows: 224px 6px 175px 6px minmax(0, 1fr);
+  grid-template-rows: clamp(270px, 34vh, 360px) 6px 175px 6px minmax(0, 1fr);
   padding-top: 7px;
 }
 
@@ -11379,17 +11379,17 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-command-season-plan-bar,
 .wt-command-season-actual-bar {
-  height: 15px;
+  height: 17px;
   padding-inline: 6px;
 }
 
 .wt-command-season-plan-bar {
-  top: 1px;
+  top: calc(50% - 18px);
   gap: 4px;
 }
 
 .wt-command-season-actual-bar {
-  top: 17px;
+  top: calc(50% + 1px);
   gap: 5px;
 }
 
@@ -11535,7 +11535,10 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   max-width: 64px;
 }
 
-.wt-command-month,
+.wt-command-month {
+  grid-template-rows: 32px minmax(0, 1fr);
+}
+
 .wt-command-two-month {
   grid-template-rows: 38px minmax(0, 1fr);
 }
@@ -11589,11 +11592,11 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-command-month-grid {
-  grid-template-rows: 28px repeat(var(--month-weeks), minmax(0, 1fr));
+  grid-template-rows: 22px repeat(var(--month-weeks), minmax(0, 1fr));
 }
 
 .wt-command-weekday {
-  font-size: 11.5px;
+  font-size: 11px;
 }
 
 .wt-command-month-cell {
@@ -11601,8 +11604,8 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-command-month-cell span {
-  font-size: 13px;
-  line-height: 13px;
+  font-size: 12px;
+  line-height: 12px;
 }
 
 .wt-command-month-cell small {
@@ -11614,12 +11617,12 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-command-month-event {
-  height: 14px;
+  height: 12px;
   grid-template-columns: minmax(0, 1fr) auto auto auto;
   gap: 2px;
-  margin: calc(15px + (var(--lane) * 14px)) 7px 0;
+  margin: calc(13px + (var(--lane) * 12px)) 7px 0;
   padding-inline: 4px;
-  line-height: 1.05;
+  line-height: 1;
 }
 
 .wt-command-month-event:not(.is-actual) {
@@ -11627,20 +11630,23 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-command-month-event b {
-  font-size: 10px;
+  font-size: 9.5px;
+  line-height: 1;
 }
 
 .wt-command-month-event em,
 .wt-command-month-event small {
-  font-size: 9px;
+  font-size: 8.5px;
 }
 
 .wt-command-month-event em {
   max-width: 92px;
+  padding-block: 0;
+  line-height: 10px;
 }
 
 .wt-command-month-event > span {
-  font-size: 10px;
+  font-size: 9px;
   line-height: 1;
 }
 
