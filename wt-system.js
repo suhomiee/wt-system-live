@@ -1995,7 +1995,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderDashboard() {
     return [
       '<section class="wt-dashboard wt-command-dashboard">',
-      renderCommandDashboardHeader(),
       renderCommandMacroPlan(),
       '<div class="wt-command-today-gap">' + renderCommandRangeTodayMarker(commandMacroRange()) + '</div>',
       renderCommandMasterPlan(),
@@ -2006,19 +2005,15 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     ].join("");
   }
 
-  function renderCommandDashboardHeader() {
+  function renderCommandDashboardControls() {
     return [
-      '<header class="wt-command-topbar">',
-      '<div class="wt-command-top-actions">',
-      '<div class="wt-dashboard-panel-actions wt-command-restored-actions">',
+      '<div class="wt-dashboard-panel-actions wt-command-restored-actions wt-command-inline-controls">',
       '<button type="button" data-dashboard-month-shift="-1" aria-label="Previous month" title="Previous month">' + icon("chevron-left") + '</button>',
       '<button type="button" data-dashboard-today>Today</button>',
       '<button type="button" data-dashboard-month-shift="1" aria-label="Next month" title="Next month">' + icon("chevron-right") + '</button>',
       '<button type="button" class="wt-dashboard-running-toggle ' + (state.dashboardRunningView ? "active" : "") + '" data-dashboard-running-toggle aria-pressed="' + text(state.dashboardRunningView ? "true" : "false") + '" title="Toggle 2-month schedule">' + icon("calendar") + '<span>2M Schedule</span></button>',
       renderWorkOrderToggle(),
-      '</div>',
-      '</div>',
-      '</header>'
+      '</div>'
     ].join("");
   }
 
@@ -2104,7 +2099,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<strong class="wt-command-bar-gate">' + text(row.gate) + '</strong><span><b>REV DDD</b><small>' + text(formatDateSlash(row.revision)) + '</small></span><i>→</i><span><b>(LTWT) X-FTY</b><small>' + text(formatDateSlash(row.xfty)) + '</small></span>',
       '</button>',
       '<button type="button" class="wt-command-season-actual-bar" data-section="tcms-running" style="--start:' + text(actualStart.toFixed(3)) + '%;--end:' + text(actualEnd.toFixed(3)) + '%" title="' + text(actualTitle) + '" aria-label="' + text(actualTitle) + '">',
-      '<strong class="wt-command-bar-gate">' + text(row.gate) + '</strong><b>ACTUAL</b><span>' + text(actualModelLabel) + '</span>',
+      '<strong class="wt-command-bar-gate">' + text(row.gate) + '</strong><span>' + text(actualModelLabel) + '</span>',
       '</button>',
       '</div>',
       '</article>'
@@ -2284,7 +2279,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var today = dashboardGanttTodayIso();
     return [
       '<section class="wt-command-panel wt-command-month" aria-label="' + text(MONTH_NAMES[selected.getMonth()] + " " + selected.getFullYear()) + ' calendar">',
-      '<header><h2>MONTH · ' + text(MONTHS[selected.getMonth()].toUpperCase() + " " + selected.getFullYear()) + '</h2></header>',
+      '<header><h2>MONTH · ' + text(MONTHS[selected.getMonth()].toUpperCase() + " " + selected.getFullYear()) + '</h2>' + renderCommandDashboardControls() + '</header>',
       '<div class="wt-command-month-grid" style="--month-weeks:' + text(weeks) + '">',
       ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"].map(function (day, index) { return '<b class="wt-command-weekday" style="grid-column:' + text(index + 1) + '">' + text(day) + '</b>'; }).join(""),
       cells.map(function (date, index) {
@@ -2304,7 +2299,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var nextMonth = addMonths(selected, 1);
     return [
       '<section class="wt-command-panel wt-command-two-month" aria-label="Two-month schedule">',
-      '<header><h2>2M SCHEDULE · ' + text(MONTHS[selected.getMonth()].toUpperCase() + " – " + MONTHS[nextMonth.getMonth()].toUpperCase() + " " + nextMonth.getFullYear()) + '</h2></header>',
+      '<header><h2>2M SCHEDULE · ' + text(MONTHS[selected.getMonth()].toUpperCase() + " – " + MONTHS[nextMonth.getMonth()].toUpperCase() + " " + nextMonth.getFullYear()) + '</h2>' + renderCommandDashboardControls() + '</header>',
       '<div class="wt-command-two-month-body">',
       renderDashboardRunningPanel({ hideHeader: true }),
       '</div>',

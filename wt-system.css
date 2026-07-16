@@ -11313,6 +11313,398 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   font-weight: 520;
 }
 
+/* Projector readability: keep the command board legible at 1280 x 720. */
+.wt-app.is-dashboard .wt-dashboard.wt-command-dashboard,
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-dashboard.wt-command-dashboard {
+  grid-template-rows: 224px 6px 175px 6px minmax(0, 1fr);
+  padding-top: 7px;
+}
+
+.wt-command-panel-head {
+  height: 29px;
+}
+
+.wt-command-macro-nav {
+  grid-template-columns: 30px minmax(0, 1fr) 30px;
+  gap: 9px;
+  padding-inline: 9px;
+}
+
+.wt-command-macro-nav b {
+  font-size: 12px;
+}
+
+.wt-command-macro-nav button {
+  width: 30px;
+  height: 24px;
+}
+
+.wt-command-year-months {
+  height: 28px;
+}
+
+.wt-command-year-months b {
+  gap: 3px;
+  font-size: 11.5px;
+}
+
+.wt-command-year-months b small {
+  font-size: 9.5px;
+}
+
+.wt-command-season-grid {
+  height: calc(100% - 57px);
+}
+
+.wt-command-season-label {
+  padding-inline: 13px;
+}
+
+.wt-command-season-label b {
+  font-size: 14px;
+}
+
+.wt-command-season-plan-bar,
+.wt-command-season-actual-bar {
+  height: 15px;
+  padding-inline: 6px;
+}
+
+.wt-command-season-plan-bar {
+  top: 1px;
+  gap: 4px;
+}
+
+.wt-command-season-actual-bar {
+  top: 17px;
+  gap: 5px;
+}
+
+.wt-command-season-plan-bar b,
+.wt-command-season-plan-bar small,
+.wt-command-season-plan-bar i,
+.wt-command-season-actual-bar b,
+.wt-command-season-actual-bar span,
+.wt-command-season-actual-bar small {
+  font-size: 9.5px;
+}
+
+.wt-command-bar-gate {
+  min-width: 28px;
+  height: 14px;
+  font-size: 9px;
+}
+
+.wt-command-today-gap {
+  z-index: 8;
+}
+
+.wt-command-today-gap span,
+.wt-command-today-gap.is-master-gap span {
+  top: -5px;
+  min-width: 54px;
+  height: 22px;
+  border-color: rgba(67, 201, 192, .9);
+  background: rgba(10, 137, 132, .96);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 650;
+  box-shadow: 0 0 0 2px rgba(2, 6, 6, .82);
+}
+
+.wt-command-master-head {
+  height: 32px;
+  grid-template-columns: 118px minmax(220px, 1fr) 118px 146px;
+  gap: 7px;
+  padding-inline: 11px;
+}
+
+.wt-command-master-head > b {
+  font-size: 14px;
+}
+
+.wt-command-quarter-nav {
+  gap: 7px;
+  font-size: 12px;
+}
+
+.wt-command-quarter-nav button,
+.wt-command-zoom button {
+  width: 28px;
+  height: 26px;
+}
+
+.wt-command-quarter-nav .wt-icon,
+.wt-command-zoom .wt-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.wt-command-zoom {
+  grid-template-columns: 30px 70px 30px;
+  gap: 5px;
+}
+
+.wt-command-zoom button {
+  width: 30px;
+}
+
+.wt-command-zoom output {
+  height: 26px;
+  font-size: 13px;
+}
+
+.wt-command-master-grid {
+  height: calc(100% - 32px);
+  grid-template-rows: 38px 34px minmax(0, 1fr);
+}
+
+.wt-command-master-label {
+  font-size: 11.5px;
+}
+
+.wt-command-week-label {
+  font-size: 11.5px;
+}
+
+.wt-command-gate-band {
+  height: 24px;
+  font-size: 12px;
+}
+
+.wt-command-master-event {
+  top: 7px;
+  height: 48px;
+}
+
+.wt-command-master-event b {
+  font-size: 11px;
+}
+
+.wt-command-master-event small {
+  font-size: 10px;
+}
+
+.wt-command-master-event.is-point {
+  width: 82px;
+  min-width: 82px;
+  gap: 1px;
+}
+
+.wt-command-master-event.is-point::before {
+  top: 19px;
+  width: 9px;
+  height: 9px;
+}
+
+.wt-command-master-event.is-point b {
+  font-size: 10.5px;
+  line-height: 10.5px;
+  white-space: normal;
+}
+
+.wt-command-master-event.is-point small {
+  font-size: 9.5px;
+}
+
+.wt-command-actual-event {
+  bottom: calc(2px + (var(--actual-row) * 18px));
+  width: 100px;
+  height: 17px;
+}
+
+.wt-command-actual-event b,
+.wt-command-actual-event small {
+  font-size: 9.5px;
+}
+
+.wt-command-actual-event b {
+  max-width: 64px;
+}
+
+.wt-command-month,
+.wt-command-two-month {
+  grid-template-rows: 38px minmax(0, 1fr);
+}
+
+.wt-command-month > header,
+.wt-command-two-month > header {
+  justify-content: space-between;
+  gap: 12px;
+  padding-inline: 12px;
+}
+
+.wt-command-month > header h2,
+.wt-command-two-month > header h2 {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 15px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wt-command-inline-controls {
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+.wt-command-inline-controls button,
+.wt-command-inline-controls .wt-work-order-toggle {
+  height: 28px;
+  min-height: 28px;
+  min-width: 30px;
+  padding-inline: 8px;
+  border-color: rgba(255, 255, 255, .2);
+  background: rgba(5, 8, 8, .78);
+  color: rgba(255, 255, 255, .84);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.wt-command-inline-controls button:hover,
+.wt-command-inline-controls button:focus-visible {
+  border-color: rgba(67, 201, 192, .62);
+  background: rgba(67, 201, 192, .08);
+  color: #ffffff;
+}
+
+.wt-command-inline-controls .wt-dashboard-running-toggle.active,
+.wt-command-inline-controls .wt-work-order-toggle.active {
+  border-color: rgba(67, 201, 192, .65);
+  background: rgba(67, 201, 192, .14);
+  color: #c8faf6;
+}
+
+.wt-command-month-grid {
+  grid-template-rows: 28px repeat(var(--month-weeks), minmax(0, 1fr));
+}
+
+.wt-command-weekday {
+  font-size: 11.5px;
+}
+
+.wt-command-month-cell {
+  padding: 1px 9px;
+}
+
+.wt-command-month-cell span {
+  font-size: 13px;
+  line-height: 13px;
+}
+
+.wt-command-month-cell small {
+  top: 1px;
+  right: 7px;
+  min-width: 48px;
+  height: 19px;
+  font-size: 10px;
+}
+
+.wt-command-month-event {
+  height: 14px;
+  margin: calc(15px + (var(--lane) * 14px)) 7px 0;
+  padding-inline: 6px;
+  line-height: 1.05;
+}
+
+.wt-command-month-event b {
+  font-size: 10.5px;
+}
+
+.wt-command-month-event em,
+.wt-command-month-event small {
+  font-size: 9.5px;
+}
+
+.wt-command-month-event > span {
+  font-size: 14px;
+}
+
+/* Calendar, worksheet, and manager screens share the projector baseline. */
+.wt-flow-calendar-page .wt-month-day-button span {
+  font-size: 12px;
+}
+
+.wt-flow-calendar-page .wt-month-event span,
+.wt-flow-calendar-page .wt-horizontal-event span {
+  font-size: 12px;
+  line-height: 14px;
+}
+
+.wt-flow-calendar-page .wt-month-event b,
+.wt-flow-calendar-page .wt-horizontal-event b {
+  font-size: 14px;
+  line-height: 16px;
+}
+
+.wt-flow-calendar-page .wt-month-event span em,
+.wt-flow-calendar-page .wt-horizontal-event span em {
+  font-size: 10px;
+}
+
+.wt-manager-head small,
+.wt-tcms-count small,
+.wt-tcms-count span {
+  font-size: 13px;
+}
+
+.wt-manager-tabs button {
+  font-size: 14px;
+}
+
+.wt-manager-tabs button b {
+  font-size: 13px;
+}
+
+.wt-manager-tabs button.active {
+  border-bottom-color: #43c9c0;
+  color: #bff5f1;
+}
+
+.wt-manager-tabs button.active b {
+  background: rgba(67, 201, 192, .18);
+  color: #dffcf9;
+}
+
+.wt-manager-table {
+  font-size: 15px;
+}
+
+.wt-manager-table thead th {
+  font-size: 13px;
+}
+
+.wt-manager-table small {
+  font-size: 13px;
+}
+
+.wt-game-plan-event {
+  gap: 5px;
+  padding-inline: 6px;
+}
+
+.wt-game-plan-date {
+  font-size: 14.5px;
+}
+
+.wt-game-plan-cell small {
+  font-size: 12.5px;
+}
+
+@media (max-width: 1120px) {
+  .wt-command-inline-controls .wt-dashboard-running-toggle span,
+  .wt-command-inline-controls .wt-work-order-toggle span {
+    display: none;
+  }
+
+  .wt-command-inline-controls .wt-dashboard-running-toggle,
+  .wt-command-inline-controls .wt-work-order-toggle {
+    width: 30px;
+    margin-left: 0;
+    padding: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   #wt-system-root *,
   .wt-root * {
