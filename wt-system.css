@@ -11630,7 +11630,8 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-command-month-event > span {
-  font-size: 14px;
+  font-size: 11px;
+  line-height: 1;
 }
 
 /* Calendar, worksheet, and manager screens share the projector baseline. */
