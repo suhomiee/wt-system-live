@@ -2501,7 +2501,11 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var start = cells[0];
     var end = cells[cells.length - 1];
     var occupied = {};
-    return events.filter(function (event) { return event.date <= end && (event.endDate || event.date) >= start; }).map(function (event) {
+    return events.filter(function (event) { return event.date <= end && (event.endDate || event.date) >= start; }).sort(function (a, b) {
+      var startOrder = a.date.localeCompare(b.date);
+      if (startOrder) return startOrder;
+      return (b.endDate || b.date).localeCompare(a.endDate || a.date);
+    }).map(function (event) {
       var eventStart = event.date < start ? start : event.date;
       var eventEnd = event.endDate > end ? end : event.endDate;
       var startIndex = daysBetween(start, eventStart);

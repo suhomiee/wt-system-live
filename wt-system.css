@@ -11635,6 +11635,10 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-command-month-cell span {
+  position: absolute;
+  top: 1px;
+  left: 9px;
+  display: block;
   font-size: 12px;
   line-height: 12px;
 }
@@ -11648,10 +11652,10 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-command-month-event {
-  height: 12px;
+  height: 11px;
   grid-template-columns: minmax(0, 1fr) auto auto auto;
   gap: 2px;
-  margin: calc(13px + (var(--lane) * 12px)) 7px 0;
+  margin: calc(14px + (var(--lane) * 11px)) 7px 0;
   padding-inline: 4px;
   line-height: 1;
 }
