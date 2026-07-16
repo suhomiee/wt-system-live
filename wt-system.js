@@ -1996,7 +1996,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderDashboard() {
     return [
-      '<section class="wt-dashboard wt-command-dashboard">',
+      '<section class="wt-dashboard wt-command-dashboard' + (state.dashboardRunningView ? " is-two-month" : "") + '">',
       renderCommandMacroPlan(),
       '<div class="wt-command-today-gap" aria-hidden="true"></div>',
       renderCommandMasterPlan(),
@@ -2164,7 +2164,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<button type="button" class="wt-command-season-label" data-dashboard-month-date="' + text(row.planStart) + '" title="' + text(planTitle) + '"><b>' + text(row.id) + '</b></button>',
       '<div class="wt-command-season-track">',
       '<button type="button" class="wt-command-season-plan-bar" data-dashboard-month-date="' + text(row.planStart) + '" style="--start:' + text(start.toFixed(3)) + '%;--end:' + text(end.toFixed(3)) + '%" title="' + text(planTitle) + '" aria-label="' + text(planTitle) + '">',
-      '<strong class="wt-command-bar-gate">' + text(row.gate) + '</strong><span><b>REV DDD</b><small>' + text(formatDateSlash(row.revision)) + '</small></span><i>→</i><span><b>(LTWT) X-FTY</b><small>' + text(formatDateSlash(row.xfty)) + '</small></span>',
+      '<strong class="wt-command-bar-gate">' + text(row.gate) + '</strong><span class="wt-command-plan-copy"><span><b>REV DDD</b><small>' + text(formatDateSlash(row.revision)) + '</small></span><span><i>→</i><b>X-FTY</b><small>' + text(formatDateSlash(row.xfty)) + '</small></span></span>',
       '</button>',
       '<button type="button" class="wt-command-season-actual-bar wt-gate-' + text(row.actualGate.toLowerCase()) + '"' + actualAttributes + ' style="--start:' + text(actualStart.toFixed(3)) + '%;--end:' + text(actualEnd.toFixed(3)) + '%" title="' + text(actualTitle) + '" aria-label="' + text(actualTitle) + '">',
       '<span class="wt-command-actual-endpoint"><b>REV</b><small>' + text(formatDateSlash(row.actualStart)) + '</small></span><i>→</i><span class="wt-command-actual-endpoint"><b>X</b><small>' + text(formatDateSlash(row.actualEnd)) + '</small></span>',

@@ -11329,8 +11329,39 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 /* Projector readability: keep the command board legible at 1280 x 720. */
 .wt-app.is-dashboard .wt-dashboard.wt-command-dashboard,
 #wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-dashboard.wt-command-dashboard {
-  grid-template-rows: clamp(270px, 34vh, 360px) 6px 175px 6px minmax(0, 1fr);
+  grid-template-rows: clamp(325px, 45vh, 490px) 6px 175px 6px minmax(0, 1fr);
   padding-top: 7px;
+}
+
+.wt-command-dashboard > .wt-command-macro { grid-row: 1; }
+.wt-command-dashboard > .wt-command-today-gap:not(.is-master-gap) { grid-row: 2; }
+.wt-command-dashboard > .wt-command-master { grid-row: 3; }
+.wt-command-dashboard > .wt-command-today-gap.is-master-gap { grid-row: 4; }
+.wt-command-dashboard > .wt-command-month,
+.wt-command-dashboard > .wt-command-two-month { grid-row: 5; }
+
+.wt-app.is-dashboard .wt-dashboard.wt-command-dashboard.is-two-month,
+#wt-system-root[data-wt-fit="viewport"] .wt-app.is-dashboard .wt-dashboard.wt-command-dashboard.is-two-month {
+  grid-template-rows: clamp(325px, 45vh, 490px) 6px 0 0 minmax(0, 1fr);
+}
+
+.wt-command-dashboard.is-two-month > .wt-command-master,
+.wt-command-dashboard.is-two-month > .wt-command-today-gap.is-master-gap {
+  display: none;
+}
+
+.wt-command-dashboard.is-two-month .wt-dashboard-running-bar {
+  min-height: 0;
+  max-height: none;
+  padding-block: 1px;
+}
+
+.wt-command-dashboard.is-two-month .wt-dashboard-running-bar b {
+  overflow: hidden;
+  font-size: 10.5px;
+  line-height: 1;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .wt-command-panel-head {
@@ -11979,6 +12010,134 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 .wt-command-actual-event small {
   color: rgba(219, 225, 255, .65);
   font-size: 9.5px;
+}
+
+/* Projector-scale Macro Plan: prioritize milestone names and dates. */
+.wt-command-macro-nav b {
+  font-size: 13px;
+}
+
+.wt-command-year-months b {
+  font-size: 12.5px;
+}
+
+.wt-command-year-months b small {
+  font-size: 10px;
+}
+
+.wt-command-season-label b {
+  font-size: 15px;
+}
+
+.wt-command-season-plan-bar,
+.wt-command-season-actual-bar {
+  width: min(max(116px, calc(var(--end) - var(--start))), calc(100% - var(--start)));
+}
+
+.wt-command-season-plan-bar {
+  top: calc(50% - 26px);
+  height: 28px;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 3px;
+  padding: 2px 4px;
+}
+
+.wt-command-season-plan-bar .wt-command-plan-copy {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  align-content: center;
+  justify-content: stretch;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.wt-command-season-plan-bar .wt-command-plan-copy > span,
+.wt-command-season-plan-bar .wt-command-plan-copy > span:last-child {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  overflow: hidden;
+}
+
+.wt-command-season-plan-bar .wt-command-plan-copy b,
+.wt-command-season-plan-bar .wt-command-plan-copy small,
+.wt-command-season-plan-bar .wt-command-plan-copy i {
+  min-width: 0;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.wt-command-season-plan-bar .wt-command-plan-copy b {
+  font-weight: 620;
+}
+
+.wt-command-season-plan-bar .wt-command-plan-copy small {
+  color: rgba(255, 255, 255, .74);
+  font-weight: 500;
+}
+
+.wt-command-bar-gate {
+  min-width: 25px;
+  height: 19px;
+  padding-inline: 3px;
+  font-size: 10.5px;
+}
+
+.wt-command-season-actual-bar {
+  top: calc(50% + 3px);
+  height: 21px;
+  padding-inline: 5px;
+}
+
+.wt-command-season-actual-bar .wt-command-actual-endpoint b,
+.wt-command-season-actual-bar .wt-command-actual-endpoint small,
+.wt-command-season-actual-bar > i {
+  font-size: 11px;
+}
+
+@media (min-width: 1600px) and (min-height: 850px) {
+  .wt-command-year-months b {
+    font-size: 13.5px;
+  }
+
+  .wt-command-season-label b {
+    font-size: 17px;
+  }
+
+  .wt-command-season-plan-bar {
+    top: calc(50% - 31px);
+    height: 34px;
+    min-width: 150px;
+    padding-inline: 6px;
+  }
+
+  .wt-command-season-plan-bar .wt-command-plan-copy b,
+  .wt-command-season-plan-bar .wt-command-plan-copy small,
+  .wt-command-season-plan-bar .wt-command-plan-copy i {
+    font-size: 13px;
+  }
+
+  .wt-command-bar-gate {
+    min-width: 30px;
+    height: 22px;
+    font-size: 11.5px;
+  }
+
+  .wt-command-season-actual-bar {
+    top: calc(50% + 5px);
+    height: 24px;
+    min-width: 150px;
+    padding-inline: 7px;
+  }
+
+  .wt-command-season-actual-bar .wt-command-actual-endpoint b,
+  .wt-command-season-actual-bar .wt-command-actual-endpoint small,
+  .wt-command-season-actual-bar > i {
+    font-size: 12.5px;
+  }
 }
 
 @media (max-width: 1120px) {
