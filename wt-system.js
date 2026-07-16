@@ -2154,6 +2154,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var actualStart = commandRangePercent(row.actualStart, range, false);
     var actualEnd = commandRangePercent(row.actualEnd, range, true);
     var actualModel = row.actual && row.actual.modelName || "WT Worksheet model";
+    var actualModelLabel = commandWorksheetModelLabel(actualModel) || actualModel;
     var planTitle = row.id + " " + row.gate + " Revision DDD " + formatDateSlash(row.revision) + " to (LTWT) X-FTY " + formatDateSlash(row.xfty);
     var actualTitle = actualModel + " · " + row.actualGate + " · Revision DDD " + formatDateSlash(row.actualStart) + " to (LTWT) X-FTY " + formatDateSlash(row.actualEnd);
     var actualAttributes = row.actualProjectKey
@@ -2167,7 +2168,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<strong class="wt-command-bar-gate">' + text(row.gate) + '</strong><span class="wt-command-plan-copy"><span><b>REV DDD</b><small>' + text(formatDateSlash(row.revision)) + '</small></span><span><i>→</i><b>X-FTY</b><small>' + text(formatDateSlash(row.xfty)) + '</small></span></span>',
       '</button>',
       '<button type="button" class="wt-command-season-actual-bar wt-gate-' + text(row.actualGate.toLowerCase()) + '"' + actualAttributes + ' style="--start:' + text(actualStart.toFixed(3)) + '%;--end:' + text(actualEnd.toFixed(3)) + '%" title="' + text(actualTitle) + '" aria-label="' + text(actualTitle) + '">',
-      '<span class="wt-command-actual-endpoint"><b>REV</b><small>' + text(formatDateSlash(row.actualStart)) + '</small></span><i>→</i><span class="wt-command-actual-endpoint"><b>X</b><small>' + text(formatDateSlash(row.actualEnd)) + '</small></span>',
+      '<strong class="wt-command-actual-model">' + text(actualModelLabel) + '</strong><span class="wt-command-actual-dates"><span class="wt-command-actual-endpoint"><b>REV</b><small>' + text(formatDateSlash(row.actualStart)) + '</small></span><i>→</i><span class="wt-command-actual-endpoint"><b>X-FTY</b><small>' + text(formatDateSlash(row.actualEnd)) + '</small></span></span>',
       '</button>',
       '</div>',
       '</article>'

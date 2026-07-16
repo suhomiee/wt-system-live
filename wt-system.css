@@ -12091,15 +12091,48 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-command-season-actual-bar {
-  top: calc(50% + 3px);
-  height: 21px;
+  top: calc(50% + 2px);
+  height: 24px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-content: center;
+  gap: 1px;
   padding-inline: 5px;
+  text-align: left;
 }
 
-.wt-command-season-actual-bar .wt-command-actual-endpoint b,
-.wt-command-season-actual-bar .wt-command-actual-endpoint small,
-.wt-command-season-actual-bar > i {
-  font-size: 11px;
+.wt-command-season-actual-bar .wt-command-actual-model {
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(255, 255, 255, .96);
+  font-size: 10.5px;
+  font-weight: 620;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wt-command-season-actual-bar .wt-command-actual-dates {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  overflow: hidden;
+  color: rgba(255, 255, 255, .68);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.wt-command-season-actual-bar .wt-command-actual-dates .wt-command-actual-endpoint {
+  flex: 0 1 auto;
+  justify-content: flex-start;
+  gap: 2px;
+}
+
+.wt-command-season-actual-bar .wt-command-actual-dates b,
+.wt-command-season-actual-bar .wt-command-actual-dates small,
+.wt-command-season-actual-bar .wt-command-actual-dates > i {
+  font-size: 8px;
 }
 
 @media (min-width: 1600px) and (min-height: 850px) {
@@ -12131,16 +12164,20 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   }
 
   .wt-command-season-actual-bar {
-    top: calc(50% + 5px);
-    height: 24px;
+    top: calc(50% + 4px);
+    height: 29px;
     min-width: 150px;
     padding-inline: 7px;
   }
 
-  .wt-command-season-actual-bar .wt-command-actual-endpoint b,
-  .wt-command-season-actual-bar .wt-command-actual-endpoint small,
-  .wt-command-season-actual-bar > i {
+  .wt-command-season-actual-bar .wt-command-actual-model {
     font-size: 12.5px;
+  }
+
+  .wt-command-season-actual-bar .wt-command-actual-dates b,
+  .wt-command-season-actual-bar .wt-command-actual-dates small,
+  .wt-command-season-actual-bar .wt-command-actual-dates > i {
+    font-size: 10px;
   }
 }
 
