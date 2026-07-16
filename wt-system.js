@@ -2154,7 +2154,6 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var actualStart = commandRangePercent(row.actualStart, range, false);
     var actualEnd = commandRangePercent(row.actualEnd, range, true);
     var actualModel = row.actual && row.actual.modelName || "WT Worksheet model";
-    var actualModelLabel = commandWorksheetModelLabel(actualModel);
     var planTitle = row.id + " " + row.gate + " Revision DDD " + formatDateSlash(row.revision) + " to (LTWT) X-FTY " + formatDateSlash(row.xfty);
     var actualTitle = actualModel + " · " + row.actualGate + " · Revision DDD " + formatDateSlash(row.actualStart) + " to (LTWT) X-FTY " + formatDateSlash(row.actualEnd);
     var actualAttributes = row.actualProjectKey
@@ -2162,7 +2161,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       : ' data-section="tcms-running"';
     return [
       '<article class="wt-command-season-row wt-gate-' + text(row.gate.toLowerCase()) + '">',
-      '<button type="button" class="wt-command-season-label" data-dashboard-month-date="' + text(row.planStart) + '" title="' + text(planTitle) + '"><b>' + text(row.id) + '</b><small>' + text(actualModelLabel) + '</small></button>',
+      '<button type="button" class="wt-command-season-label" data-dashboard-month-date="' + text(row.planStart) + '" title="' + text(planTitle) + '"><b>' + text(row.id) + '</b></button>',
       '<div class="wt-command-season-track">',
       '<button type="button" class="wt-command-season-plan-bar" data-dashboard-month-date="' + text(row.planStart) + '" style="--start:' + text(start.toFixed(3)) + '%;--end:' + text(end.toFixed(3)) + '%" title="' + text(planTitle) + '" aria-label="' + text(planTitle) + '">',
       '<strong class="wt-command-bar-gate">' + text(row.gate) + '</strong><span><b>REV DDD</b><small>' + text(formatDateSlash(row.revision)) + '</small></span><i>→</i><span><b>(LTWT) X-FTY</b><small>' + text(formatDateSlash(row.xfty)) + '</small></span>',
