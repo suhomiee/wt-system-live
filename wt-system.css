@@ -12372,14 +12372,43 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-lead-weeks span {
   min-width: 0;
-  display: grid;
-  place-items: center;
-  border-right: 1px solid rgba(185, 219, 218, .12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-right: 1px solid rgba(185, 219, 218, .18);
   color: rgba(237, 248, 248, .68);
-  font-size: clamp(7px, .58vw, 9px);
-  font-weight: 500;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+.wt-lead-weeks span b {
+  color: rgba(247, 252, 252, .9);
+  font-size: clamp(9px, .72vw, 11px);
+  font-weight: 650;
+  line-height: 1;
+}
+
+.wt-lead-weeks span small {
+  color: rgba(237, 248, 248, .46);
+  font-size: clamp(5px, .38vw, 6px);
+  font-weight: 550;
+  line-height: 1;
+}
+
+.wt-lead-weeks span.is-zero {
+  color: #43c9c0;
+  background: rgba(67, 201, 192, .1);
+  box-shadow: inset 1px 0 #43c9c0, inset -1px 0 #43c9c0;
+}
+
+.wt-lead-weeks span.is-zero b {
+  color: #43c9c0;
+}
+
+.wt-lead-weeks span.is-zero small {
+  color: #43c9c0;
 }
 
 .wt-lead-weeks span:last-child {
@@ -12473,6 +12502,12 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 
 .wt-lead-track-grid i:last-child {
   border-right: 0;
+}
+
+.wt-lead-track-grid i.is-zero {
+  border-right-color: rgba(67, 201, 192, .5);
+  border-left: 1px solid rgba(67, 201, 192, .5);
+  background: rgba(67, 201, 192, .04);
 }
 
 .wt-lead-event {

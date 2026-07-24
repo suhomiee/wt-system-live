@@ -4040,11 +4040,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<div class="wt-lead-advantage is-spa"><span>EARLY SPA PRODUCT FREEZE</span><strong>TKG FPT · ' + text(formatLeadDate(model.tkgSpaFreeze)) + '</strong><small>' + text(model.spaFreezeAdvantageDays) + ' days earlier than the standard ' + text(formatLeadDate(model.standardSpaFreeze)) + ' schedule</small></div>',
       '</header>',
       '<div class="wt-lead-axis">',
-      '<div class="wt-lead-axis-label"><span>WEEK</span><b>STARTING MONDAY</b></div>',
+      '<div class="wt-lead-axis-label"><span>WEEK</span><b>T2 FPT 1ST REPORT = 0</b></div>',
       '<div class="wt-lead-axis-timeline">',
       '<div class="wt-lead-months">' + renderLeadMonthAxis(model) + '</div>',
       '<div class="wt-lead-weeks">' + model.weeks.map(function (week) {
-        return '<span>' + text(formatLeadDate(week.start)) + '</span>';
+        var offsetLabel = week.offset > 0 ? "+" + week.offset : String(week.offset);
+        var unitLabel = Math.abs(week.offset) <= 1 ? "WK" : "WKS";
+        return '<span class="' + (week.offset === 0 ? "is-zero" : "") + '" data-week-offset="' + text(week.offset) + '" title="Week starting ' + text(formatLeadDate(week.start)) + '"><b>' + text(offsetLabel) + '</b><small>' + text(unitLabel) + '</small></span>';
       }).join("") + '</div>',
       '</div>',
       '</div>',
@@ -4076,11 +4078,13 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var tkgSpaBom = addBusinessDaysIso(tkgSpaRevision, revisionToBomBusinessDays);
     var tkgSpaFreeze = addBusinessDaysIso(tkgSpaBom, bomToFreezeBusinessDays);
     var spaFreezeAdvantageDays = daysBetween(tkgSpaFreeze, standardSpaFreeze);
+    var weekZeroDate = anchorYear + "-10-27";
     var range = { start: anchorYear + "-09-07", end: nextYear + "-04-18" };
-    var weeks = leadWeekUnits(range);
+    var weeks = leadWeekUnits(range, weekZeroDate);
     return {
       range: range,
       weeks: weeks,
+      weekZeroDate: weekZeroDate,
       sampleDate: sampleDate,
       calendarResult: calendarResult,
       runningResult: runningResult,
@@ -4162,13 +4166,15 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     };
   }
 
-  function leadWeekUnits(range) {
+  function leadWeekUnits(range, weekZeroDate) {
     var units = [];
     var cursor = startOfWeek(fromIso(range.start));
+    var zeroWeek = startOfWeek(fromIso(weekZeroDate));
     while (toIso(cursor) <= range.end) {
       units.push({
         start: toIso(cursor),
-        end: toIso(addDays(cursor, 6))
+        end: toIso(addDays(cursor, 6)),
+        offset: Math.round((cursor.getTime() - zeroWeek.getTime()) / 604800000)
       });
       cursor = addDays(cursor, 7);
     }
@@ -4217,8 +4223,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderLeadTrackGrid(model) {
-    return '<div class="wt-lead-track-grid" aria-hidden="true">' + model.weeks.map(function () {
-      return "<i></i>";
+    return '<div class="wt-lead-track-grid" aria-hidden="true">' + model.weeks.map(function (week) {
+      return '<i class="' + (week.offset === 0 ? "is-zero" : "") + '"></i>';
     }).join("") + "</div>";
   }
 

@@ -46,7 +46,10 @@ try {
       const eventDates = Array.from(document.querySelectorAll(".wt-lead-event > b")).map((node) => node.textContent.trim());
       const eventTitles = Array.from(document.querySelectorAll(".wt-lead-event")).map((node) => node.getAttribute("title"));
       const phaseWeeks = Array.from(document.querySelectorAll(".wt-lead-phase")).map((node) => Number(node.dataset.weeks));
-      const weekLabels = Array.from(document.querySelectorAll(".wt-lead-weeks span")).map((node) => node.textContent.trim());
+      const weekNodes = Array.from(document.querySelectorAll(".wt-lead-weeks span"));
+      const weekLabels = weekNodes.map((node) => node.textContent.trim());
+      const weekOffsets = weekNodes.map((node) => Number(node.dataset.weekOffset));
+      const weekTitles = weekNodes.map((node) => node.getAttribute("title"));
       const activeNav = document.querySelector('.wt-primary-nav [data-section="leadtime"].active');
       const pageRect = pageRoot.getBoundingClientRect();
       const trackRect = track.getBoundingClientRect();
@@ -74,6 +77,11 @@ try {
         eventTitles,
         phaseWeeks,
         weekLabels,
+        weekOffsets,
+        weekTitles,
+        weekAxisLabel: document.querySelector(".wt-lead-axis-label")?.textContent.replace(/\s+/g, " ").trim(),
+        zeroAxisCount: document.querySelectorAll(".wt-lead-weeks .is-zero").length,
+        zeroGridCount: document.querySelectorAll(".wt-lead-track-grid .is-zero").length,
         comparison,
         highlight: highlight?.textContent.replace(/\s+/g, " ").trim(),
         highlightTitle: highlight?.getAttribute("title"),
@@ -109,7 +117,10 @@ try {
       [result.phaseWeeks.filter((weeks) => weeks === 1).length === 2, "transition duration"],
       [result.phaseWeeks.filter((weeks) => weeks === 2).length === 2, "distribution duration"],
       [result.phaseWeeks.filter((weeks) => weeks === 8).length === 3, "LTWT duration"],
-      [result.weekLabels.length === 32 && result.weekLabels[0] === "09/07" && result.weekLabels.at(-1) === "04/12", "weekly axis"],
+      [result.weekLabels.length === 32 && result.weekLabels[0] === "-7WKS" && result.weekLabels.at(-1) === "+24WKS", "weekly labels"],
+      [result.weekOffsets[0] === -7 && result.weekOffsets[7] === 0 && result.weekOffsets.at(-1) === 24, "weekly offsets"],
+      [result.weekLabels.every((label) => !label.includes("/")) && result.weekTitles[0].includes("09/07"), "dates demoted from axis"],
+      [result.weekAxisLabel.includes("T2 FPT 1ST REPORT = 0") && result.zeroAxisCount === 1 && result.zeroGridCount === 3, "week zero reference"],
       [result.comparison[0].includes("12/29") && result.comparison[1].includes("+2W 3D") && result.comparison[2].includes("+11W 1D"), "result comparison"],
       [result.activeNav, "active navigation"],
       [result.navigationRoundTrip, "navigation round trip"],
@@ -129,7 +140,7 @@ try {
       throw new Error(`${viewport.name} QA failed: ${failed.join(", ")}\n${JSON.stringify(result, null, 2)}`);
     }
 
-    await page.locator(".wt-app").screenshot({
+    await page.locator(".wt-lead-page").screenshot({
       path: path.join(outputDir, `wt-leadtime-${viewport.name}.png`),
       animations: "disabled"
     });
