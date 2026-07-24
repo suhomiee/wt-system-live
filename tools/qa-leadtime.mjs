@@ -120,9 +120,9 @@ try {
       throw new Error(`${viewport.name} QA failed: ${failed.join(", ")}\n${JSON.stringify(result, null, 2)}`);
     }
 
-    await page.screenshot({
+    await page.locator(".wt-app").screenshot({
       path: path.join(outputDir, `wt-leadtime-${viewport.name}.png`),
-      fullPage: true
+      animations: "disabled"
     });
     console.log(`${viewport.name}: ${JSON.stringify(result)}`);
     await page.close();
