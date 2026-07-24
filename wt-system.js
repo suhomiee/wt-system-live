@@ -4037,7 +4037,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<section class="wt-lead-page" style="--wt-lead-weeks:' + text(model.weeks.length) + '">',
       '<header class="wt-lead-header">',
       '<div><small>WEEKLY PROCESS COMPARISON</small><h1>LTWT Lead-Time Compare</h1><p>Calendar, Running &amp; ACG, and TKG FPT on one weekly date axis.</p></div>',
-      '<div class="wt-lead-advantage"><span>EARLIEST FINAL RESULT</span><strong>TKG FPT · ' + text(formatLeadDate(model.tkgResult)) + '</strong><small>' + text(formatLeadDuration(model.calendarAdvantageDays)) + ' faster than Calendar · ' + text(formatLeadDuration(model.runningAdvantageDays)) + ' faster than Running &amp; ACG</small></div>',
+      '<div class="wt-lead-advantage is-spa"><span>EARLY SPA PRODUCT FREEZE</span><strong>TKG FPT · ' + text(formatLeadDate(model.tkgSpaFreeze)) + '</strong><small>' + text(model.spaFreezeAdvantageDays) + ' days earlier than the standard ' + text(formatLeadDate(model.standardSpaFreeze)) + ' schedule</small></div>',
       '</header>',
       '<div class="wt-lead-axis">',
       '<div class="wt-lead-axis-label"><span>WEEK</span><b>STARTING MONDAY</b></div>',
@@ -4065,7 +4065,18 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var calendarResult = nextYear + "-03-17";
     var runningResult = nextYear + "-01-15";
     var tkgResult = anchorYear + "-12-29";
-    var range = { start: anchorYear + "-09-07", end: nextYear + "-03-21" };
+    var standardSpaRevision = nextYear + "-01-22";
+    var standardSpaBom = nextYear + "-02-03";
+    var standardSpaFreeze = nextYear + "-02-12";
+    var spaXfty = nextYear + "-03-26";
+    var spaResult = nextYear + "-04-16";
+    var tkgSpaRevision = nextYear + "-01-05";
+    var revisionToBomBusinessDays = businessDaysBetweenIso(standardSpaRevision, standardSpaBom);
+    var bomToFreezeBusinessDays = businessDaysBetweenIso(standardSpaBom, standardSpaFreeze);
+    var tkgSpaBom = addBusinessDaysIso(tkgSpaRevision, revisionToBomBusinessDays);
+    var tkgSpaFreeze = addBusinessDaysIso(tkgSpaBom, bomToFreezeBusinessDays);
+    var spaFreezeAdvantageDays = daysBetween(tkgSpaFreeze, standardSpaFreeze);
+    var range = { start: anchorYear + "-09-07", end: nextYear + "-04-18" };
     var weeks = leadWeekUnits(range);
     return {
       range: range,
@@ -4074,6 +4085,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       calendarResult: calendarResult,
       runningResult: runningResult,
       tkgResult: tkgResult,
+      standardSpaFreeze: standardSpaFreeze,
+      tkgSpaFreeze: tkgSpaFreeze,
+      spaFreezeAdvantageDays: spaFreezeAdvantageDays,
       calendarAdvantageDays: daysBetween(tkgResult, calendarResult),
       runningAdvantageDays: daysBetween(tkgResult, runningResult),
       calendar: {
@@ -4086,13 +4100,16 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
           { date: anchorYear + "-10-21", label: "BOM Deadline", shared: true, row: 1, span: 3 },
           { date: anchorYear + "-10-30", label: "Product Freeze", row: 2, span: 3 },
           { date: sampleDate, label: "Sample X-FTY", shared: true, row: 1, span: 3 },
-          { date: nextYear + "-02-03", label: "SPA BOM DDD", row: 2, span: 3 },
-          { date: calendarResult, label: "LTWT Results Ready", result: true, row: 1, span: 4, align: "end" }
+          { date: standardSpaRevision, label: "SPA WT Design Revision Due", displayLabel: "Design Revision", row: 2, span: 4 },
+          { date: standardSpaBom, label: "SPA BOM DDD", row: 3, span: 3 },
+          { date: calendarResult, label: "LTWT Results Ready", displayLabel: "LTWT Results", result: true, row: 1, span: 4 },
+          { date: spaXfty, label: "SPA WT X-FTY", row: 2, span: 3 },
+          { date: spaResult, label: "WT SPA Results Ready", displayLabel: "SPA Results", result: true, row: 3, span: 4, align: "end" }
         ],
         phases: [
-          { start: sampleDate, label: "Transition", weeks: 1, row: 3 },
-          { start: nextYear + "-01-01", label: "Distribution", weeks: 2, row: 3 },
-          { start: nextYear + "-01-15", label: "LTWT", weeks: 8, row: 3 }
+          { start: sampleDate, label: "Transition", weeks: 1, row: 4 },
+          { start: nextYear + "-01-01", label: "Distribution", weeks: 2, row: 4 },
+          { start: nextYear + "-01-15", label: "LTWT", weeks: 8, row: 4 }
         ]
       },
       running: {
@@ -4107,12 +4124,17 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
           { date: anchorYear + "-10-21", label: "BOM Deadline", shared: true, row: 1, span: 3 },
           { date: anchorYear + "-11-06", label: "LTWT X-FTY", row: 2, span: 3 },
           { date: sampleDate, label: "Sample X-FTY", shared: true, row: 1, span: 3 },
-          { date: runningResult, label: "LTWT Results Ready", result: true, row: 2, span: 4 }
+          { date: runningResult, label: "LTWT Results Ready", displayLabel: "LTWT Results", result: true, row: 2, span: 4 },
+          { date: standardSpaRevision, label: "SPA WT Design Revision Due", displayLabel: "Design Revision", row: 1, span: 4 },
+          { date: standardSpaBom, label: "SPA BOM DDD", row: 3, span: 3 },
+          { date: standardSpaFreeze, label: "SPA Product Freeze", displayLabel: "SPA Freeze", row: 2, span: 3 },
+          { date: spaXfty, label: "SPA WT X-FTY", row: 1, span: 3 },
+          { date: spaResult, label: "WT SPA Results Ready", displayLabel: "SPA Results", result: true, row: 2, span: 4, align: "end" }
         ],
         phases: [
-          { start: anchorYear + "-11-06", label: "Transition", weeks: 1, row: 3 },
-          { start: anchorYear + "-11-13", label: "Distribution", weeks: 2, row: 3 },
-          { start: anchorYear + "-11-20", label: "LTWT", weeks: 8, row: 4, parallel: true }
+          { start: anchorYear + "-11-06", label: "Transition", weeks: 1, row: 4 },
+          { start: anchorYear + "-11-13", label: "Distribution", weeks: 2, row: 4 },
+          { start: anchorYear + "-11-20", label: "LTWT", weeks: 8, row: 5, parallel: true }
         ]
       },
       tkg: {
@@ -4127,11 +4149,14 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
           { date: anchorYear + "-10-06", label: "Tooling ETC", row: 1, span: 3 },
           { date: anchorYear + "-10-13", label: "T2 FPT Sample Handoff", displayLabel: "Sample Handoff", row: 2, span: 4 },
           { date: anchorYear + "-10-27", label: "T2 FPT 1st Report", displayLabel: "1st Report", row: 1, span: 4 },
-          { date: anchorYear + "-12-22", label: "T2 FPT Wear Assessment Due", displayLabel: "Assessment Due", row: 2, span: 4 },
-          { date: tkgResult, label: "T2 FPT Final Report", displayLabel: "Final Report", result: true, row: 1, span: 4 }
+          { date: anchorYear + "-12-22", label: "T2 FPT Wear Assessment Due", displayLabel: "WT Assess.", row: 2, span: 3 },
+          { date: tkgResult, label: "T2 FPT Final Report", displayLabel: "Final Report", result: true, row: 1, span: 4 },
+          { date: tkgSpaRevision, label: "SPA WT Design Revision Due", displayLabel: "Design Revision", row: 3, span: 4 },
+          { date: tkgSpaBom, label: "SPA BOM DDD", row: 2, span: 3, calculated: true },
+          { date: tkgSpaFreeze, label: "SPA Product Freeze", displayLabel: "SPA Freeze · " + spaFreezeAdvantageDays + "D", row: 1, span: 5, calculated: true, highlight: true }
         ],
         phases: [
-          { start: anchorYear + "-10-27", label: "Wear Assessment", weeks: 8, row: 3 }
+          { start: anchorYear + "-10-27", label: "Wear Assessment", weeks: 8, row: 4 }
         ]
       }
     };
@@ -4217,10 +4242,12 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       "is-" + laneId,
       milestone.shared ? "is-shared" : "",
       milestone.result ? "is-result" : "",
+      milestone.highlight ? "is-highlight" : "",
+      milestone.calculated ? "is-calculated" : "",
       alignEnd ? "is-align-end" : ""
     ].filter(Boolean).join(" ");
     return [
-      '<div class="' + text(classes) + '" style="--col:' + text(startColumn) + ';--span:' + text(requestedSpan) + ';--row:' + text(milestone.row || 1) + '" title="' + text(milestone.label + " · " + formatLeadDate(milestone.date)) + '">',
+      '<div class="' + text(classes) + '" style="--col:' + text(startColumn) + ';--span:' + text(requestedSpan) + ';--row:' + text(milestone.row || 1) + '" title="' + text(milestone.label + " · " + formatLeadDate(milestone.date)) + '"' + (milestone.calculated ? ' data-calculated="true"' : "") + '>',
       '<b>' + text(formatLeadDate(milestone.date)) + '</b><span>' + text(milestone.displayLabel || milestone.label) + '</span>',
       '</div>'
     ].join("");
@@ -4228,8 +4255,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
 
   function renderLeadResultComparison(model) {
     return [
-      '<section class="wt-lead-results" aria-label="Final result date comparison">',
-      '<header><small>FINAL RESULT COMPARISON</small><b>TKG FPT closes the feedback loop first.</b></header>',
+      '<section class="wt-lead-results" aria-label="Process speed comparison">',
+      '<header><small>KEY SPEED ADVANTAGE</small><b>SPA Product Freeze · ' + text(formatLeadDate(model.tkgSpaFreeze)) + ' · ' + text(model.spaFreezeAdvantageDays) + 'D ahead</b></header>',
       '<div class="wt-lead-result is-tkg"><span>1</span><div><small>TKG FPT</small><b>' + text(formatLeadDate(model.tkgResult)) + '</b></div><strong>EARLIEST</strong></div>',
       '<div class="wt-lead-result is-running"><span>2</span><div><small>RUNNING &amp; ACG</small><b>' + text(formatLeadDate(model.runningResult)) + '</b></div><strong>+' + text(formatLeadDuration(model.runningAdvantageDays)) + '</strong></div>',
       '<div class="wt-lead-result is-calendar"><span>3</span><div><small>CALENDAR</small><b>' + text(formatLeadDate(model.calendarResult)) + '</b></div><strong>+' + text(formatLeadDuration(model.calendarAdvantageDays)) + '</strong></div>',
