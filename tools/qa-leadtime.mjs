@@ -74,6 +74,16 @@ try {
         const running = document.querySelector(`.wt-lead-event.is-running[title="${title}"]`)?.getBoundingClientRect();
         return calendar && running ? Math.round(running.top - calendar.bottom) : null;
       });
+      const phaseChains = ["calendar", "running", "tkg"].map((laneId) => {
+        const rects = Array.from(document.querySelectorAll(`.wt-lead-phase.is-${laneId}`))
+          .sort((a, b) => Number(a.dataset.chainIndex) - Number(b.dataset.chainIndex))
+          .map((node) => node.getBoundingClientRect());
+        return {
+          laneId,
+          gaps: rects.slice(1).map((rect, index) => Math.round(rect.left - rects[index].right)),
+          rowCount: new Set(rects.map((rect) => Math.round(rect.top))).size
+        };
+      });
 
       return {
         title: document.querySelector(".wt-lead-header h1")?.textContent.trim(),
@@ -96,6 +106,7 @@ try {
         laneCount: document.querySelectorAll(".wt-lead-lane").length,
         combinedLaneCount: document.querySelectorAll(".wt-lead-lane.is-combined").length,
         pairGaps,
+        phaseChains,
         combinedTrackHeight: Math.round(combinedTrack.getBoundingClientRect().height),
         tkgTrackHeight: Math.round(tkgTrack.getBoundingClientRect().height),
         activeNav: Boolean(activeNav),
@@ -123,7 +134,9 @@ try {
       [result.laneResultDates.join("|") === "03/17|01/15|12/29", "result dates"],
       [result.laneCount === 2 && result.combinedLaneCount === 1, "combined Calendar and Running lane"],
       [result.pairGaps.every((gap) => gap >= 3 && gap <= 5), "paired event spacing"],
-      [result.combinedTrackHeight <= 254 && result.tkgTrackHeight <= 140, "compact lane heights"],
+      [result.combinedTrackHeight <= 226 && result.tkgTrackHeight <= 140, "compact lane heights"],
+      [result.phaseChains.every((chain) => chain.rowCount === 1), "single-row phase chains"],
+      [result.phaseChains.every((chain) => chain.gaps.every((gap) => gap >= -1 && gap <= 0)), "joined phase chains"],
       [result.eventDates.length === 29 && result.eventDates.filter((date) => date === "04/16").length === 2, "event dates"],
       [result.eventDates.filter((date) => date === "03/26").length === 2 && result.eventDates.filter((date) => date === "01/22").length === 2, "SPA dates"],
       [result.eventTitles.some((label) => label.includes("SPA BOM DDD · 01/15")) && result.eventTitles.some((label) => label.includes("SPA Product Freeze · 01/26")), "calculated SPA labels"],

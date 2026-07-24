@@ -12486,7 +12486,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-lead-lane.is-combined > .wt-lead-combined-header {
-  min-height: 252px;
+  min-height: 224px;
   display: grid;
   grid-template-rows: repeat(2, auto);
   align-content: center;
@@ -12538,8 +12538,8 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
 }
 
 .wt-lead-track.is-combined {
-  min-height: 252px;
-  grid-template-rows: repeat(9, 28px);
+  min-height: 224px;
+  grid-template-rows: repeat(8, 28px);
 }
 
 .wt-lead-track.is-combined .wt-lead-event,
@@ -12677,6 +12677,26 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   border-radius: 2px;
   background: rgba(66, 119, 146, .4);
   overflow: hidden;
+}
+
+.wt-lead-phase.is-chain-item {
+  border-radius: 0;
+}
+
+.wt-lead-phase.is-chain-first {
+  border-radius: 2px 0 0 2px;
+}
+
+.wt-lead-phase.is-chain-last {
+  border-radius: 0 2px 2px 0;
+}
+
+.wt-lead-phase.is-chain-first.is-chain-last {
+  border-radius: 2px;
+}
+
+.wt-lead-phase.is-chain-item:not(.is-chain-last) {
+  width: calc(100% + 1px);
 }
 
 .wt-lead-phase.is-running {

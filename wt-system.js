@@ -4214,7 +4214,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '<header><small>' + text(lane.kicker) + '</small><h2>' + text(lane.title) + '</h2><p>' + text(lane.resultLabel) + '</p><b data-lead-result>' + text(formatLeadDate(lane.result)) + '</b></header>',
       '<div class="wt-lead-track is-' + text(lane.id) + '">',
       renderLeadTrackGrid(model),
-      lane.phases.map(function (phase) { return renderLeadPhase(model, phase, lane.id); }).join(""),
+      renderLeadPhaseChain(model, lane.phases, lane.id),
       lane.milestones.map(function (milestone) { return renderLeadMilestone(model, milestone, lane.id); }).join(""),
       '</div>',
       '</section>'
@@ -4232,8 +4232,8 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '</header>',
       '<div class="wt-lead-track is-combined">',
       renderLeadTrackGrid(model),
-      calendar.phases.map(function (phase) { return renderLeadPhase(model, phase, calendar.id, 7); }).join(""),
-      running.phases.map(function (phase) { return renderLeadPhase(model, phase, running.id, phase.row === 4 ? 8 : 9); }).join(""),
+      renderLeadPhaseChain(model, calendar.phases, calendar.id, 7),
+      renderLeadPhaseChain(model, running.phases, running.id, 8),
       calendar.milestones.map(function (milestone) { return renderLeadMilestone(model, milestone, calendar.id, (milestone.row - 1) * 2 + 1); }).join(""),
       running.milestones.map(function (milestone) { return renderLeadMilestone(model, milestone, running.id, (milestone.row - 1) * 2 + 2); }).join(""),
       '</div>',
@@ -4247,11 +4247,25 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     }).join("") + "</div>";
   }
 
-  function renderLeadPhase(model, phase, laneId, rowOverride) {
-    var column = leadWeekColumn(phase.start, model);
+  function renderLeadPhaseChain(model, phases, laneId, rowOverride) {
+    var nextColumn = phases.length ? leadWeekColumn(phases[0].start, model) : 1;
+    return phases.map(function (phase, index) {
+      var column = nextColumn;
+      nextColumn += phase.weeks;
+      return renderLeadPhase(model, phase, laneId, rowOverride, column, index, phases.length);
+    }).join("");
+  }
+
+  function renderLeadPhase(model, phase, laneId, rowOverride, columnOverride, chainIndex, chainLength) {
+    var column = columnOverride || leadWeekColumn(phase.start, model);
     var row = rowOverride || phase.row;
+    var chainClasses = [
+      "is-chain-item",
+      chainIndex === 0 ? "is-chain-first" : "",
+      chainIndex === chainLength - 1 ? "is-chain-last" : ""
+    ].filter(Boolean).join(" ");
     return [
-      '<div class="wt-lead-phase is-' + text(laneId) + (phase.parallel ? " is-parallel" : "") + (phase.weeks === 1 ? " is-one-week" : "") + '" style="--col:' + text(column) + ';--span:' + text(phase.weeks) + ';--row:' + text(row) + '" data-weeks="' + text(phase.weeks) + '" title="' + text(phase.label + " · " + phase.weeks + " week" + (phase.weeks === 1 ? "" : "s")) + '">',
+      '<div class="wt-lead-phase is-' + text(laneId) + " " + text(chainClasses) + (phase.parallel ? " is-parallel" : "") + (phase.weeks === 1 ? " is-one-week" : "") + '" style="--col:' + text(column) + ';--span:' + text(phase.weeks) + ';--row:' + text(row) + '" data-weeks="' + text(phase.weeks) + '" data-chain-index="' + text(chainIndex) + '" title="' + text(phase.label + " · " + phase.weeks + " week" + (phase.weeks === 1 ? "" : "s")) + '">',
       '<div aria-hidden="true">' + Array.from({ length: phase.weeks }).map(function () { return "<i></i>"; }).join("") + '</div>',
       '<span>' + text(phase.label) + '</span><b>' + text(phase.weeks) + 'W</b>',
       '</div>'
