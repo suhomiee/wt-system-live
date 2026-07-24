@@ -4051,8 +4051,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       '</div>',
       '</div>',
       '<div class="wt-lead-board">',
-      renderLeadLane(model, model.calendar),
-      renderLeadLane(model, model.running),
+      renderLeadCombinedLane(model),
       renderLeadLane(model, model.tkg),
       '</div>',
       renderLeadResultComparison(model),
@@ -4212,11 +4211,31 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderLeadLane(model, lane) {
     return [
       '<section class="wt-lead-lane is-' + text(lane.id) + '">',
-      '<header><small>' + text(lane.kicker) + '</small><h2>' + text(lane.title) + '</h2><p>' + text(lane.resultLabel) + '</p><b>' + text(formatLeadDate(lane.result)) + '</b></header>',
-      '<div class="wt-lead-track">',
+      '<header><small>' + text(lane.kicker) + '</small><h2>' + text(lane.title) + '</h2><p>' + text(lane.resultLabel) + '</p><b data-lead-result>' + text(formatLeadDate(lane.result)) + '</b></header>',
+      '<div class="wt-lead-track is-' + text(lane.id) + '">',
       renderLeadTrackGrid(model),
       lane.phases.map(function (phase) { return renderLeadPhase(model, phase, lane.id); }).join(""),
       lane.milestones.map(function (milestone) { return renderLeadMilestone(model, milestone, lane.id); }).join(""),
+      '</div>',
+      '</section>'
+    ].join("");
+  }
+
+  function renderLeadCombinedLane(model) {
+    var calendar = model.calendar;
+    var running = model.running;
+    return [
+      '<section class="wt-lead-lane is-combined">',
+      '<header class="wt-lead-combined-header">',
+      '<div class="is-calendar"><small>' + text(calendar.kicker) + '</small><h2>' + text(calendar.title) + '</h2><p>' + text(calendar.resultLabel) + '</p><b data-lead-result>' + text(formatLeadDate(calendar.result)) + '</b></div>',
+      '<div class="is-running"><small>' + text(running.kicker) + '</small><h2>' + text(running.title) + '</h2><p>' + text(running.resultLabel) + '</p><b data-lead-result>' + text(formatLeadDate(running.result)) + '</b></div>',
+      '</header>',
+      '<div class="wt-lead-track is-combined">',
+      renderLeadTrackGrid(model),
+      calendar.phases.map(function (phase) { return renderLeadPhase(model, phase, calendar.id, 7); }).join(""),
+      running.phases.map(function (phase) { return renderLeadPhase(model, phase, running.id, phase.row === 4 ? 8 : 9); }).join(""),
+      calendar.milestones.map(function (milestone) { return renderLeadMilestone(model, milestone, calendar.id, (milestone.row - 1) * 2 + 1); }).join(""),
+      running.milestones.map(function (milestone) { return renderLeadMilestone(model, milestone, running.id, (milestone.row - 1) * 2 + 2); }).join(""),
       '</div>',
       '</section>'
     ].join("");
@@ -4228,17 +4247,18 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     }).join("") + "</div>";
   }
 
-  function renderLeadPhase(model, phase, laneId) {
+  function renderLeadPhase(model, phase, laneId, rowOverride) {
     var column = leadWeekColumn(phase.start, model);
+    var row = rowOverride || phase.row;
     return [
-      '<div class="wt-lead-phase is-' + text(laneId) + (phase.parallel ? " is-parallel" : "") + (phase.weeks === 1 ? " is-one-week" : "") + '" style="--col:' + text(column) + ';--span:' + text(phase.weeks) + ';--row:' + text(phase.row) + '" data-weeks="' + text(phase.weeks) + '" title="' + text(phase.label + " · " + phase.weeks + " week" + (phase.weeks === 1 ? "" : "s")) + '">',
+      '<div class="wt-lead-phase is-' + text(laneId) + (phase.parallel ? " is-parallel" : "") + (phase.weeks === 1 ? " is-one-week" : "") + '" style="--col:' + text(column) + ';--span:' + text(phase.weeks) + ';--row:' + text(row) + '" data-weeks="' + text(phase.weeks) + '" title="' + text(phase.label + " · " + phase.weeks + " week" + (phase.weeks === 1 ? "" : "s")) + '">',
       '<div aria-hidden="true">' + Array.from({ length: phase.weeks }).map(function () { return "<i></i>"; }).join("") + '</div>',
       '<span>' + text(phase.label) + '</span><b>' + text(phase.weeks) + 'W</b>',
       '</div>'
     ].join("");
   }
 
-  function renderLeadMilestone(model, milestone, laneId) {
+  function renderLeadMilestone(model, milestone, laneId, rowOverride) {
     var eventColumn = leadWeekColumn(milestone.date, model);
     var requestedSpan = Math.max(2, Math.min(milestone.span || 3, model.weeks.length));
     var alignEnd = milestone.align === "end" || eventColumn + requestedSpan - 1 > model.weeks.length;
@@ -4253,7 +4273,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       alignEnd ? "is-align-end" : ""
     ].filter(Boolean).join(" ");
     return [
-      '<div class="' + text(classes) + '" style="--col:' + text(startColumn) + ';--span:' + text(requestedSpan) + ';--row:' + text(milestone.row || 1) + '" title="' + text(milestone.label + " · " + formatLeadDate(milestone.date)) + '"' + (milestone.calculated ? ' data-calculated="true"' : "") + '>',
+      '<div class="' + text(classes) + '" style="--col:' + text(startColumn) + ';--span:' + text(requestedSpan) + ';--row:' + text(rowOverride || milestone.row || 1) + '" title="' + text(milestone.label + " · " + formatLeadDate(milestone.date)) + '"' + (milestone.calculated ? ' data-calculated="true"' : "") + '>',
       '<b>' + text(formatLeadDate(milestone.date)) + '</b><span>' + text(milestone.displayLabel || milestone.label) + '</span>',
       '</div>'
     ].join("");

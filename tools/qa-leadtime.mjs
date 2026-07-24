@@ -42,7 +42,7 @@ try {
       const pageRoot = document.querySelector(".wt-lead-page");
       const track = document.querySelector(".wt-lead-track");
       const laneTitles = Array.from(document.querySelectorAll(".wt-lead-lane h2")).map((node) => node.textContent.trim());
-      const laneResultDates = Array.from(document.querySelectorAll(".wt-lead-lane > header > b")).map((node) => node.textContent.trim());
+      const laneResultDates = Array.from(document.querySelectorAll("[data-lead-result]")).map((node) => node.textContent.trim());
       const eventDates = Array.from(document.querySelectorAll(".wt-lead-event > b")).map((node) => node.textContent.trim());
       const eventTitles = Array.from(document.querySelectorAll(".wt-lead-event")).map((node) => node.getAttribute("title"));
       const phaseWeeks = Array.from(document.querySelectorAll(".wt-lead-phase")).map((node) => Number(node.dataset.weeks));
@@ -67,6 +67,13 @@ try {
       const comparison = Array.from(document.querySelectorAll(".wt-lead-result")).map((node) => node.textContent.replace(/\s+/g, " ").trim());
       const highlight = document.querySelector(".wt-lead-event.is-highlight");
       const calculatedDates = Array.from(document.querySelectorAll('.wt-lead-event[data-calculated="true"] > b')).map((node) => node.textContent.trim());
+      const combinedTrack = document.querySelector(".wt-lead-track.is-combined");
+      const tkgTrack = document.querySelector(".wt-lead-track.is-tkg");
+      const pairGaps = ["BOM Deadline · 10/21", "Sample X-FTY · 12/25"].map((title) => {
+        const calendar = document.querySelector(`.wt-lead-event.is-calendar[title="${title}"]`)?.getBoundingClientRect();
+        const running = document.querySelector(`.wt-lead-event.is-running[title="${title}"]`)?.getBoundingClientRect();
+        return calendar && running ? Math.round(running.top - calendar.bottom) : null;
+      });
 
       return {
         title: document.querySelector(".wt-lead-header h1")?.textContent.trim(),
@@ -86,6 +93,11 @@ try {
         highlight: highlight?.textContent.replace(/\s+/g, " ").trim(),
         highlightTitle: highlight?.getAttribute("title"),
         calculatedDates,
+        laneCount: document.querySelectorAll(".wt-lead-lane").length,
+        combinedLaneCount: document.querySelectorAll(".wt-lead-lane.is-combined").length,
+        pairGaps,
+        combinedTrackHeight: Math.round(combinedTrack.getBoundingClientRect().height),
+        tkgTrackHeight: Math.round(tkgTrack.getBoundingClientRect().height),
         activeNav: Boolean(activeNav),
         navigationRoundTrip: Boolean(document.querySelector(".wt-lead-page")),
         sidebarRestored: !document.querySelector(".wt-app")?.classList.contains("is-sidebar-collapsed"),
@@ -109,6 +121,9 @@ try {
       [result.advantage.includes("TKG FPT · 01/26") && result.advantage.includes("17 days earlier") && result.advantage.includes("02/12"), "SPA freeze advantage"],
       [result.laneTitles.join("|") === "Calendar|Running & ACG|TKG FPT", "lanes"],
       [result.laneResultDates.join("|") === "03/17|01/15|12/29", "result dates"],
+      [result.laneCount === 2 && result.combinedLaneCount === 1, "combined Calendar and Running lane"],
+      [result.pairGaps.every((gap) => gap >= 3 && gap <= 5), "paired event spacing"],
+      [result.combinedTrackHeight <= 254 && result.tkgTrackHeight <= 140, "compact lane heights"],
       [result.eventDates.length === 29 && result.eventDates.filter((date) => date === "04/16").length === 2, "event dates"],
       [result.eventDates.filter((date) => date === "03/26").length === 2 && result.eventDates.filter((date) => date === "01/22").length === 2, "SPA dates"],
       [result.eventTitles.some((label) => label.includes("SPA BOM DDD · 01/15")) && result.eventTitles.some((label) => label.includes("SPA Product Freeze · 01/26")), "calculated SPA labels"],
@@ -120,7 +135,7 @@ try {
       [result.weekLabels.length === 32 && result.weekLabels[0] === "-7WKS" && result.weekLabels.at(-1) === "+24WKS", "weekly labels"],
       [result.weekOffsets[0] === -7 && result.weekOffsets[7] === 0 && result.weekOffsets.at(-1) === 24, "weekly offsets"],
       [result.weekLabels.every((label) => !label.includes("/")) && result.weekTitles[0].includes("09/07"), "dates demoted from axis"],
-      [result.weekAxisLabel.includes("T2 FPT 1ST REPORT = 0") && result.zeroAxisCount === 1 && result.zeroGridCount === 3, "week zero reference"],
+      [result.weekAxisLabel.includes("T2 FPT 1ST REPORT = 0") && result.zeroAxisCount === 1 && result.zeroGridCount === 2, "week zero reference"],
       [result.comparison[0].includes("12/29") && result.comparison[1].includes("+2W 3D") && result.comparison[2].includes("+11W 1D"), "result comparison"],
       [result.activeNav, "active navigation"],
       [result.navigationRoundTrip, "navigation round trip"],
@@ -131,7 +146,7 @@ try {
       [result.clippedEvents === 0, "event bounds"],
       [result.clippedText === 0, "event text clipping"],
       [result.eventCount === 29 && result.phaseCount === 7, "item counts"],
-      [result.gridLineCounts.every((count) => count === 32), "weekly grids"],
+      [result.gridLineCounts.length === 2 && result.gridLineCounts.every((count) => count === 32), "weekly grids"],
       [viewport.width < 1400 || result.horizontalOverflow === 0, "desktop overflow"],
       [result.verticalOverflow === 0, "vertical overflow"]
     ];
