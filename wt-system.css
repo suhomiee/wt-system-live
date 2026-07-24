@@ -12584,6 +12584,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   grid-column: var(--col) / span var(--span);
   grid-row: var(--row);
   align-self: center;
+  position: relative;
   min-width: 0;
   height: 30px;
   display: flex;
@@ -12594,32 +12595,49 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   overflow: hidden;
 }
 
-.wt-lead-event.is-align-end {
-  flex-direction: row-reverse;
-}
-
-.wt-lead-event > b {
-  width: calc(100% / var(--span));
-  min-width: calc(100% / var(--span));
+.wt-lead-event::after {
+  content: attr(data-date);
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  right: 4px;
+  min-width: 34px;
   display: grid;
   place-items: center;
+  padding: 3px 4px;
+  border-radius: 1px;
   color: #071114;
   background: #8faab5;
   font-size: clamp(8px, .67vw, 10px);
   font-weight: 650;
   font-variant-numeric: tabular-nums;
   line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(4px, -50%);
+  transition: opacity 120ms ease, transform 120ms ease;
 }
 
-.wt-lead-event.is-running > b {
+.wt-lead-event:hover::after,
+.wt-lead-event:focus-visible::after {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+.wt-lead-event:focus-visible {
+  outline: 2px solid #74edc3;
+  outline-offset: -2px;
+}
+
+.wt-lead-event.is-running::after {
   background: #52b8c2;
 }
 
-.wt-lead-event.is-tkg > b {
+.wt-lead-event.is-tkg::after {
   background: #5ce0b3;
 }
 
-.wt-lead-event.is-shared > b {
+.wt-lead-event.is-shared::after {
   background: #d6e1e3;
 }
 
@@ -12627,7 +12645,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   border-color: rgba(116, 237, 195, .8);
 }
 
-.wt-lead-event.is-result > b {
+.wt-lead-event.is-result::after {
   background: #74edc3;
 }
 
@@ -12636,11 +12654,13 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   flex: 1 1 auto;
   display: flex;
   align-items: center;
+  justify-content: center;
   padding: 0 clamp(4px, .45vw, 7px);
   color: rgba(245, 251, 251, .92);
   font-size: clamp(8px, .65vw, 10px);
   font-weight: 500;
   line-height: 1.05;
+  text-align: center;
   text-transform: uppercase;
   overflow: hidden;
 }
@@ -12655,7 +12675,7 @@ body:has(#wt-system-root[data-wt-standalone="true"]) {
   background: rgba(49, 39, 15, .94);
 }
 
-.wt-lead-event.is-highlight > b {
+.wt-lead-event.is-highlight::after {
   color: #0b0e0e;
   background: #f0c96a;
 }

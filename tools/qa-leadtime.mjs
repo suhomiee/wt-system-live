@@ -37,13 +37,15 @@ try {
     await page.locator("[data-sidebar-toggle]").first().click();
     await page.locator(".wt-app:not(.is-sidebar-collapsed)").waitFor({ state: "attached" });
     await page.waitForTimeout(650);
+    await page.locator(".wt-lead-event").first().hover();
+    await page.waitForTimeout(160);
 
     const result = await page.evaluate(() => {
       const pageRoot = document.querySelector(".wt-lead-page");
       const track = document.querySelector(".wt-lead-track");
       const laneTitles = Array.from(document.querySelectorAll(".wt-lead-lane h2")).map((node) => node.textContent.trim());
       const laneResultDates = Array.from(document.querySelectorAll("[data-lead-result]")).map((node) => node.textContent.trim());
-      const eventDates = Array.from(document.querySelectorAll(".wt-lead-event > b")).map((node) => node.textContent.trim());
+      const eventDates = Array.from(document.querySelectorAll(".wt-lead-event")).map((node) => node.dataset.date);
       const eventTitles = Array.from(document.querySelectorAll(".wt-lead-event")).map((node) => node.getAttribute("title"));
       const phaseWeeks = Array.from(document.querySelectorAll(".wt-lead-phase")).map((node) => Number(node.dataset.weeks));
       const weekNodes = Array.from(document.querySelectorAll(".wt-lead-weeks span"));
@@ -55,9 +57,6 @@ try {
       const trackRect = track.getBoundingClientRect();
       const monthTrack = document.querySelector(".wt-lead-months").getBoundingClientRect();
       const cellWidth = trackRect.width / weekLabels.length;
-      const eventHeadDeltas = Array.from(document.querySelectorAll(".wt-lead-event > b")).map((node) => {
-        return Math.abs(node.getBoundingClientRect().width - cellWidth);
-      });
       const eventBounds = Array.from(document.querySelectorAll(".wt-lead-event")).map((node) => node.getBoundingClientRect());
       const clippedEvents = eventBounds.filter((rect) => rect.left < trackRect.left - 1 || rect.right > trackRect.right + 1).length;
       const clippedTextNodes = Array.from(document.querySelectorAll(".wt-lead-event > span")).filter((node) => node.scrollWidth > node.clientWidth + 1);
@@ -66,7 +65,7 @@ try {
       });
       const comparison = Array.from(document.querySelectorAll(".wt-lead-result")).map((node) => node.textContent.replace(/\s+/g, " ").trim());
       const highlight = document.querySelector(".wt-lead-event.is-highlight");
-      const calculatedDates = Array.from(document.querySelectorAll('.wt-lead-event[data-calculated="true"] > b')).map((node) => node.textContent.trim());
+      const calculatedDates = Array.from(document.querySelectorAll('.wt-lead-event[data-calculated="true"]')).map((node) => node.dataset.date);
       const combinedTrack = document.querySelector(".wt-lead-track.is-combined");
       const tkgTrack = document.querySelector(".wt-lead-track.is-tkg");
       const pairGaps = ["BOM Deadline · 10/21", "Sample X-FTY · 12/25"].map((title) => {
@@ -84,6 +83,8 @@ try {
           rowCount: new Set(rects.map((rect) => Math.round(rect.top))).size
         };
       });
+      const hoveredEvent = document.querySelector(".wt-lead-event");
+      const hoveredDateStyle = getComputedStyle(hoveredEvent, "::after");
 
       return {
         title: document.querySelector(".wt-lead-header h1")?.textContent.trim(),
@@ -101,6 +102,7 @@ try {
         zeroGridCount: document.querySelectorAll(".wt-lead-track-grid .is-zero").length,
         comparison,
         highlight: highlight?.textContent.replace(/\s+/g, " ").trim(),
+        highlightDate: highlight?.dataset.date,
         highlightTitle: highlight?.getAttribute("title"),
         calculatedDates,
         laneCount: document.querySelectorAll(".wt-lead-lane").length,
@@ -114,7 +116,9 @@ try {
         sidebarRestored: !document.querySelector(".wt-app")?.classList.contains("is-sidebar-collapsed"),
         pageFitsViewport: pageRect.width <= window.innerWidth + 1,
         monthTrackDelta: Math.round(Math.abs(monthTrack.width - trackRect.width)),
-        maxEventHeadDelta: Math.max(...eventHeadDeltas),
+        visibleDateHeadCount: document.querySelectorAll(".wt-lead-event > b").length,
+        hoveredDateContent: hoveredDateStyle.content.replaceAll('"', ""),
+        hoveredDateOpacity: Number(hoveredDateStyle.opacity),
         maxPhaseSpanDelta: Math.max(...phaseSpanDeltas),
         clippedEvents,
         clippedText: clippedTextNodes.length,
@@ -140,7 +144,7 @@ try {
       [result.eventDates.length === 29 && result.eventDates.filter((date) => date === "04/16").length === 2, "event dates"],
       [result.eventDates.filter((date) => date === "03/26").length === 2 && result.eventDates.filter((date) => date === "01/22").length === 2, "SPA dates"],
       [result.eventTitles.some((label) => label.includes("SPA BOM DDD · 01/15")) && result.eventTitles.some((label) => label.includes("SPA Product Freeze · 01/26")), "calculated SPA labels"],
-      [result.highlight.includes("01/26") && result.highlight.includes("17D") && result.highlightTitle.includes("SPA Product Freeze"), "SPA freeze highlight"],
+      [result.highlightDate === "01/26" && result.highlight.includes("17D") && result.highlightTitle.includes("SPA Product Freeze"), "SPA freeze highlight"],
       [result.calculatedDates.join("|") === "01/15|01/26", "business-day calculations"],
       [result.phaseWeeks.filter((weeks) => weeks === 1).length === 2, "transition duration"],
       [result.phaseWeeks.filter((weeks) => weeks === 2).length === 2, "distribution duration"],
@@ -154,7 +158,8 @@ try {
       [result.navigationRoundTrip, "navigation round trip"],
       [result.sidebarRestored, "sidebar toggle"],
       [result.monthTrackDelta <= 2, "month/track alignment"],
-      [result.maxEventHeadDelta <= 2, "one-week event heads"],
+      [result.visibleDateHeadCount === 0, "dates hidden by default"],
+      [result.hoveredDateContent === "10/21" && result.hoveredDateOpacity === 1, "date shown on hover"],
       [result.maxPhaseSpanDelta <= 2, "weekly phase spans"],
       [result.clippedEvents === 0, "event bounds"],
       [result.clippedText === 0, "event text clipping"],
@@ -168,6 +173,8 @@ try {
       throw new Error(`${viewport.name} QA failed: ${failed.join(", ")}\n${JSON.stringify(result, null, 2)}`);
     }
 
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(160);
     await page.locator(".wt-lead-page").screenshot({
       path: path.join(outputDir, `wt-leadtime-${viewport.name}.png`),
       animations: "disabled"

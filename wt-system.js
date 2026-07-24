@@ -4286,9 +4286,10 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       milestone.calculated ? "is-calculated" : "",
       alignEnd ? "is-align-end" : ""
     ].filter(Boolean).join(" ");
+    var formattedDate = formatLeadDate(milestone.date);
     return [
-      '<div class="' + text(classes) + '" style="--col:' + text(startColumn) + ';--span:' + text(requestedSpan) + ';--row:' + text(rowOverride || milestone.row || 1) + '" title="' + text(milestone.label + " · " + formatLeadDate(milestone.date)) + '"' + (milestone.calculated ? ' data-calculated="true"' : "") + '>',
-      '<b>' + text(formatLeadDate(milestone.date)) + '</b><span>' + text(milestone.displayLabel || milestone.label) + '</span>',
+      '<div class="' + text(classes) + '" style="--col:' + text(startColumn) + ';--span:' + text(requestedSpan) + ';--row:' + text(rowOverride || milestone.row || 1) + '" data-date="' + text(formattedDate) + '" tabindex="0" aria-label="' + text(milestone.label + " · " + formattedDate) + '" title="' + text(milestone.label + " · " + formattedDate) + '"' + (milestone.calculated ? ' data-calculated="true"' : "") + '>',
+      '<span>' + text(milestone.displayLabel || milestone.label) + '</span>',
       '</div>'
     ].join("");
   }
