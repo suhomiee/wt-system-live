@@ -41,30 +41,49 @@ try {
       const pageRoot = document.querySelector(".wt-lead-page");
       const track = document.querySelector(".wt-lead-track");
       const laneTitles = Array.from(document.querySelectorAll(".wt-lead-lane h2")).map((node) => node.textContent.trim());
-      const milestoneDates = Array.from(document.querySelectorAll(".wt-lead-milestone b")).map((node) => node.textContent.trim());
-      const phaseLabels = Array.from(document.querySelectorAll(".wt-lead-phase b")).map((node) => node.textContent.trim());
+      const laneResultDates = Array.from(document.querySelectorAll(".wt-lead-lane > header > b")).map((node) => node.textContent.trim());
+      const eventDates = Array.from(document.querySelectorAll(".wt-lead-event > b")).map((node) => node.textContent.trim());
+      const eventTitles = Array.from(document.querySelectorAll(".wt-lead-event")).map((node) => node.getAttribute("title"));
+      const phaseWeeks = Array.from(document.querySelectorAll(".wt-lead-phase")).map((node) => Number(node.dataset.weeks));
+      const weekLabels = Array.from(document.querySelectorAll(".wt-lead-weeks span")).map((node) => node.textContent.trim());
       const activeNav = document.querySelector('.wt-primary-nav [data-section="leadtime"].active');
       const pageRect = pageRoot.getBoundingClientRect();
       const trackRect = track.getBoundingClientRect();
-      const monthRects = Array.from(document.querySelectorAll(".wt-lead-month")).map((node) => node.getBoundingClientRect());
-      const monthWidth = monthRects.reduce((sum, rect) => sum + rect.width, 0);
-      const clippedLabels = Array.from(document.querySelectorAll(".wt-lead-milestone > div")).filter((node) => {
-        const rect = node.getBoundingClientRect();
-        return rect.left < trackRect.left - 2 || rect.right > trackRect.right + 2;
-      }).length;
+      const monthTrack = document.querySelector(".wt-lead-months").getBoundingClientRect();
+      const cellWidth = trackRect.width / weekLabels.length;
+      const eventHeadDeltas = Array.from(document.querySelectorAll(".wt-lead-event > b")).map((node) => {
+        return Math.abs(node.getBoundingClientRect().width - cellWidth);
+      });
+      const eventBounds = Array.from(document.querySelectorAll(".wt-lead-event")).map((node) => node.getBoundingClientRect());
+      const clippedEvents = eventBounds.filter((rect) => rect.left < trackRect.left - 1 || rect.right > trackRect.right + 1).length;
+      const clippedText = Array.from(document.querySelectorAll(".wt-lead-event > span")).filter((node) => node.scrollWidth > node.clientWidth + 1).length;
+      const phaseSpanDeltas = Array.from(document.querySelectorAll(".wt-lead-phase")).map((node) => {
+        return Math.abs(node.getBoundingClientRect().width - cellWidth * Number(node.dataset.weeks));
+      });
+      const comparison = Array.from(document.querySelectorAll(".wt-lead-result")).map((node) => node.textContent.replace(/\s+/g, " ").trim());
 
       return {
         title: document.querySelector(".wt-lead-header h1")?.textContent.trim(),
-        advantage: document.querySelector(".wt-lead-advantage strong")?.textContent.trim(),
+        advantage: document.querySelector(".wt-lead-advantage")?.textContent.replace(/\s+/g, " ").trim(),
         laneTitles,
-        milestoneDates,
-        phaseLabels,
+        laneResultDates,
+        eventDates,
+        eventTitles,
+        phaseWeeks,
+        weekLabels,
+        comparison,
         activeNav: Boolean(activeNav),
         navigationRoundTrip: Boolean(document.querySelector(".wt-lead-page")),
         sidebarRestored: !document.querySelector(".wt-app")?.classList.contains("is-sidebar-collapsed"),
         pageFitsViewport: pageRect.width <= window.innerWidth + 1,
-        monthTrackDelta: Math.round(Math.abs(monthWidth - trackRect.width)),
-        clippedLabels,
+        monthTrackDelta: Math.round(Math.abs(monthTrack.width - trackRect.width)),
+        maxEventHeadDelta: Math.max(...eventHeadDeltas),
+        maxPhaseSpanDelta: Math.max(...phaseSpanDeltas),
+        clippedEvents,
+        clippedText,
+        eventCount: eventBounds.length,
+        phaseCount: phaseSpanDeltas.length,
+        gridLineCounts: Array.from(document.querySelectorAll(".wt-lead-track-grid")).map((node) => node.children.length),
         horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         verticalOverflow: document.documentElement.scrollHeight - document.documentElement.clientHeight
       };
@@ -72,17 +91,26 @@ try {
 
     const assertions = [
       [result.title === "LTWT Lead-Time Compare", "title"],
-      [result.advantage === "8 WEEKS EARLIER", "advantage"],
-      [result.laneTitles.join("|") === "Calendar|Running & ACG", "lanes"],
-      [result.milestoneDates.includes("03/12") && result.milestoneDates.includes("01/15"), "result dates"],
-      [result.phaseLabels.filter((label) => label === "1 WEEK").length === 2, "transition duration"],
-      [result.phaseLabels.filter((label) => label === "2 WEEKS").length === 2, "distribution duration"],
-      [result.phaseLabels.filter((label) => label === "8 WEEKS").length === 2, "LTWT duration"],
+      [result.advantage.includes("TKG FPT · 12/29") && result.advantage.includes("11W 1D") && result.advantage.includes("2W 3D"), "advantage"],
+      [result.laneTitles.join("|") === "Calendar|Running & ACG|TKG FPT", "lanes"],
+      [result.laneResultDates.join("|") === "03/17|01/15|12/29", "result dates"],
+      [result.eventDates.length === 18 && result.eventDates.includes("02/03"), "event dates"],
+      [result.eventTitles.some((label) => label.includes("SPA BOM DDD")) && result.eventTitles.some((label) => label.includes("T2 FPT Wear Assessment Due")), "event labels"],
+      [result.phaseWeeks.filter((weeks) => weeks === 1).length === 2, "transition duration"],
+      [result.phaseWeeks.filter((weeks) => weeks === 2).length === 2, "distribution duration"],
+      [result.phaseWeeks.filter((weeks) => weeks === 8).length === 3, "LTWT duration"],
+      [result.weekLabels.length === 28 && result.weekLabels[0] === "09/07" && result.weekLabels.at(-1) === "03/15", "weekly axis"],
+      [result.comparison[0].includes("12/29") && result.comparison[1].includes("+2W 3D") && result.comparison[2].includes("+11W 1D"), "result comparison"],
       [result.activeNav, "active navigation"],
       [result.navigationRoundTrip, "navigation round trip"],
       [result.sidebarRestored, "sidebar toggle"],
       [result.monthTrackDelta <= 2, "month/track alignment"],
-      [result.clippedLabels === 0, "milestone clipping"],
+      [result.maxEventHeadDelta <= 2, "one-week event heads"],
+      [result.maxPhaseSpanDelta <= 2, "weekly phase spans"],
+      [result.clippedEvents === 0, "event bounds"],
+      [result.clippedText === 0, "event text clipping"],
+      [result.eventCount === 18 && result.phaseCount === 7, "item counts"],
+      [result.gridLineCounts.every((count) => count === 28), "weekly grids"],
       [viewport.width < 1400 || result.horizontalOverflow === 0, "desktop overflow"],
       [result.verticalOverflow === 0, "vertical overflow"]
     ];

@@ -4034,28 +4034,26 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderLeadTimeCompare() {
     var model = leadTimeCompareModel();
     return [
-      '<section class="wt-lead-page" style="--wt-lead-advantage-start:' + text(leadTimelinePosition(model.runningResult, model.range)) + '%;--wt-lead-advantage-end:' + text(leadTimelinePosition(model.calendarResult, model.range)) + '%">',
+      '<section class="wt-lead-page" style="--wt-lead-weeks:' + text(model.weeks.length) + '">',
       '<header class="wt-lead-header">',
-      '<div><small>QUICK COMPARISON</small><h1>LTWT Lead-Time Compare</h1><p>Calendar baseline and Running &amp; ACG wear-test flow on one date axis.</p></div>',
-      '<div class="wt-lead-advantage"><span>RESULTS READY</span><strong>' + text(model.advantageWeeks) + ' WEEKS EARLIER</strong><small>Running &amp; ACG · ' + text(formatLeadDate(model.runningResult)) + '</small></div>',
+      '<div><small>WEEKLY PROCESS COMPARISON</small><h1>LTWT Lead-Time Compare</h1><p>Calendar, Running &amp; ACG, and TKG FPT on one weekly date axis.</p></div>',
+      '<div class="wt-lead-advantage"><span>EARLIEST FINAL RESULT</span><strong>TKG FPT · ' + text(formatLeadDate(model.tkgResult)) + '</strong><small>' + text(formatLeadDuration(model.calendarAdvantageDays)) + ' faster than Calendar · ' + text(formatLeadDuration(model.runningAdvantageDays)) + ' faster than Running &amp; ACG</small></div>',
       '</header>',
       '<div class="wt-lead-axis">',
-      '<div class="wt-lead-axis-label"><span>DATE WINDOW</span><b>' + text(formatLeadMonth(model.range.start)) + ' — ' + text(formatLeadMonth(model.range.end)) + '</b></div>',
+      '<div class="wt-lead-axis-label"><span>WEEK</span><b>STARTING MONDAY</b></div>',
+      '<div class="wt-lead-axis-timeline">',
       '<div class="wt-lead-months">' + renderLeadMonthAxis(model) + '</div>',
+      '<div class="wt-lead-weeks">' + model.weeks.map(function (week) {
+        return '<span>' + text(formatLeadDate(week.start)) + '</span>';
+      }).join("") + '</div>',
+      '</div>',
       '</div>',
       '<div class="wt-lead-board">',
       renderLeadLane(model, model.calendar),
       renderLeadLane(model, model.running),
-      '<div class="wt-lead-result-gap" aria-label="Running and ACG results are ready ' + text(model.advantageWeeks) + ' weeks earlier">',
-      '<span style="--x:' + text(leadTimelinePosition(model.runningResult, model.range)) + '%"></span>',
-      '<div style="--left:' + text(leadTimelinePosition(model.runningResult, model.range)) + '%;--right:' + text(leadTimelinePosition(model.calendarResult, model.range)) + '%"><b>' + text(model.advantageWeeks) + ' WEEKS FASTER</b><small>' + text(formatLeadDate(model.runningResult)) + ' → ' + text(formatLeadDate(model.calendarResult)) + '</small></div>',
-      '<span style="--x:' + text(leadTimelinePosition(model.calendarResult, model.range)) + '%"></span>',
+      renderLeadLane(model, model.tkg),
       '</div>',
-      '</div>',
-      '<footer class="wt-lead-footer">',
-      '<div class="wt-lead-formula"><span>CALENDAR LOGIC</span><b>' + text(formatLeadDate(model.sampleDate)) + ' + 1W transition + 2W distribution + 8W LTWT = ' + text(formatLeadDate(model.calendarResult)) + '</b></div>',
-      '<div class="wt-lead-legend"><span><i class="is-shared"></i>Shared milestone</span><span><i class="is-calendar"></i>Calendar</span><span><i class="is-running"></i>Running &amp; ACG</span><span><i class="is-phase"></i>Duration</span></div>',
-      '</footer>',
+      renderLeadResultComparison(model),
       '</section>'
     ].join("");
   }
@@ -4064,63 +4062,117 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     var anchorYear = fromIso(state.selectedDate || currentDateIso()).getFullYear();
     var nextYear = anchorYear + 1;
     var sampleDate = anchorYear + "-12-25";
-    var calendarResult = addDaysIso(sampleDate, 77);
+    var calendarResult = nextYear + "-03-17";
     var runningResult = nextYear + "-01-15";
-    var range = { start: anchorYear + "-09-01", end: nextYear + "-03-15" };
+    var tkgResult = anchorYear + "-12-29";
+    var range = { start: anchorYear + "-09-07", end: nextYear + "-03-21" };
+    var weeks = leadWeekUnits(range);
     return {
       range: range,
+      weeks: weeks,
       sampleDate: sampleDate,
       calendarResult: calendarResult,
       runningResult: runningResult,
-      advantageWeeks: Math.round(daysBetween(runningResult, calendarResult) / 7),
+      tkgResult: tkgResult,
+      calendarAdvantageDays: daysBetween(tkgResult, calendarResult),
+      runningAdvantageDays: daysBetween(tkgResult, runningResult),
       calendar: {
         id: "calendar",
-        kicker: "STANDARD CALENDAR",
+        kicker: "STANDARD FLOW",
         title: "Calendar",
         result: calendarResult,
+        resultLabel: "LTWT RESULTS READY",
         milestones: [
-          { date: anchorYear + "-10-21", label: "BOM Deadline", shared: true, level: "top" },
-          { date: anchorYear + "-10-30", label: "Product Freeze", level: "bottom" },
-          { date: sampleDate, label: "Sample X-FTY", shared: true, level: "top" },
-          { date: calendarResult, label: "LTWT Results Ready", result: true, calculated: true, level: "bottom", align: "end" }
+          { date: anchorYear + "-10-21", label: "BOM Deadline", shared: true, row: 1, span: 3 },
+          { date: anchorYear + "-10-30", label: "Product Freeze", row: 2, span: 3 },
+          { date: sampleDate, label: "Sample X-FTY", shared: true, row: 1, span: 3 },
+          { date: nextYear + "-02-03", label: "SPA BOM DDD", row: 2, span: 3 },
+          { date: calendarResult, label: "LTWT Results Ready", result: true, row: 1, span: 4, align: "end" }
         ],
         phases: [
-          { start: sampleDate, end: addDaysIso(sampleDate, 7), label: "Transition", weeks: 1, row: 0 },
-          { start: addDaysIso(sampleDate, 7), end: addDaysIso(sampleDate, 21), label: "Distribution", weeks: 2, row: 1 },
-          { start: addDaysIso(sampleDate, 21), end: calendarResult, label: "LTWT", weeks: 8, row: 2 }
+          { start: sampleDate, label: "Transition", weeks: 1, row: 3 },
+          { start: nextYear + "-01-01", label: "Distribution", weeks: 2, row: 3 },
+          { start: nextYear + "-01-15", label: "LTWT", weeks: 8, row: 3 }
         ]
       },
       running: {
         id: "running",
-        kicker: "EARLY WEAR-TEST FLOW",
+        kicker: "RUNNING CALENDAR",
         title: "Running & ACG",
         result: runningResult,
+        resultLabel: "LTWT RESULTS READY",
         milestones: [
-          { date: anchorYear + "-09-09", label: "LTWT BOM Deadline", level: "top", align: "start" },
-          { date: anchorYear + "-09-16", label: "LTWT Product Freeze", level: "bottom", align: "start" },
-          { date: anchorYear + "-10-21", label: "BOM Deadline", shared: true, level: "top" },
-          { date: anchorYear + "-11-06", label: "LTWT X-FTY", level: "bottom" },
-          { date: sampleDate, label: "Sample X-FTY", shared: true, level: "top" },
-          { date: runningResult, label: "LTWT Results Ready", result: true, level: "bottom" }
+          { date: anchorYear + "-09-09", label: "LTWT BOM Deadline", displayLabel: "LTWT BOM", row: 1, span: 4 },
+          { date: anchorYear + "-09-16", label: "LTWT Product Freeze", displayLabel: "LTWT Freeze", row: 2, span: 4 },
+          { date: anchorYear + "-10-21", label: "BOM Deadline", shared: true, row: 1, span: 3 },
+          { date: anchorYear + "-11-06", label: "LTWT X-FTY", row: 2, span: 3 },
+          { date: sampleDate, label: "Sample X-FTY", shared: true, row: 1, span: 3 },
+          { date: runningResult, label: "LTWT Results Ready", result: true, row: 2, span: 4 }
         ],
         phases: [
-          { start: anchorYear + "-11-06", end: anchorYear + "-11-13", label: "Transition", weeks: 1, row: 0 },
-          { start: anchorYear + "-11-13", end: anchorYear + "-11-27", label: "Distribution", weeks: 2, row: 1 },
-          { start: anchorYear + "-11-20", end: runningResult, label: "LTWT", weeks: 8, row: 2, parallel: true }
+          { start: anchorYear + "-11-06", label: "Transition", weeks: 1, row: 3 },
+          { start: anchorYear + "-11-13", label: "Distribution", weeks: 2, row: 3 },
+          { start: anchorYear + "-11-20", label: "LTWT", weeks: 8, row: 4, parallel: true }
+        ]
+      },
+      tkg: {
+        id: "tkg",
+        kicker: "ACCELERATED FLOW",
+        title: "TKG FPT",
+        result: tkgResult,
+        resultLabel: "T2 FPT FINAL REPORT",
+        milestones: [
+          { date: anchorYear + "-09-09", label: "LTWT BOM Deadline", displayLabel: "LTWT BOM", row: 1, span: 4 },
+          { date: anchorYear + "-09-16", label: "LTWT Product Freeze", displayLabel: "LTWT Freeze", row: 2, span: 4 },
+          { date: anchorYear + "-10-06", label: "Tooling ETC", row: 1, span: 3 },
+          { date: anchorYear + "-10-13", label: "T2 FPT Sample Handoff", displayLabel: "Sample Handoff", row: 2, span: 4 },
+          { date: anchorYear + "-10-27", label: "T2 FPT 1st Report", displayLabel: "1st Report", row: 1, span: 4 },
+          { date: anchorYear + "-12-22", label: "T2 FPT Wear Assessment Due", displayLabel: "Assessment Due", row: 2, span: 4 },
+          { date: tkgResult, label: "T2 FPT Final Report", displayLabel: "Final Report", result: true, row: 1, span: 4 }
+        ],
+        phases: [
+          { start: anchorYear + "-10-27", label: "Wear Assessment", weeks: 8, row: 3 }
         ]
       }
     };
   }
 
+  function leadWeekUnits(range) {
+    var units = [];
+    var cursor = startOfWeek(fromIso(range.start));
+    while (toIso(cursor) <= range.end) {
+      units.push({
+        start: toIso(cursor),
+        end: toIso(addDays(cursor, 6))
+      });
+      cursor = addDays(cursor, 7);
+    }
+    return units;
+  }
+
   function renderLeadMonthAxis(model) {
-    return monthUnits(model.range).map(function (month) {
-      var left = leadTimelinePosition(month.start, model.range);
-      var end = addDaysIso(month.end, 1);
-      var width = leadTimelinePosition(end, model.range) - left;
+    var grouped = [];
+    model.weeks.forEach(function (week, index) {
+      var date = fromIso(week.start);
+      var key = date.getFullYear() + "-" + pad(date.getMonth() + 1);
+      var current = grouped[grouped.length - 1];
+      if (!current || current.key !== key) {
+        grouped.push({
+          key: key,
+          label: MONTHS[date.getMonth()].toUpperCase(),
+          year: date.getFullYear(),
+          start: index + 1,
+          span: 1
+        });
+      } else {
+        current.span += 1;
+      }
+    });
+    return grouped.map(function (month) {
       return [
-        '<div class="wt-lead-month" style="--left:' + text(left) + '%;--width:' + text(width) + '%">',
-        '<b>' + text(month.label.toUpperCase()) + '</b>',
-        '<span>' + text(month.caption) + '</span>',
+        '<div class="wt-lead-month" style="--col:' + text(month.start) + ';--span:' + text(month.span) + '">',
+        '<b>' + text(month.label) + '</b>',
+        '<span>' + text(month.year) + '</span>',
         '</div>'
       ].join("");
     }).join("");
@@ -4129,10 +4181,9 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function renderLeadLane(model, lane) {
     return [
       '<section class="wt-lead-lane is-' + text(lane.id) + '">',
-      '<header><small>' + text(lane.kicker) + '</small><h2>' + text(lane.title) + '</h2><p>Results ready · <b>' + text(formatLeadDate(lane.result)) + '</b></p></header>',
+      '<header><small>' + text(lane.kicker) + '</small><h2>' + text(lane.title) + '</h2><p>' + text(lane.resultLabel) + '</p><b>' + text(formatLeadDate(lane.result)) + '</b></header>',
       '<div class="wt-lead-track">',
       renderLeadTrackGrid(model),
-      '<div class="wt-lead-baseline"></div>',
       lane.phases.map(function (phase) { return renderLeadPhase(model, phase, lane.id); }).join(""),
       lane.milestones.map(function (milestone) { return renderLeadMilestone(model, milestone, lane.id); }).join(""),
       '</div>',
@@ -4141,60 +4192,65 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderLeadTrackGrid(model) {
-    var months = monthUnits(model.range);
-    var shared = [model.calendar.milestones[0].date, model.sampleDate];
-    return [
-      months.map(function (month) {
-        return '<span class="wt-lead-month-line" style="--x:' + text(leadTimelinePosition(month.start, model.range)) + '%"></span>';
-      }).join(""),
-      shared.map(function (date) {
-        return '<span class="wt-lead-shared-line" style="--x:' + text(leadTimelinePosition(date, model.range)) + '%"></span>';
-      }).join("")
-    ].join("");
+    return '<div class="wt-lead-track-grid" aria-hidden="true">' + model.weeks.map(function () {
+      return "<i></i>";
+    }).join("") + "</div>";
   }
 
   function renderLeadPhase(model, phase, laneId) {
-    var left = leadTimelinePosition(phase.start, model.range);
-    var right = leadTimelinePosition(phase.end, model.range);
+    var column = leadWeekColumn(phase.start, model);
     return [
-      '<div class="wt-lead-phase is-' + text(laneId) + (phase.parallel ? " is-parallel" : "") + '" style="--left:' + text(left) + '%;--width:' + text(Math.max(1.4, right - left)) + '%;--row:' + text(phase.row) + '">',
-      '<span>' + text(phase.label) + '</span><b>' + text(phase.weeks) + ' WEEK' + (phase.weeks === 1 ? "" : "S") + '</b>',
+      '<div class="wt-lead-phase is-' + text(laneId) + (phase.parallel ? " is-parallel" : "") + (phase.weeks === 1 ? " is-one-week" : "") + '" style="--col:' + text(column) + ';--span:' + text(phase.weeks) + ';--row:' + text(phase.row) + '" data-weeks="' + text(phase.weeks) + '" title="' + text(phase.label + " · " + phase.weeks + " week" + (phase.weeks === 1 ? "" : "s")) + '">',
+      '<div aria-hidden="true">' + Array.from({ length: phase.weeks }).map(function () { return "<i></i>"; }).join("") + '</div>',
+      '<span>' + text(phase.label) + '</span><b>' + text(phase.weeks) + 'W</b>',
       '</div>'
     ].join("");
   }
 
   function renderLeadMilestone(model, milestone, laneId) {
-    var position = leadTimelinePosition(milestone.date, model.range);
+    var eventColumn = leadWeekColumn(milestone.date, model);
+    var requestedSpan = Math.max(2, Math.min(milestone.span || 3, model.weeks.length));
+    var alignEnd = milestone.align === "end" || eventColumn + requestedSpan - 1 > model.weeks.length;
+    var startColumn = alignEnd ? Math.max(1, eventColumn - requestedSpan + 1) : eventColumn;
     var classes = [
-      "wt-lead-milestone",
+      "wt-lead-event",
       "is-" + laneId,
-      "is-" + milestone.level,
       milestone.shared ? "is-shared" : "",
       milestone.result ? "is-result" : "",
-      milestone.calculated ? "is-calculated" : "",
-      milestone.align ? "is-align-" + milestone.align : ""
+      alignEnd ? "is-align-end" : ""
     ].filter(Boolean).join(" ");
     return [
-      '<div class="' + text(classes) + '" style="--x:' + text(position) + '%">',
-      '<i></i>',
-      '<div><span>' + text(milestone.label) + (milestone.calculated ? '<small>CALCULATED</small>' : "") + '</span><b>' + text(formatLeadDate(milestone.date)) + '</b></div>',
+      '<div class="' + text(classes) + '" style="--col:' + text(startColumn) + ';--span:' + text(requestedSpan) + ';--row:' + text(milestone.row || 1) + '" title="' + text(milestone.label + " · " + formatLeadDate(milestone.date)) + '">',
+      '<b>' + text(formatLeadDate(milestone.date)) + '</b><span>' + text(milestone.displayLabel || milestone.label) + '</span>',
       '</div>'
     ].join("");
   }
 
-  function leadTimelinePosition(date, range) {
-    var total = Math.max(1, daysBetween(range.start, addDaysIso(range.end, 1)));
-    return Math.max(0, Math.min(100, daysBetween(range.start, date) / total * 100));
+  function renderLeadResultComparison(model) {
+    return [
+      '<section class="wt-lead-results" aria-label="Final result date comparison">',
+      '<header><small>FINAL RESULT COMPARISON</small><b>TKG FPT closes the feedback loop first.</b></header>',
+      '<div class="wt-lead-result is-tkg"><span>1</span><div><small>TKG FPT</small><b>' + text(formatLeadDate(model.tkgResult)) + '</b></div><strong>EARLIEST</strong></div>',
+      '<div class="wt-lead-result is-running"><span>2</span><div><small>RUNNING &amp; ACG</small><b>' + text(formatLeadDate(model.runningResult)) + '</b></div><strong>+' + text(formatLeadDuration(model.runningAdvantageDays)) + '</strong></div>',
+      '<div class="wt-lead-result is-calendar"><span>3</span><div><small>CALENDAR</small><b>' + text(formatLeadDate(model.calendarResult)) + '</b></div><strong>+' + text(formatLeadDuration(model.calendarAdvantageDays)) + '</strong></div>',
+      '</section>'
+    ].join("");
+  }
+
+  function leadWeekColumn(date, model) {
+    var weekStart = toIso(startOfWeek(fromIso(date)));
+    return Math.max(1, Math.min(model.weeks.length, Math.floor(daysBetween(model.range.start, weekStart) / 7) + 1));
+  }
+
+  function formatLeadDuration(days) {
+    var weeks = Math.floor(days / 7);
+    var remainingDays = days % 7;
+    return weeks + "W" + (remainingDays ? " " + remainingDays + "D" : "");
   }
 
   function formatLeadDate(date) {
     var value = fromIso(date);
     return pad(value.getMonth() + 1) + "/" + pad(value.getDate());
-  }
-
-  function formatLeadMonth(date) {
-    var value = fromIso(date);
-    return MONTHS[value.getMonth()] + " " + value.getFullYear();
   }
 
   function withCalendarState(period, anchorIso, callback) {
