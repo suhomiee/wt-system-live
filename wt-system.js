@@ -996,6 +996,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       ]),
       navGroup("Planning", [
         navItem("gameplan", "WT Product Game Plan"),
+        navItem("leadtime", "LTWT Lead-Time Compare"),
         navItem("tcms-running", "WT Worksheet")
       ]),
       navGroup("Reports & Data", [
@@ -1122,7 +1123,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   }
 
   function renderShell(root) {
-    var noToolbar = state.section === "dashboard" || state.section === "calendar" || state.section === "gameplan" || state.section === "manager" || state.section === "tcms-running";
+    var noToolbar = state.section === "dashboard" || state.section === "calendar" || state.section === "gameplan" || state.section === "leadtime" || state.section === "manager" || state.section === "tcms-running";
     return [
       '<main class="wt-main ' + (noToolbar ? "wt-main-no-toolbar" : "") + '" aria-label="WT System workspace">',
       noToolbar ? "" : renderToolbar(),
@@ -1148,6 +1149,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (state.section === "creation") return "Creation Plan";
     if (state.section === "assistant") return "AI Q&A";
     if (state.section === "gameplan") return "WT Product Game Plan";
+    if (state.section === "leadtime") return "LTWT Lead-Time Compare";
     if (state.section === "tcms-running") return "WT Worksheet";
     if (state.section === "manager") return "Schedule Manager";
     return "Calendar";
@@ -1158,6 +1160,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
     if (state.section === "creation") return renderCreationPlan();
     if (state.section === "assistant") return renderAssistantPage(root);
     if (state.section === "gameplan") return renderGamePlan();
+    if (state.section === "leadtime") return renderLeadTimeCompare();
     if (state.section === "tcms-running") return renderTcmsRunningPage();
     if (state.section === "manager") return renderScheduleManager(root);
     return renderCalendarWorkspace(root);
@@ -1278,6 +1281,7 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
       "tcms-running": '<path d="M4 5h16"></path><path d="M4 12h16"></path><path d="M4 19h16"></path><path d="M8 5v14"></path><path d="M15 5v14"></path>',
       manager: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.3-3.3a6 6 0 0 1-7.8 7.8l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9A6 6 0 0 1 18 3z"></path>',
       gameplan: '<path d="M4 5h16"></path><path d="M4 10h16"></path><path d="M4 15h16"></path><path d="M4 20h16"></path><path d="M8 5v15"></path><path d="M14 5v15"></path>',
+      leadtime: '<path d="M4 7h11"></path><path d="M4 17h16"></path><path d="M15 4l4 3-4 3"></path><path d="M9 14l-4 3 4 3"></path>',
       model: '<path d="M4 7h16"></path><path d="M7 4h10"></path><rect x="5" y="7" width="14" height="13" rx="2"></rect><path d="M9 11h6"></path><path d="M9 15h4"></path>',
       lab: '<path d="M9 3v5l-4.5 8.2A3.2 3.2 0 0 0 7.3 21h9.4a3.2 3.2 0 0 0 2.8-4.8L15 8V3"></path><path d="M8 3h8"></path><path d="M7 15h10"></path>',
       phk: '<path d="M4 4h7l2 2h7v14H4z"></path><path d="M8 11h8"></path><path d="M8 15h5"></path>',
@@ -4025,6 +4029,172 @@ window.WT_SYSTEM_EMBEDDED = {"milestones":[{"id":"MS-0014","date":"2024-11-01","
   function formatGamePlanDate(date) {
     var d = fromIso(date);
     return [d.getFullYear(), pad(d.getMonth() + 1), pad(d.getDate())].join(".");
+  }
+
+  function renderLeadTimeCompare() {
+    var model = leadTimeCompareModel();
+    return [
+      '<section class="wt-lead-page" style="--wt-lead-advantage-start:' + text(leadTimelinePosition(model.runningResult, model.range)) + '%;--wt-lead-advantage-end:' + text(leadTimelinePosition(model.calendarResult, model.range)) + '%">',
+      '<header class="wt-lead-header">',
+      '<div><small>QUICK COMPARISON</small><h1>LTWT Lead-Time Compare</h1><p>Calendar baseline and Running &amp; ACG wear-test flow on one date axis.</p></div>',
+      '<div class="wt-lead-advantage"><span>RESULTS READY</span><strong>' + text(model.advantageWeeks) + ' WEEKS EARLIER</strong><small>Running &amp; ACG · ' + text(formatLeadDate(model.runningResult)) + '</small></div>',
+      '</header>',
+      '<div class="wt-lead-axis">',
+      '<div class="wt-lead-axis-label"><span>DATE WINDOW</span><b>' + text(formatLeadMonth(model.range.start)) + ' — ' + text(formatLeadMonth(model.range.end)) + '</b></div>',
+      '<div class="wt-lead-months">' + renderLeadMonthAxis(model) + '</div>',
+      '</div>',
+      '<div class="wt-lead-board">',
+      renderLeadLane(model, model.calendar),
+      renderLeadLane(model, model.running),
+      '<div class="wt-lead-result-gap" aria-label="Running and ACG results are ready ' + text(model.advantageWeeks) + ' weeks earlier">',
+      '<span style="--x:' + text(leadTimelinePosition(model.runningResult, model.range)) + '%"></span>',
+      '<div style="--left:' + text(leadTimelinePosition(model.runningResult, model.range)) + '%;--right:' + text(leadTimelinePosition(model.calendarResult, model.range)) + '%"><b>' + text(model.advantageWeeks) + ' WEEKS FASTER</b><small>' + text(formatLeadDate(model.runningResult)) + ' → ' + text(formatLeadDate(model.calendarResult)) + '</small></div>',
+      '<span style="--x:' + text(leadTimelinePosition(model.calendarResult, model.range)) + '%"></span>',
+      '</div>',
+      '</div>',
+      '<footer class="wt-lead-footer">',
+      '<div class="wt-lead-formula"><span>CALENDAR LOGIC</span><b>' + text(formatLeadDate(model.sampleDate)) + ' + 1W transition + 2W distribution + 8W LTWT = ' + text(formatLeadDate(model.calendarResult)) + '</b></div>',
+      '<div class="wt-lead-legend"><span><i class="is-shared"></i>Shared milestone</span><span><i class="is-calendar"></i>Calendar</span><span><i class="is-running"></i>Running &amp; ACG</span><span><i class="is-phase"></i>Duration</span></div>',
+      '</footer>',
+      '</section>'
+    ].join("");
+  }
+
+  function leadTimeCompareModel() {
+    var anchorYear = fromIso(state.selectedDate || currentDateIso()).getFullYear();
+    var nextYear = anchorYear + 1;
+    var sampleDate = anchorYear + "-12-25";
+    var calendarResult = addDaysIso(sampleDate, 77);
+    var runningResult = nextYear + "-01-15";
+    var range = { start: anchorYear + "-09-01", end: nextYear + "-03-15" };
+    return {
+      range: range,
+      sampleDate: sampleDate,
+      calendarResult: calendarResult,
+      runningResult: runningResult,
+      advantageWeeks: Math.round(daysBetween(runningResult, calendarResult) / 7),
+      calendar: {
+        id: "calendar",
+        kicker: "STANDARD CALENDAR",
+        title: "Calendar",
+        result: calendarResult,
+        milestones: [
+          { date: anchorYear + "-10-21", label: "BOM Deadline", shared: true, level: "top" },
+          { date: anchorYear + "-10-30", label: "Product Freeze", level: "bottom" },
+          { date: sampleDate, label: "Sample X-FTY", shared: true, level: "top" },
+          { date: calendarResult, label: "LTWT Results Ready", result: true, calculated: true, level: "bottom", align: "end" }
+        ],
+        phases: [
+          { start: sampleDate, end: addDaysIso(sampleDate, 7), label: "Transition", weeks: 1, row: 0 },
+          { start: addDaysIso(sampleDate, 7), end: addDaysIso(sampleDate, 21), label: "Distribution", weeks: 2, row: 1 },
+          { start: addDaysIso(sampleDate, 21), end: calendarResult, label: "LTWT", weeks: 8, row: 2 }
+        ]
+      },
+      running: {
+        id: "running",
+        kicker: "EARLY WEAR-TEST FLOW",
+        title: "Running & ACG",
+        result: runningResult,
+        milestones: [
+          { date: anchorYear + "-09-09", label: "LTWT BOM Deadline", level: "top", align: "start" },
+          { date: anchorYear + "-09-16", label: "LTWT Product Freeze", level: "bottom", align: "start" },
+          { date: anchorYear + "-10-21", label: "BOM Deadline", shared: true, level: "top" },
+          { date: anchorYear + "-11-06", label: "LTWT X-FTY", level: "bottom" },
+          { date: sampleDate, label: "Sample X-FTY", shared: true, level: "top" },
+          { date: runningResult, label: "LTWT Results Ready", result: true, level: "bottom" }
+        ],
+        phases: [
+          { start: anchorYear + "-11-06", end: anchorYear + "-11-13", label: "Transition", weeks: 1, row: 0 },
+          { start: anchorYear + "-11-13", end: anchorYear + "-11-27", label: "Distribution", weeks: 2, row: 1 },
+          { start: anchorYear + "-11-20", end: runningResult, label: "LTWT", weeks: 8, row: 2, parallel: true }
+        ]
+      }
+    };
+  }
+
+  function renderLeadMonthAxis(model) {
+    return monthUnits(model.range).map(function (month) {
+      var left = leadTimelinePosition(month.start, model.range);
+      var end = addDaysIso(month.end, 1);
+      var width = leadTimelinePosition(end, model.range) - left;
+      return [
+        '<div class="wt-lead-month" style="--left:' + text(left) + '%;--width:' + text(width) + '%">',
+        '<b>' + text(month.label.toUpperCase()) + '</b>',
+        '<span>' + text(month.caption) + '</span>',
+        '</div>'
+      ].join("");
+    }).join("");
+  }
+
+  function renderLeadLane(model, lane) {
+    return [
+      '<section class="wt-lead-lane is-' + text(lane.id) + '">',
+      '<header><small>' + text(lane.kicker) + '</small><h2>' + text(lane.title) + '</h2><p>Results ready · <b>' + text(formatLeadDate(lane.result)) + '</b></p></header>',
+      '<div class="wt-lead-track">',
+      renderLeadTrackGrid(model),
+      '<div class="wt-lead-baseline"></div>',
+      lane.phases.map(function (phase) { return renderLeadPhase(model, phase, lane.id); }).join(""),
+      lane.milestones.map(function (milestone) { return renderLeadMilestone(model, milestone, lane.id); }).join(""),
+      '</div>',
+      '</section>'
+    ].join("");
+  }
+
+  function renderLeadTrackGrid(model) {
+    var months = monthUnits(model.range);
+    var shared = [model.calendar.milestones[0].date, model.sampleDate];
+    return [
+      months.map(function (month) {
+        return '<span class="wt-lead-month-line" style="--x:' + text(leadTimelinePosition(month.start, model.range)) + '%"></span>';
+      }).join(""),
+      shared.map(function (date) {
+        return '<span class="wt-lead-shared-line" style="--x:' + text(leadTimelinePosition(date, model.range)) + '%"></span>';
+      }).join("")
+    ].join("");
+  }
+
+  function renderLeadPhase(model, phase, laneId) {
+    var left = leadTimelinePosition(phase.start, model.range);
+    var right = leadTimelinePosition(phase.end, model.range);
+    return [
+      '<div class="wt-lead-phase is-' + text(laneId) + (phase.parallel ? " is-parallel" : "") + '" style="--left:' + text(left) + '%;--width:' + text(Math.max(1.4, right - left)) + '%;--row:' + text(phase.row) + '">',
+      '<span>' + text(phase.label) + '</span><b>' + text(phase.weeks) + ' WEEK' + (phase.weeks === 1 ? "" : "S") + '</b>',
+      '</div>'
+    ].join("");
+  }
+
+  function renderLeadMilestone(model, milestone, laneId) {
+    var position = leadTimelinePosition(milestone.date, model.range);
+    var classes = [
+      "wt-lead-milestone",
+      "is-" + laneId,
+      "is-" + milestone.level,
+      milestone.shared ? "is-shared" : "",
+      milestone.result ? "is-result" : "",
+      milestone.calculated ? "is-calculated" : "",
+      milestone.align ? "is-align-" + milestone.align : ""
+    ].filter(Boolean).join(" ");
+    return [
+      '<div class="' + text(classes) + '" style="--x:' + text(position) + '%">',
+      '<i></i>',
+      '<div><span>' + text(milestone.label) + (milestone.calculated ? '<small>CALCULATED</small>' : "") + '</span><b>' + text(formatLeadDate(milestone.date)) + '</b></div>',
+      '</div>'
+    ].join("");
+  }
+
+  function leadTimelinePosition(date, range) {
+    var total = Math.max(1, daysBetween(range.start, addDaysIso(range.end, 1)));
+    return Math.max(0, Math.min(100, daysBetween(range.start, date) / total * 100));
+  }
+
+  function formatLeadDate(date) {
+    var value = fromIso(date);
+    return pad(value.getMonth() + 1) + "/" + pad(value.getDate());
+  }
+
+  function formatLeadMonth(date) {
+    var value = fromIso(date);
+    return MONTHS[value.getMonth()] + " " + value.getFullYear();
   }
 
   function withCalendarState(period, anchorIso, callback) {
