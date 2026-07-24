@@ -36,6 +36,7 @@ try {
     await page.locator(".wt-app.is-sidebar-collapsed").waitFor({ state: "attached" });
     await page.locator("[data-sidebar-toggle]").first().click();
     await page.locator(".wt-app:not(.is-sidebar-collapsed)").waitFor({ state: "attached" });
+    await page.waitForTimeout(650);
 
     const result = await page.evaluate(() => {
       const pageRoot = document.querySelector(".wt-lead-page");
